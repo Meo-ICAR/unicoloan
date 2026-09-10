@@ -6,7 +6,6 @@ use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use stdClass;
 
 class Provvigione extends Model
 {
@@ -197,40 +196,29 @@ class Provvigione extends Model
         return $provvcliente ? (float) $provvcliente : 0.0;
     }
 
-    public function scopePerSemestreOam(Builder $query, $semester): Builder
+    /**
+     * Provvigioni con data_status compresa nel semestre indicato.
+     */
+    public function scopePerSemestreOam(Builder $query, ?OamSemester $semester = null): Builder
     {
-        // 1. Recuperiamo il semestre di default
-        $defaultSemester = OamSemester::getInBaseAlMeseCorrente();
+        $semester ??= OamSemester::current();
 
-        // 2. Creiamo una variabile di appoggio generica
-        $semesterAppoggio = new stdClass;
-
-        // Assegniamo le date: se passate usiamo quelle forzate, altrimenti usiamo quelle di default
-        $semesterAppoggio->start = $semester->start ?? $defaultSemester->start;
-        $semesterAppoggio->end = $semester->end ?? $defaultSemester->end;
-
-        return $query->where('data_status', '<=', $semesterAppoggio->end)
-            ->where('data_status', '>=', $semesterAppoggio->start);
-
+        return $query
+            ->where('data_status', '>=', $semester->start)
+            ->where('data_status', '<=', $semester->end);
     }
 
-    public function scopeStorniOam(Builder $query): Builder
+    /**
+     * Storni di provvigione Istituto contabilizzati nel semestre indicato.
+     */
+    public function scopeStorniOam(Builder $query, ?OamSemester $semester = null): Builder
     {
-        // 1. Recuperiamo il semestre di default
-        $defaultSemester = OamSemester::getInBaseAlMeseCorrente();
-
-        // 2. Creiamo una variabile di appoggio generica
-        $semesterAppoggio = new stdClass;
-
-        // Assegniamo le date: se passate usiamo quelle forzate, altrimenti usiamo quelle di default
-        $semesterAppoggio->start = $defaultSemester->start;
-        $semesterAppoggio->end = $defaultSemester->end;
+        $semester ??= OamSemester::current();
 
         return $query
             ->where('tipo', 'Istituto')
             ->where('descrizione', 'like', '%storno%')
-            ->where('data_status', '<=', $semesterAppoggio->end)
-            ->where('data_status', '>=', $semesterAppoggio->start);
-
+            ->where('data_status', '>=', $semester->start)
+            ->where('data_status', '<=', $semester->end);
     }
 }

@@ -3,53 +3,59 @@
 namespace App\Console\Commands;
 
 use App\Services\ImportPraticheService;
-use Carbon\Carbon;
+use App\ValueObjects\OamSemester;
 use Illuminate\Console\Command;
+use Throwable;
 
 class ImportPraticheOamCommand extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
-    protected $signature = 'oam:import-pratiche';
+    protected $signature = 'oam:import-pratiche
+        {--year= : Anno del semestre da importare (default: semestre corrente)}
+        {--semester= : Numero del semestre 1 o 2 (default: semestre corrente)}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
-    protected $description = 'Importa le pratiche da PROFORMA a OamPratiche filtrandole in base alla data corrente';
+    protected $description = 'Importa le pratiche da PROFORMA nella tabella oam_pratiches per il semestre indicato';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle(ImportPraticheService $service)
+    public function handle(ImportPraticheService $service): int
     {
-        $now = Carbon::now();
-        $currentYear = $now->year;
+        $semester = $this->resolveSemester();
 
-        if ($now->month < 4) {
-            // Se siamo prima di aprile (es. gen-mar), prendiamo il secondo semestre dell'anno precedente
-            $startAt = Carbon::create($currentYear - 1, 7, 1)->startOfDay();
-            $endAt = Carbon::create($currentYear, 1, 1)->startOfDay();
-        } else {
-            // Altrimenti prendiamo il primo semestre dell'anno corrente
-            $startAt = Carbon::create($currentYear, 1, 1)->startOfDay();
-            $endAt = Carbon::create($currentYear, 7, 1)->startOfDay();
-        }
+        $this->info("Import pratiche OAM per il periodo {$semester->period()} ({$semester->label()})");
 
-        $this->info("Avvio importazione pratiche dal {$startAt->format('d/m/Y')} al {$endAt->format('d/m/Y')}");
-
-        // NOTA: Il service attualmente accetta solo $startAt dopo le tue ultime modifiche.
-        // Assicurati che accetti anche $endAt se vuoi filtrare anche per data di fine.
-        // Qui lo passo al metodo, potresti dover aggiornare la firma del metodo import nel service.
         try {
-            $importedCount = $service->import($startAt, $endAt);
-            $this->info("Importazione completata con successo! Record importati: {$importedCount}");
-        } catch (\Throwable $e) {
-            $this->error("Errore durante l'importazione: " . $e->getMessage());
+            $imported = $service->import($semester);
+        } catch (Throwable $e) {
+            $this->error("Import fallito: {$e->getMessage()}");
+
+            report($e);
+
+            return self::FAILURE;
         }
+
+        $this->info("Import completato: {$imported} pratiche.");
+
+        return self::SUCCESS;
+    }
+
+    private function resolveSemester(): OamSemester
+    {
+        $year = $this->option('year');
+        $semester = $this->option('semester');
+
+        if ($year === null && $semester === null) {
+            return OamSemester::current();
+        }
+
+        $current = OamSemester::current();
+
+        return new OamSemester(
+            $year !== null ? (int) $year : $current->year,
+            $semester !== null ? (int) $semester : $current->semesterNumber,
+        );
     }
 }

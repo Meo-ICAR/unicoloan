@@ -9,3 +9,10 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('documents:send-reminders')->dailyAt('08:00');
+
+// Rinfresca i dati di lavoro del semestrale OAM. L'import e' idempotente sul
+// periodo corrente ed e' protetto da lock: ricostruisce solo company + periodo.
+Schedule::command('oam:import-pratiche')
+    ->weeklyOn(1, '03:00')
+    ->withoutOverlapping()
+    ->runInBackground();

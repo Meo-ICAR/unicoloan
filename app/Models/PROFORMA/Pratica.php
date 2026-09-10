@@ -4,11 +4,13 @@ namespace App\Models\PROFORMA;
 
 use App\Models\Document;
 use App\Models\OamCode;
+use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection;
 
 class Pratica extends Model
 {
@@ -137,8 +139,10 @@ class Pratica extends Model
         return $this->HasMany(Provvigione::class, 'id_pratica', 'id');
     }
 
-    public function scopePerSemestreOam(Builder $query, $semester): Builder
+    public function scopePerSemestreOam(Builder $query, ?OamSemester $semester = null): Builder
     {
+        $semester ??= OamSemester::current();
+
         return $query
             ->whereNull('rejected_at')
             ->where('data_inserimento_pratica', '>=', '2025-01-01') // Cutoff storico

@@ -8,253 +8,178 @@ use App\Models\PROFORMA\Fornitore;
 use App\Models\PROFORMA\Pratica;
 use App\Models\PROFORMA\Provvigione;
 use App\ValueObjects\OamSemester;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use stdClass;
 
 class ImportPraticheService
 {
     /**
-     * Importa i dati da Pratica a OamPratiche
+     * Importa le pratiche del semestre da PROFORMA nella tabella di lavoro
+     * oam_pratiches e ricostruisce l'aggregato semestrale.
      *
-     * @param  Carbon  $startAt  Data di inizio
-     * @param  Carbon  $endAt  Data di fine
-     * @return int Numero di record importati
+     * L'operazione:
+     * - e' protetta da un lock atomico (niente doppie esecuzioni concorrenti);
+     * - cancella solo i dati della company + periodo correnti, non l'intera
+     *   tabella, per non perdere lo storico degli altri periodi;
+     * - gira in un'unica transazione: in caso di errore non lascia la tabella
+     *   in stato incoerente.
+     *
+     * @return int Numero di pratiche importate
      */
-    public function import(?Carbon $startAt = null, ?Carbon $endAt = null): int
+    public function import(?OamSemester $semester = null): int
     {
+        $semester ??= OamSemester::current();
 
-        // 1. Recuperiamo il semestre di default
-        $defaultSemester = OamSemester::getInBaseAlMeseCorrente();
+        $lock = Cache::lock('oam:import-pratiche', 900);
 
-        // 2. INVECE di usare stdClass, CLONIAMO l'oggetto OamSemester
-        $semesterAppoggio = clone $defaultSemester;
-
-        // Sovrascriviamo le date solo se ne hai passata una personalizzata
-        if ($startAt) {
-            $semesterAppoggio->start = $startAt;
-        }
-        if ($endAt) {
-            $semesterAppoggio->end = $endAt;
+        if (! $lock->get()) {
+            throw new \RuntimeException('Un import OAM e\' gia\' in corso. Riprovare tra qualche minuto.');
         }
 
-        OamPratiche::truncate();
+        try {
+            return $this->runImport($semester);
+        } finally {
+            $lock->release();
+        }
+    }
 
-        $importedCount = 0;
+    private function runImport(OamSemester $semester): int
+    {
+        $companyId = app(CompanyResolver::class)->resolveId();
+        $period = $semester->period();
 
-        // 3. Passiamo il VERO oggetto OamSemester allo scope
-        $query = Pratica::perSemestreOam($semesterAppoggio);
+        return DB::transaction(function () use ($semester, $companyId, $period): int {
+            // Rimuoviamo solo il periodo/azienda in ricostruzione.
+            OamPratiche::query()
+                ->where('company_id', $companyId)
+                ->where('period', $period)
+                ->forceDelete();
 
-        $query->chunk(1000, function (Collection $pratiche) use (&$importedCount, $semesterAppoggio) {
-            DB::transaction(function () use ($pratiche, &$importedCount, $semesterAppoggio) {
-                foreach ($pratiche as $pratica) {
+            $importedCount = 0;
 
-                    // Ora $semesterAppoggio è un OamSemester e PHP non darà più errore!
-                    $this->importSingle($pratica, $semesterAppoggio);
-                    $importedCount++;
-                }
-            });
+            Pratica::perSemestreOam($semester)
+                ->chunkById(1000, function (Collection $pratiche) use (&$importedCount, $companyId, $period): void {
+                    $provvigioni = $this->loadProvvigioniAggregate(
+                        $pratiche->pluck('codice_pratica')->filter()->all()
+                    );
+
+                    foreach ($pratiche as $pratica) {
+                        $this->importSingle($pratica, $companyId, $period, $provvigioni[$pratica->codice_pratica] ?? null);
+                        $importedCount++;
+                    }
+                });
+
+            $this->importStorni($semester, $companyId, $period);
+            $this->applyBusinessRules($period, $companyId);
+
+            app(OamSemestraleService::class)->aggregate(period: $period, companyId: $companyId);
+
+            return $importedCount;
         });
-
-        // inserisci provvigioni di storno
-        // Calcolo storni: provvigioni Istituto con "storno" in descrizione
-        $storniCount = 0;
-        // FIX 1: Passiamo la stringa del periodo (es. '202606') o le date corrette anziché l'oggetto intero
-        // Se lo scope StorniOam vuole il periodo in formato stringa 'Ym':
-        $periodString = '202606'; // $semesterAppoggio->end;
-
-        $risultati = Provvigione::StorniOam($periodString)
-            ->whereHas('pratica', function ($q) use ($semesterAppoggio) {
-                // La pratica DEVE esistere e deve essere stata erogata prima dell'inizio del semestre
-                $q->where('erogated_at', '<', $semesterAppoggio->start->copy()->startOfDay());
-            })
-            ->with([
-                'pratica' => fn ($q) => $q->select('id', 'erogated_at', 'codice_pratica', 'denominazione_banca',
-                    'denominazione_agente', 'tipo_prodotto', 'abi_name', 'net', 'nome_cliente', 'cognome_cliente'),
-            ])
-            ->get();
-
-        foreach ($risultati as $provvigione) {
-            $this->importStorno($provvigione->pratica, $provvigione->importo);
-            $storniCount++;
-        }
-        //  Log::info('Report Storni OAM (Somma e Conteggio):', $reportStorni->toArray());
-
-        DB::update('UPDATE oam_pratiches o
-        INNER JOIN oam_codes c ON c.tipo_prodotto = o.tipo_prodotto
-        SET
-            o.prodotto_creditizio =  c.description,
-            o.pratiche_lavorazione = IF(o.erogated_at IS NULL, 1, 0),
-            o.pratiche_intermediate = IF(o.erogated_at IS NOT NULL, 1, 0); ');
-
-        DB::update("UPDATE oam_pratiches o 
-        SET
-            o.prodotto_creditizio =
-            IF(o.tipo_prodotto = 'Mutuo','Segnalazione Mutuo',o.prodotto_creditizio)
-
-            where (o.tipo_prodotto = 'Mutuo') and (o.erogato = 0); ");
-
-        DB::update("UPDATE oam_pratiches o 
-        SET
-            o.prodotto_creditizio =
-            IF(o.tipo_prodotto <> 'Mutuo','Segnalazione Finanziamento',o.prodotto_creditizio)
-
-            where (o.tipo_prodotto <> 'Mutuo') and (o.erogato = 0); ");
-
-        DB::update('UPDATE oam_pratiches o
-            SET
-             o.erogato_lavorazione = o.erogato_lordo,
-             o.erogato_lordo = 0
-            where o.pratiche_lavorazione = 1');
-
-        $service = new OamSemestraleService;
-        $count = $service->aggregate(null, companyId: app(CompanyResolver::class)->resolveId());
-
-        return $importedCount;
     }
 
     /**
-     * Importa una singola pratica
+     * Somma delle provvigioni per codice pratica, in un'unica query invece di
+     * 5-6 query per ogni pratica.
+     *
+     * @param  array<int, string>  $codiciPratica
+     * @return array<string, \stdClass>
      */
-    public function importSingle(Pratica $pratica, OamSemester $semester): OamPratiche
+    private function loadProvvigioniAggregate(array $codiciPratica): array
     {
-        $company_id = app(CompanyResolver::class)->resolveId();
-
-        // Recuperiamo il periodo dalla data di inizio del semestre
-        $period = '202606'; // $semester->end;
-
-        $erogato = $pratica->net;
-
-        $rejected = $pratica->rejected_at;
-
-        $cliente = trim(($pratica->nome_cliente ?? '').' '
-            .($pratica->cognome_cliente ?? ''));
-
-        $erogated = $pratica->erogated_at;
-        $approved = $pratica->approved_at;
-
-        if ($approved == null) {
-            $approved = $erogated;
+        if ($codiciPratica === []) {
+            return [];
         }
 
-        $sended = $pratica->sended_at;
-        if ($sended == null) {
-            $sended = $approved;
-        }
+        return Provvigione::query()
+            ->whereIn('id_pratica', $codiciPratica)
+            ->selectRaw('id_pratica')
+            ->selectRaw("SUM(CASE WHEN tipo = 'Cliente' THEN importo ELSE 0 END) as provv_clientela")
+            ->selectRaw("SUM(CASE WHEN tipo = 'Istituto' AND descrizione NOT LIKE '%premio%' THEN importo ELSE 0 END) as provv_istituto_comp")
+            ->selectRaw("SUM(CASE WHEN tipo = 'Istituto' AND descrizione LIKE '%premio%' THEN importo ELSE 0 END) as premi_istituto_comp")
+            ->selectRaw("SUM(CASE WHEN tipo = 'Agente' THEN importo ELSE 0 END) as payout_rete_credito")
+            ->selectRaw("SUM(CASE WHEN tipo = 'Istituto' AND descrizione LIKE '%storno%' THEN importo ELSE 0 END) as importo_retrocesse")
+            ->groupBy('id_pratica')
+            ->get()
+            ->keyBy('id_pratica')
+            ->all();
+    }
 
-        $istitutox = $pratica->denominazione_banca;
-        $istituto = Clienti::getClienteNomeByName($istitutox);
-        $agente = Fornitore::getFornitoreNomeByName($pratica->denominazione_agente);
-        $id_pratica = $pratica->codice_pratica;
-
-        $provv_clientela = Provvigione::getProvvigioneCliente($id_pratica);
-        $provv_istituto_comp = Provvigione::getProvvigioneIstituto($id_pratica, $istitutox);
-        $premi_istituto_comp = Provvigione::getPremioIstituto($id_pratica, $istitutox);
-        $payout_rete_credito = Provvigione::getProvvigioneAgenti($id_pratica);
-        $storno = Provvigione::getProvvigioneStorno($id_pratica);
+    private function importSingle(Pratica $pratica, string $companyId, string $period, ?\stdClass $provvigioni): OamPratiche
+    {
+        $istitutoNome = $pratica->denominazione_banca;
+        $istitutoCanonico = Clienti::getClienteNomeByName($istitutoNome);
+        $cliente = Clienti::query()->where('name', $istitutoNome)->first();
 
         $tipoProdotto = $pratica->tipo_prodotto;
-        $cliente = Clienti::find('name', $istitutox)->first();
-        if ($cliente->principal_type != 'banca') {
-            $erogato = 0;
-        } else {
-            if (($tipoProdotto === 'Cessione') || ($tipoProdotto === 'Delega')) {
-                $erogato = $pratica->amount;
-            } else {
-                $erogato = $pratica->net;
-            }
-        }
-        $abiName = $pratica->abi_name;
-        if ($abiName < '0') {
-            $abiName = $cliente->abi_name;
-            if ($abiName < '0') {
-                $abiName = $istitutox;
-            }
-        }
+        $erogato = $this->erogatoLordo($pratica, $cliente?->principal_type, $tipoProdotto);
+        $storno = (float) ($provvigioni->importo_retrocesse ?? 0.0);
 
         return OamPratiche::updateOrCreate(
+            ['pratica' => $pratica->codice_pratica],
             [
-                // Usiamo il codice pratica come chiave di identificazione per non duplicare i record
-                'pratica' => $pratica->codice_pratica,
-            ],
-            [
-                'company_id' => $company_id,
+                'company_id' => $companyId,
                 'period' => $period,
-                'istituto' => $istituto,
-                'intermediari_non_convenzionati' => $istituto > 'A' ? 0 : 1,
-                'agente' => $agente,
-                'cliente' => $cliente ?: null,
+                'istituto' => $istitutoCanonico,
+                'intermediari_non_convenzionati' => blank($istitutoCanonico) ? 1 : 0,
+                'agente' => Fornitore::getFornitoreNomeByName($pratica->denominazione_agente),
+                'cliente' => $this->clienteLabel($pratica),
                 'tipo_prodotto' => $tipoProdotto,
                 'erogato_lordo' => $erogato,
-                'sended_at' => $sended,
-                'approved_at' => $approved,
-                'erogated_at' => $erogated,
-                'rejected_at' => $rejected,
-                'provv_clientela' => $provv_clientela,
-                'provv_istituto_comp' => $provv_istituto_comp,
-                'premi_istituto_comp' => $premi_istituto_comp,
-                'payout_rete_credito' => $payout_rete_credito,
+                'sended_at' => $this->sendedAt($pratica),
+                'approved_at' => $this->approvedAt($pratica),
+                'erogated_at' => $pratica->erogated_at,
+                'rejected_at' => $pratica->rejected_at,
+                'provv_clientela' => (float) ($provvigioni->provv_clientela ?? 0.0),
+                'provv_istituto_comp' => (float) ($provvigioni->provv_istituto_comp ?? 0.0),
+                'premi_istituto_comp' => (float) ($provvigioni->premi_istituto_comp ?? 0.0),
+                'payout_rete_credito' => (float) ($provvigioni->payout_rete_credito ?? 0.0),
                 'importo_retrocesse' => $storno,
-                'num_rivalse' => $storno != 0 ? 1 : 0,
-
-                'abi_name' => $abiName,
+                'num_rivalse' => abs($storno) > 0 ? 1 : 0,
+                'abi_name' => $this->abiName($pratica, $cliente?->abi_name, $istitutoNome),
             ]
         );
     }
 
-    /**
-     * Importa una singola pratica
-     */
-    public function importStorno(Pratica $pratica, float $storno): OamPratiche
+    private function importStorni(OamSemester $semester, string $companyId, string $period): void
     {
-        $company_id = app(CompanyResolver::class)->resolveId();
+        Provvigione::storniOam($semester)
+            ->whereHas('pratica', function ($q) use ($semester): void {
+                // Storni di pratiche erogate PRIMA del semestre in analisi.
+                $q->where('erogated_at', '<', $semester->start);
+            })
+            ->with(['pratica:id,erogated_at,codice_pratica,denominazione_banca,denominazione_agente,tipo_prodotto,abi_name,net,nome_cliente,cognome_cliente'])
+            ->get()
+            ->each(function (Provvigione $provvigione) use ($companyId, $period): void {
+                if ($provvigione->pratica === null) {
+                    return;
+                }
 
-        // Recuperiamo il periodo dalla data di inizio del semestre
-        //  $period = $semester->end->format('Ym');
-        $period = '202606';
-        $erogato = $pratica->net;
+                $this->importStorno($provvigione->pratica, (float) $provvigione->importo, $companyId, $period);
+            });
+    }
 
-        $rejected = $pratica->rejected_at;
-
-        $cliente = trim(($pratica->nome_cliente ?? '').' '
-            .($pratica->cognome_cliente ?? ''));
-
-        $erogated = $pratica->erogated_at;
-        $approved = $pratica->approved_at;
-
-        if ($approved == null) {
-            $approved = $erogated;
-        }
-
-        $sended = $pratica->sended_at;
-        if ($sended == null) {
-            $sended = $approved;
-        }
-
-        $istitutox = $pratica->denominazione_banca;
-        $istituto = Clienti::getClienteNomeByName($istitutox);
-        $agente = $pratica->denominazione_agente; // Fornitore::getFornitoreNomeByName($pratica->denominazione_agente);
-        $id_pratica = $pratica->codice_pratica;
+    private function importStorno(Pratica $pratica, float $storno, string $companyId, string $period): OamPratiche
+    {
+        $istitutoNome = $pratica->denominazione_banca;
+        $istitutoCanonico = Clienti::getClienteNomeByName($istitutoNome);
 
         return OamPratiche::updateOrCreate(
+            ['pratica' => $pratica->codice_pratica],
             [
-                // Usiamo il codice pratica come chiave di identificazione per non duplicare i record
-                'pratica' => $pratica->codice_pratica,
-            ],
-            [
-                'company_id' => $company_id,
+                'company_id' => $companyId,
                 'period' => $period,
-                'istituto' => $istituto,
-                'intermediari_non_convenzionati' => $istituto > 'A' ? 0 : 1,
+                'istituto' => $istitutoCanonico,
+                'intermediari_non_convenzionati' => blank($istitutoCanonico) ? 1 : 0,
                 'agente' => $pratica->denominazione_agente,
-                'cliente' => $cliente ?: null,
+                'cliente' => $this->clienteLabel($pratica),
                 'tipo_prodotto' => $pratica->tipo_prodotto,
                 'erogato_lordo' => 0,
-                'sended_at' => $sended,
-                'approved_at' => $approved,
-                'erogated_at' => $erogated,
-                'rejected_at' => $rejected,
+                'sended_at' => $this->sendedAt($pratica),
+                'approved_at' => $this->approvedAt($pratica),
+                'erogated_at' => $pratica->erogated_at,
+                'rejected_at' => $pratica->rejected_at,
                 'provv_clientela' => 0,
                 'provv_istituto_comp' => 0,
                 'premi_istituto_comp' => 0,
@@ -264,5 +189,86 @@ class ImportPraticheService
                 'abi_name' => $pratica->abi_name,
             ]
         );
+    }
+
+    /**
+     * Regole di business post-import (classificazione prodotto creditizio,
+     * separazione erogato lavorazione / erogato lordo). Ristrette al
+     * periodo/azienda in ricostruzione.
+     */
+    private function applyBusinessRules(string $period, string $companyId): void
+    {
+        DB::update(
+            'UPDATE oam_pratiches o
+             INNER JOIN oam_codes c ON c.tipo_prodotto = o.tipo_prodotto
+             SET o.prodotto_creditizio = c.description,
+                 o.pratiche_lavorazione = IF(o.erogated_at IS NULL, 1, 0),
+                 o.pratiche_intermediate = IF(o.erogated_at IS NOT NULL, 1, 0)
+             WHERE o.period = ? AND o.company_id = ?',
+            [$period, $companyId]
+        );
+
+        DB::update(
+            "UPDATE oam_pratiches o
+             SET o.prodotto_creditizio = 'Segnalazione Mutuo'
+             WHERE o.tipo_prodotto = 'Mutuo' AND o.erogato = 0
+               AND o.period = ? AND o.company_id = ?",
+            [$period, $companyId]
+        );
+
+        DB::update(
+            "UPDATE oam_pratiches o
+             SET o.prodotto_creditizio = 'Segnalazione Finanziamento'
+             WHERE o.tipo_prodotto <> 'Mutuo' AND o.erogato = 0
+               AND o.period = ? AND o.company_id = ?",
+            [$period, $companyId]
+        );
+
+        DB::update(
+            'UPDATE oam_pratiches o
+             SET o.erogato_lavorazione = o.erogato_lordo, o.erogato_lordo = 0
+             WHERE o.pratiche_lavorazione = 1
+               AND o.period = ? AND o.company_id = ?',
+            [$period, $companyId]
+        );
+    }
+
+    private function erogatoLordo(Pratica $pratica, ?string $principalType, ?string $tipoProdotto): float
+    {
+        if ($principalType !== 'banca') {
+            return 0.0;
+        }
+
+        return in_array($tipoProdotto, ['Cessione', 'Delega'], true)
+            ? (float) $pratica->amount
+            : (float) $pratica->net;
+    }
+
+    private function abiName(Pratica $pratica, ?string $clienteAbiName, ?string $istitutoNome): ?string
+    {
+        foreach ([$pratica->abi_name, $clienteAbiName, $istitutoNome] as $candidate) {
+            if (filled($candidate) && ! str_starts_with((string) $candidate, '-')) {
+                return $candidate;
+            }
+        }
+
+        return $istitutoNome;
+    }
+
+    private function clienteLabel(Pratica $pratica): ?string
+    {
+        $label = trim(($pratica->nome_cliente ?? '').' '.($pratica->cognome_cliente ?? ''));
+
+        return $label !== '' ? $label : null;
+    }
+
+    private function sendedAt(Pratica $pratica): mixed
+    {
+        return $pratica->sended_at ?? $this->approvedAt($pratica);
+    }
+
+    private function approvedAt(Pratica $pratica): mixed
+    {
+        return $pratica->approved_at ?? $pratica->erogated_at;
     }
 }
