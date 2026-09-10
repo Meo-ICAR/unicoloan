@@ -11,6 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Schema aspirazionale: la tabella `clients` non e' gestita da migration.
+        // Su ambienti dove esiste (creata a mano) la tabella e' gia' presente;
+        // altrove la migration diventa un no-op invece di fallire sul vincolo FK.
+        if (Schema::hasTable('client_relations') || ! Schema::hasTable('clients')) {
+            return;
+        }
+
         Schema::create('client_relations', function (Blueprint $table) {
             $table->id()->comment('ID univoco relazione cliente');
 

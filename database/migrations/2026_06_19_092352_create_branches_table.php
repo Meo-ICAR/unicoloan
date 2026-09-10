@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -31,8 +32,9 @@ return new class extends Migration {
             $table->string('province', 100)->nullable()->comment('Provincia della sede (nome esteso)');
             $table->string('region', 100)->nullable()->comment('Regione della sede');
 
-            // FIX: Usiamo uuidMorphs perché i soggetti (es. Company o Clienti) usano chiavi UUID
-            $table->uuidMorphs('branchable');
+            // Usiamo nullableUuidMorphs: una filiale e' sempre legata a una Company via
+            // company_id, mentre l'aggancio polimorfico branchable e' opzionale.
+            $table->nullableUuidMorphs('branchable');
 
             $table->boolean('is_main_office')->default(false)->comment('Indica se è la Sede Legale/Operativa principale (1 = Sì, 0 = No)');
             $table->boolean('is_active')->default(true)->comment('Indica se la filiale è attiva (1 = Sì, 0 = No)');

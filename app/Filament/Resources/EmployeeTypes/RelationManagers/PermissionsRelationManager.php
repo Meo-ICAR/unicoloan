@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\EmployeeTypeResource\RelationManagers;
+namespace App\Filament\Resources\EmployeeTypes\RelationManagers;
 
 use App\Models\Resource;
 use Filament\Actions\Action;

@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Enums\DocumentStatus;
-use App\Mail\DocumentExpiryReminderMail;
+use App\Mail\DocumentReminderMail;
 use App\Models\Document;
 use App\Models\DocumentReminder;
 use App\Models\EmailTemplate;
@@ -108,7 +108,7 @@ class DocumentReminderService
                 $rendered = $this->renderGroupEmail($template, $recipient['name'], $dueDocuments);
 
                 Mail::to($recipient['email'])->send(
-                    new DocumentExpiryReminderMail($rendered['subject'], $rendered['body'])
+                    new DocumentReminderMail($rendered['subject'], $rendered['body'])
                 );
 
                 foreach ($dueDocuments as $document) {

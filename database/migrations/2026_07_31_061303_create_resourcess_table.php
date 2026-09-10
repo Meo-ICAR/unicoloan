@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('resources')) {
+            return;
+        }
+
         Schema::create('resources', function (Blueprint $table) {
             $table->id();
             $table->string('app_name');                                // Es. "CRM", "PORTALE_OAM", "FINANCE"
@@ -30,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('resourcess');
+        Schema::dropIfExists('resources');
     }
 };

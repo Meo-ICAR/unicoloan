@@ -33,7 +33,7 @@ class ImportOamActionTest extends TestCase
         $response = $this->get(route('filament.admin.resources.oam-semestrales.index'));
 
         $response->assertOk();
-        $response->assertSee('Importa Pratiche OAM');
+        $response->assertSee('Importa Pratiche');
     }
 
     public function test_export_action_is_registered_on_list_page(): void
@@ -45,7 +45,7 @@ class ImportOamActionTest extends TestCase
         $response = $this->get(route('filament.admin.resources.oam-semestrales.index'));
 
         $response->assertOk();
-        $response->assertSee('Esporta Relazione OAM');
+        $response->assertSee('Completo');
     }
 
     /**

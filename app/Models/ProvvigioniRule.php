@@ -17,7 +17,7 @@ class ProvvigioniRule extends Model
      *
      * @var string
      */
-    protected $table = 'unicooam.provvigioni_rules';
+    protected $table = 'provvigioni_rules';
 
     /**
      * Gli attributi assegnabili in massa (Mass Assignment).

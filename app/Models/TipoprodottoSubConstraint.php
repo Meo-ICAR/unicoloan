@@ -9,7 +9,7 @@ class TipoprodottoSubConstraint extends Model
 {
     // protected $connection = 'mysql_proforma';
 
-    protected $table = 'unicooam.tipoprodotto_sub_constraints';
+    protected $table = 'tipoprodotto_sub_constraints';
 
     /**
      * Disabilitiamo i timestamps nativi di Laravel (created_at/updated_at)

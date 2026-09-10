@@ -16,7 +16,7 @@ class BlacklistClienteFornitore extends Model
      *
      * @var string
      */
-    protected $table = 'unicooam.blacklist_clienti_fornitori';
+    protected $table = 'blacklist_clienti_fornitori';
 
     /**
      * Gli attributi assegnabili in massa.

@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\EmployeeTypes;
 
-use App\Filament\Resources\EmployeeTypeResource\RelationManagers\PermissionsRelationManager;
 use App\Filament\Resources\EmployeeTypes\Pages\CreateEmployeeType;
 use App\Filament\Resources\EmployeeTypes\Pages\EditEmployeeType;
 use App\Filament\Resources\EmployeeTypes\Pages\ListEmployeeTypes;
 use App\Filament\Resources\EmployeeTypes\Pages\ViewEmployeeType;
+use App\Filament\Resources\EmployeeTypes\RelationManagers\PermissionsRelationManager;
 use App\Filament\Resources\EmployeeTypes\Schemas\EmployeeTypeForm;
 use App\Filament\Resources\EmployeeTypes\Schemas\EmployeeTypeInfolist;
 use App\Filament\Resources\EmployeeTypes\Tables\EmployeeTypesTable;

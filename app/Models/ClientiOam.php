@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Models\PROFORMA\Clienti;
-use App\Models\OamCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;  // <-- Usa Pivot invece di Model
+
 // use Illuminate\Database\Eloquent\Model;
 
 class ClientiOam extends Pivot
@@ -16,7 +16,8 @@ class ClientiOam extends Pivot
     // Forza il nome della tabella visto che non segue la pluralizzazione inglese standard
 
     protected $connection = 'mysql';
-    protected $table = 'unicooam.clienti_oam';
+
+    protected $table = 'clienti_oam';
 
     protected $fillable = [
         'clienti_id',

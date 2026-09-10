@@ -14,7 +14,7 @@ class OamCode extends Model
     // Definito esplicitamente per mappare la tabella plurale corretta
     protected $connection = 'mysql';
 
-    protected $table = 'unicooam.oam_codes';
+    protected $table = 'oam_codes';
 
     protected $fillable = [
         'code',
@@ -31,7 +31,7 @@ class OamCode extends Model
         return $this
             ->belongsToMany(
                 Clienti::class,
-                'unicooam.clienti_oam',
+                'clienti_oam',
                 'oam_code_id',  // Invertito: prima la chiave di questo modello nella pivot
                 'clienti_id'  // Poi la chiave del modello correlato
             )

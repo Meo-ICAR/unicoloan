@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Mail\DocumentExpiryReminderMail;
+use App\Mail\DocumentReminderMail;
 use App\Models\Company;
 use App\Models\Document;
 use App\Models\DocumentReminder;
@@ -52,6 +52,7 @@ class DocumentReminderServiceTest extends TestCase
             'documentable_id' => (string) $employee->id,
             'document_type_id' => $documentType->id,
             'status' => 'verified',
+            'is_monitored' => true,
             'expires_at' => now()->addDays(7)->toDateString(),
         ];
 
@@ -70,7 +71,7 @@ class DocumentReminderServiceTest extends TestCase
         $this->assertSame(1, $stats['groups']);
         $this->assertSame(2, $stats['sent']);
 
-        Mail::assertSent(DocumentExpiryReminderMail::class, function (DocumentExpiryReminderMail $mail): bool {
+        Mail::assertSent(DocumentReminderMail::class, function (DocumentReminderMail $mail): bool {
             return $mail->hasTo('dipendente@example.com');
         });
 
@@ -104,6 +105,7 @@ class DocumentReminderServiceTest extends TestCase
             'documentable_id' => (string) $employee->id,
             'name' => 'Documento unico',
             'status' => 'verified',
+            'is_monitored' => true,
             'expires_at' => now()->addDays(7)->toDateString(),
         ]);
 
@@ -114,6 +116,6 @@ class DocumentReminderServiceTest extends TestCase
 
         $this->assertSame(1, $first['sent']);
         $this->assertSame(0, $second['sent']);
-        Mail::assertSent(DocumentExpiryReminderMail::class, 1);
+        Mail::assertSent(DocumentReminderMail::class, 1);
     }
 }

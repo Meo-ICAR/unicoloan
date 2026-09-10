@@ -17,7 +17,7 @@ class Branch extends Model
 
     protected $connection = 'mysql';
 
-    protected $table = 'unicooam.branches';
+    protected $table = 'branches';
 
     protected $orderBy = 'name';
 
