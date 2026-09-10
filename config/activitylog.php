@@ -16,7 +16,12 @@ return [
      * When the clean command is executed, all recording activities older than
      * the number of days specified here will be deleted.
      */
-    'clean_after_days' => 365,
+    /*
+     * Conservazione del registro attivita'. Gli adempimenti OAM e antiriciclaggio
+     * richiedono la conservazione pluriennale delle evidenze: default 10 anni.
+     * Il comando activitylog:clean cancella i record piu' vecchi di questo valore.
+     */
+    'clean_after_days' => (int) env('ACTIVITYLOG_CLEAN_AFTER_DAYS', 3650),
 
     /*
      * If no log name is passed to the activity() helper

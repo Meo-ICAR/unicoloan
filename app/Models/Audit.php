@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AuditStatus;
+use App\Models\Concerns\LogsComplianceActivity;
 use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Audit extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsComplianceActivity, SoftDeletes;
 
     protected $connection = 'mysql';
 
@@ -76,6 +77,10 @@ class Audit extends Model
             if (blank($audit->company_id)) {
                 $audit->company_id = Company::first()?->id;
             }
+
+            if (blank($audit->protocol_number)) {
+                $audit->protocol_number = static::nextProtocolNumber();
+            }
         });
     }
 
@@ -92,6 +97,22 @@ class Audit extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Numero di protocollo progressivo per anno, formato "AAAA/NNNN".
+     * L'indice unique su protocol_number intercetta eventuali collisioni.
+     */
+    public static function nextProtocolNumber(?int $year = null): string
+    {
+        $year ??= (int) now()->year;
+
+        $lastSeq = (int) static::withTrashed()
+            ->where('protocol_number', 'like', $year.'/%')
+            ->selectRaw('MAX(CAST(SUBSTRING_INDEX(protocol_number, "/", -1) AS UNSIGNED)) as seq')
+            ->value('seq');
+
+        return sprintf('%d/%04d', $year, $lastSeq + 1);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsComplianceActivity;
 use App\Models\PROFORMA\Clienti;
 use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SuspiciousActivityReport extends Model
 {
-    use SoftDeletes;
+    use LogsComplianceActivity, SoftDeletes;
 
     protected $connection = 'mysql';
 

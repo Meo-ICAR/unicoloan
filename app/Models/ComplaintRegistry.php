@@ -6,10 +6,12 @@ use App\Enums\ComplaintCategory;
 use App\Enums\ComplaintMacroCategory;
 use App\Enums\ComplaintStatus;
 use App\Enums\ReceptionChannel;
+use App\Models\Concerns\LogsComplianceActivity;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
 use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -18,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ComplaintRegistry extends Model
 {
-    use SoftDeletes;
+    use HasFactory, LogsComplianceActivity, SoftDeletes;
 
     // Specifica il nome corretto della tabella se diverso dal plurale standard di Laravel
     protected $connection = 'mysql';
@@ -78,7 +80,26 @@ class ComplaintRegistry extends Model
             if (blank($complaint->company_id)) {
                 $complaint->company_id = Company::first()?->id;
             }
+
+            if (blank($complaint->protocol_number)) {
+                $complaint->protocol_number = static::nextProtocolNumber();
+            }
         });
+    }
+
+    /**
+     * Numero di protocollo progressivo per anno, formato "AAAA/NNNN".
+     */
+    public static function nextProtocolNumber(?int $year = null): string
+    {
+        $year ??= (int) now()->year;
+
+        $lastSeq = (int) static::withTrashed()
+            ->where('protocol_number', 'like', $year.'/%')
+            ->selectRaw('MAX(CAST(SUBSTRING_INDEX(protocol_number, "/", -1) AS UNSIGNED)) as seq')
+            ->value('seq');
+
+        return sprintf('%d/%04d', $year, $lastSeq + 1);
     }
 
     // ==========================================
@@ -112,8 +133,7 @@ class ComplaintRegistry extends Model
      */
     public function agent(): BelongsTo
     {
-        // Se utilizzi un modello differente (es. User, Collaboratore), cambialo qui
-        return $this->belongsTo(Fornitore::class, 'id');
+        return $this->belongsTo(Fornitore::class, 'agent_id');
     }
 
     /**
@@ -121,7 +141,7 @@ class ComplaintRegistry extends Model
      */
     public function bank(): BelongsTo
     {
-        return $this->belongsTo(Clienti::class, 'id');
+        return $this->belongsTo(Clienti::class, 'bank_id');
     }
 
     public function documents(): MorphMany

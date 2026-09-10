@@ -4,6 +4,7 @@ namespace App\Models\PROFORMA;
 
 use App\Models\Document;
 use App\Models\OamCode;
+use App\Models\PraticaStato;
 use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -126,9 +127,9 @@ class Pratica extends Model
         return $this->belongsTo(PraticaStati::class, 'stato_pratica', 'stato_pratica');
     }
 
-    public function annullato()
+    public function annullato(): bool
     {
-        return $this->stato()->is_rejected;
+        return (bool) ($this->stato?->is_rejected ?? false);
     }
 
     /**
@@ -266,7 +267,7 @@ class Pratica extends Model
     /**
      * 5. Controlla se la pratica può passare a un nuovo stato (Blocco sicurezza)
      */
-    public function puoAvanzareAStato(StatoPratica $nuovoStato): bool
+    public function puoAvanzareAStato(PraticaStato $nuovoStato): bool
     {
         // Se lo stato di destinazione richiede tutti i documenti pronti (es. FASCICOLO COMPLETO / DELIBERATA)
         if (in_array($nuovoStato->codice, ['fascicolo_completo', 'deliberata', 'approvata'])) {

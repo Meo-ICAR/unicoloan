@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsComplianceActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Remediation extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsComplianceActivity, SoftDeletes;
 
     protected $connection = 'mysql';
 
@@ -64,16 +65,20 @@ class Remediation extends Model
 
     public function getUrgencyLevelAttribute(): string
     {
-        if (!$this->timeframe_hours) {
+        if (! $this->timeframe_hours) {
             return 'unknown';
         }
 
-        if ($this->timeframe_hours <= 24)
+        if ($this->timeframe_hours <= 24) {
             return 'critical';
-        if ($this->timeframe_hours <= 72)
+        }
+        if ($this->timeframe_hours <= 72) {
             return 'high';
-        if ($this->timeframe_hours <= 168)
+        }
+        if ($this->timeframe_hours <= 168) {
             return 'medium';
+        }
+
         return 'low';
     }
 

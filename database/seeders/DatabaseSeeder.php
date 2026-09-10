@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            if (!User::where('email', $userData['email'])->exists()) {
+            if (! User::where('email', $userData['email'])->exists()) {
                 $user = User::factory()->create($userData);
                 $user->save();
             }
@@ -70,12 +70,16 @@ class DatabaseSeeder extends Seeder
             MailAccountSeeder::class,
             CompanyRoleSeeder::class,
             EmployeeSeeder::class,
+            EmployeeTypeSeeder::class,
+            ResourceSeeder::class,
             EmailTemplateSeeder::class,
             OamCodeSeeder::class,
             DocumentTypeSeeder::class,
             TaskSeeder::class,
             TaskDocumentTypeSeeder::class,
             SuspiciousActivityReportSeeder::class,
+            AuditSeeder::class,
+            ComplaintRegistrySeeder::class,
             DocumentSeeder::class,
             TrainingRecordSeeder::class,
         ]);

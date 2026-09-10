@@ -4,14 +4,15 @@ namespace App\Models;
 
 use App\Enums\FindingSeverity;
 use App\Enums\FindingStatus;
+use App\Models\Concerns\LogsComplianceActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AuditFinding extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsComplianceActivity, SoftDeletes;
 
     /**
      * Il nome della tabella associata al modello.
