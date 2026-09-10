@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
@@ -47,20 +48,43 @@ class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsA
     protected static function booted(): void
     {
         static::creating(function (User $user) {
-            // Se l'utente in fase di creazione non ha una password impostata (es. tramite Socialite)
+            // Se l'utente in fase di creazione non ha una password impostata (es.
+            // tramite Socialite) assegniamo una password casuale non indovinabile.
+            // In passato veniva impostata la stringa fissa 'password': con il login
+            // via credenziali attivo erano account con password nota.
             if (empty($user->password)) {
-                $user->password = Hash::make('password');
+                $user->password = Hash::make(Str::random(40));
             }
         });
     }
 
     /**
      * Autorizza l'accesso al pannello Filament.
-     * Tutti gli utenti registrati possono accedere.
+     *
+     * Con la registrazione via Socialite attiva chiunque abbia un account Google
+     * o Microsoft potrebbe creare un utente. Se e' configurato un elenco di domini
+     * email consentiti (config panel.allowed_email_domains) l'accesso e' limitato a
+     * quei domini; gli utenti gia' presenti prima dell'attivazione dell'elenco
+     * restano abilitati. Elenco vuoto = comportamento storico (tutti abilitati).
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        $allowedDomains = array_filter((array) config('panel.allowed_email_domains', []));
+
+        if ($allowedDomains === []) {
+            return true;
+        }
+
+        $domain = Str::lower(Str::afterLast($this->email, '@'));
+
+        if (in_array($domain, array_map('strtolower', $allowedDomains), true)) {
+            return true;
+        }
+
+        // Grandfathering: gli utenti creati prima di ora non vengono espulsi.
+        return $this->wasRecentlyCreated === false
+            && $this->created_at !== null
+            && $this->created_at->lt(now()->subMinute());
     }
 
     public function getFilamentAvatarUrl(): ?string

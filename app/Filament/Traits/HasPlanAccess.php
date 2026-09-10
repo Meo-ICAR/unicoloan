@@ -30,6 +30,61 @@ trait HasPlanAccess
     }
 
     /**
+     * Gate unico piano + ruolo, riusato da tutti i metodi di autorizzazione.
+     *
+     * Prima nascondevamo la risorsa solo dalla navigazione: le pagine restavano
+     * raggiungibili via URL diretto (es. /admin/audits/1/edit). Con questi
+     * override il controllo checkPiano() viene applicato anche all'accesso CRUD,
+     * cosi' un ruolo che non ha la feature non puo' aprire la risorsa nemmeno
+     * conoscendone l'URL. Quando verranno introdotte vere Policy di modello,
+     * questi override potranno essere rimossi in favore della Policy.
+     */
+    protected static function hasPlanFeatureAccess(): bool
+    {
+        return \checkPiano(static::getFeatureKey(), static::class);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    public static function canForceDelete(Model $record): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    public static function canRestore(Model $record): bool
+    {
+        return static::hasPlanFeatureAccess();
+    }
+
+    /**
      * Helper interno per ricavare la chiave della feature in modo intelligente
      */
     protected static function getFeatureKey(): string

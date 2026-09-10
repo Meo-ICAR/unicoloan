@@ -21,12 +21,15 @@ enum PlanType: string
             'complaint-registries',
             'document-schedules',
             'documents',
+            'document-relation-manager',
+            'documents-relation-manager',
             'employees',
             'clientis',
             'fornitores',
             'oam-semestrales',
             'suspicious-activity-reports',
         ];
+
         $manager2 = [
             'companies',
             'oam-codes',
@@ -34,6 +37,7 @@ enum PlanType: string
             'branches',
             'websites',
         ];
+
         $systems = [
             'document-types',
             'email-templates',
@@ -45,25 +49,32 @@ enum PlanType: string
             'globale', 'Anagrafica', 'Informativo', 'Sedi', 'Prudenziale',
         ];
 
-        $goldFeatures = [
-            'audits',
-            'complaint-registries',
+        $essentialFeatures = [
+            'documents',
             'document-schedules',
-            'suspicious-activity-reports',
             'oam-semestrales',
-
+            ...$oamSheet,
         ];
 
-        // Mappatura e gerarchia dei piani
+        $baseFeatures = [
+            ...$essentialFeatures,
+            ...$manager,
+            ...$manager2,
+        ];
+
+        $goldFeatures = [
+            ...$baseFeatures,
+            ...$systems,
+            'audits',
+            'audit-resource',
+            'documents-relation-manager',
+        ];
+
+        // Mappatura e gerarchia dei piani (ogni livello eredita il precedente)
         return match ($this) {
             self::ESSENTIAL => $essentialFeatures,
             self::BASE => $baseFeatures,
-            self::GOLD => [
-                $baseFeatures, // <-- Eredita automaticamente tutte le feature di BASE
-                $goldFeatures,
-                'audit-resource',
-                'documents-relation-manager',
-            ],
+            self::GOLD => $goldFeatures,
             self::FULL,
             self::DEBUG => ['*'], // '*' indica che ha accesso a TUTTE le feature
         };

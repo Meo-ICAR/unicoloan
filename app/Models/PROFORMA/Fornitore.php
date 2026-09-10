@@ -23,7 +23,7 @@ class Fornitore extends Model
 
     protected $connection = 'mysql_proforma';
 
-    protected $table = 'proforma.fornitoris';
+    protected $table = 'fornitoris';
 
     protected $primaryKey = 'id';
 

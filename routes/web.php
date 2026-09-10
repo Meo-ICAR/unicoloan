@@ -1,28 +1,17 @@
 <?php
 
 use App\Http\Controllers\BpmBridgeController;
-use App\Models\Document;
+use App\Http\Controllers\DocumentDownloadController;
 use Illuminate\Support\Facades\Route;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 Route::redirect('/', '/admin');
 
-// La rotta riceve l'ID del soggetto (es: l'agente) e il token di sicurezza nei parametri
+// SSO dal BPM esterno. Throttling per limitare il brute force sul token.
 Route::get('/bpm-landing/{subject_id}', [BpmBridgeController::class, 'handle'])
+    ->middleware('throttle:10,1')
     ->name('bpm.landing');
 
-Route::get('/documents/{document}/download', function (Document $document): BinaryFileResponse {
-    $media = $document->getFirstMedia('documents');
-
-    if (! $media) {
-        abort(404);
-    }
-
-    return response()->download($media->getPath(), $media->file_name);
-})->name('documents.download');
-
-/*
- * Route::get('/', function () {
- *     return view('welcome');
- * });
- */
+// Download allegati: solo utenti autenticati (in precedenza era pubblico).
+Route::get('/documents/{document}/download', DocumentDownloadController::class)
+    ->middleware('auth')
+    ->name('documents.download');

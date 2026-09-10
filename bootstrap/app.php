@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Le rotte web protette da 'auth' (es. download allegati) rimandano gli
+        // utenti non autenticati alla login del pannello admin di Filament,
+        // dato che l'app non espone una rotta 'login' propria.
+        $middleware->redirectGuestsTo(fn () => route('filament.admin.auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -19,7 +19,7 @@ class Pratica extends Model
      */
     protected $connection = 'mysql_proforma';
 
-    protected $table = 'proforma.pratiches';
+    protected $table = 'pratiches';
 
     /**
      * The primary key for the model.
@@ -161,62 +161,6 @@ class Pratica extends Model
     public function statusHistory(): HasMany
     {
         return $this->hasMany(PraticaStatusHistory::class, 'pratica_id')->orderBy('changed_at', 'desc');
-    }
-
-    /**
-     * Boot del modello per intercettare gli eventi di aggiornamento
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::updating(function (Pratica $pratica) {
-            // Se lo stato della pratica è cambiato rispetto al valore precedente nel DB
-            if ($pratica->isDirty('stato_pratica')) {
-                $oldStatus = $pratica->getOriginal('stato_pratica');
-                $newStatus = $pratica->stato_pratica;
-                $now = Carbon::now();
-
-                // 1. Allinea automaticamente le date di milestone in base allo stato
-                // Adatta i nomi degli stati in base a quelli reali restituiti dalle banche
-                switch (strtolower($newStatus)) {
-                    case 'inviata':
-                    case 'istruttoria':
-                        if (is_null($pratica->sended_at)) {
-                            $pratica->sended_at = $now->toDateString();
-                        }
-                        break;
-                    case 'approvata':
-                    case 'deliberata':
-                        if (is_null($pratica->approved_at)) {
-                            $pratica->approved_at = $now->toDateString();
-                        }
-                        break;
-                    case 'erogata':
-                    case 'liquidata':
-                        if (is_null($pratica->erogated_at)) {
-                            $pratica->erogated_at = $now->toDateString();
-                        }
-                        break;
-                    case 'respinta':
-                    case 'annullata':
-                        if (is_null($pratica->rejected_at)) {
-                            $pratica->rejected_at = $now->toDateString();
-                        }
-                        break;
-                }
-
-                // 2. Registra automaticamente il cambio di stato nella tabella storica
-                // Usiamo "saved" o lo inseriamo direttamente qui
-                $pratica->statusHistory()->create([
-                    'status_from' => $oldStatus,
-                    'status_to' => $newStatus,
-                    'changed_at' => $now,
-                    'source' => request()->is('api/*') ? 'api_banca' : 'manual', // Rileva se aggiornato da un'integrazione/API
-                    'notes' => $pratica->status_notes ?? 'Aggiornamento automatico di stato.',
-                ]);
-            }
-        });
     }
 
     public function documents(): MorphMany

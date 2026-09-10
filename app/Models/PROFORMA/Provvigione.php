@@ -19,7 +19,7 @@ class Provvigione extends Model
      */
     protected $connection = 'mysql_proforma';
 
-    protected $table = 'proforma.provvigioni';
+    protected $table = 'provvigioni';
 
     /**
      * The primary key for the model.

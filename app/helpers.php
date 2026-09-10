@@ -12,8 +12,8 @@ if (! function_exists('checkPiano')) {
         // -------------------------------------------------------------
         // STEP 1: Controllo del PIANO (Licenza/Abbonamento)
         // -------------------------------------------------------------
-        $planValue = env('APP_PLAN', PlanType::FULL->value);
-        $plan = PlanType::tryFrom($planValue) ?? PlanType::FULL;
+        $planValue = config('plan.type', PlanType::FULL->value);
+        $plan = PlanType::tryFrom((string) $planValue) ?? PlanType::FULL;
 
         $hasPlanAccess = $plan->hasFeature($feature, $callerClass);
 
