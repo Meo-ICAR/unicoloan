@@ -1,18 +1,26 @@
 {
     "agents": [
-        "opencode",
         "kiro",
         "antigravity",
         "cursor",
-        "copilot"
+        "copilot",
+        "claude_code"
     ],
-    "cloud": false,
+    "cloud": true,
     "guidelines": true,
     "mcp": true,
     "nightwatch": false,
+    "packages": [
+        "alizharb/filament-activity-log",
+        "filament/filament",
+        "spatie/laravel-activitylog",
+        "barryvdh/laravel-debugbar"
+    ],
     "sail": false,
     "skills": [
         "laravel-best-practices",
-        "socialite-development"
+        "socialite-development",
+        "tailwindcss-development",
+        "debug-using-debugbar"
     ]
 }
