@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ModelFieldsApiController;
 use App\Http\Controllers\Api\ModelFieldValueApiController;
 use App\Http\Controllers\Api\PraticaApiController;
+use App\Http\Controllers\Api\UserLookupApiController;
 use Illuminate\Support\Facades\Route;
 
 // Consumato da UnicoBPM, che non ha un proprio modello Pratica: nessuna
@@ -15,3 +16,6 @@ Route::get('/pratiche/{id}', [PraticaApiController::class, 'show'])->name('api.p
 // accedere direttamente ai modelli di questa app.
 Route::get('/models/{model}/fields', [ModelFieldsApiController::class, 'show'])->name('api.models.fields');
 Route::patch('/models/{model}/{id}', [ModelFieldValueApiController::class, 'update'])->name('api.models.update-field');
+
+// Consumato da UnicoBPM per verificare se l'utente loggato ha un account anche qui.
+Route::get('/users/lookup', [UserLookupApiController::class, 'show'])->name('api.users.lookup');
