@@ -9,7 +9,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -31,12 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->navigationGroups([
-                //  NavigationGroup::make()->label('Pratiche'),
-                //  NavigationGroup::make()->label('Contabilita'),
-                NavigationGroup::make()->label('Anagrafiche'),  // ->collapsed(),
-                NavigationGroup::make()->label('System')->collapsed(),
-            ])
+
             ->brandLogo(asset('images/unicoOAM_banner.png'))
             // Opzionale: imposta un'altezza fissa se ti sembra troppo grande o piccolo
             //   ->brandLogoHeight('3rem')
