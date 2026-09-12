@@ -2,6 +2,7 @@
 
 namespace App\Models\PROFORMA;
 
+use App\Models\BlacklistClienteEmployee;
 use App\Models\Branch;
 use App\Models\Document;
 use App\Models\OamCode;
@@ -286,5 +287,18 @@ class Clienti extends Model
         return $this->belongsToMany(Fornitore::class, 'blacklist_clienti_fornitori', 'cliente_id', 'fornitore_id')
             ->withPivot(['motivo', 'data_inizio', 'data_fine'])
             ->withTimestamps();
+    }
+
+    /**
+     * I blocchi verso dipendenti per questo istituto.
+     *
+     * A differenza di agentiBlacklistati(), qui non usiamo belongsToMany: `employees`
+     * vive su una connessione/database diversa da `clientis`, quindi un join diretto
+     * non è affidabile. Esponiamo invece le righe di blacklist; il chiamante può
+     * risolvere i relativi Employee con `BlacklistClienteEmployee::employee()`.
+     */
+    public function dipendentiBlacklistati(): HasMany
+    {
+        return $this->hasMany(BlacklistClienteEmployee::class, 'cliente_id');
     }
 }

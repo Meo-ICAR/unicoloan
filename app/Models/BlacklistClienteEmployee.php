@@ -3,29 +3,23 @@
 namespace App\Models;
 
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Fornitore;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BlacklistClienteFornitore extends Model
+class BlacklistClienteEmployee extends Model
 {
     use HasFactory, HasUuids;
 
     protected $connection = 'mysql_proforma';
 
+    protected $table = 'blacklist_clienti_employees';
+
     public $incrementing = false;
 
     protected $keyType = 'string';
-
-    /**
-     * Il nome della tabella associata al modello.
-     *
-     * @var string
-     */
-    protected $table = 'blacklist_clienti_fornitori';
 
     /**
      * Gli attributi assegnabili in massa.
@@ -34,17 +28,12 @@ class BlacklistClienteFornitore extends Model
      */
     protected $fillable = [
         'cliente_id',
-        'fornitore_id',
+        'employee_id',
         'motivo',
         'data_inizio',
         'data_fine',
     ];
 
-    /**
-     * Il casting degli attributi (sintassi Laravel 11/12/13).
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -68,11 +57,16 @@ class BlacklistClienteFornitore extends Model
     }
 
     /**
-     * L'agente (fornitore) bloccato.
+     * Il dipendente bloccato.
+     *
+     * `employees` vive su una connessione/database diversa da `blacklist_clienti_employees`
+     * (rispettivamente `mysql` e `mysql_proforma`): belongsTo esegue una query separata
+     * sulla connessione del modello correlato, quindi funziona correttamente anche
+     * senza una foreign key a livello di database.
      */
-    public function fornitore(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(Fornitore::class, 'fornitore_id');
+        return $this->belongsTo(Employee::class, 'employee_id');
     }
 
     /*

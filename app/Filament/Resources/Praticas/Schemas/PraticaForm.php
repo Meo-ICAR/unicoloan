@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Praticas\Schemas;
 use App\Models\PraticaStato;
 use App\Models\Tipoprodotto;
 use App\Models\TipoprodottoSub;
+use App\Services\BlacklistChecker;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class PraticaForm
@@ -60,7 +62,15 @@ class PraticaForm
                             ->maxLength(191),
                         //  ->columnSpan('full'), // Dà alla banca l'intera riga per i nomi lunghi
                         TextInput::make('denominazione_agente')
-                            ->label('Agente / Rappresentante'),
+                            ->label('Agente / Rappresentante')
+                            ->live(onBlur: true)
+                            ->rules([
+                                fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get): void {
+                                    if (app(BlacklistChecker::class)->isAgenteNameBlacklistedForBancaName($value, $get('denominazione_banca'))) {
+                                        $fail('Questo agente è in blacklist per la banca selezionata e non può essere assegnato a questa pratica.');
+                                    }
+                                },
+                            ]),
                         //  ->columnSpan('full'),
 
                     ]),

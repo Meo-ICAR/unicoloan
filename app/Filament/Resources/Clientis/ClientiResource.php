@@ -6,6 +6,7 @@ use App\Filament\Resources\Clientis\Pages\CreateClienti;
 use App\Filament\Resources\Clientis\Pages\EditClienti;
 use App\Filament\Resources\Clientis\Pages\ListClientis;
 use App\Filament\Resources\Clientis\RelationManagers\AgentiBlacklistatiRelationManager;
+use App\Filament\Resources\Clientis\RelationManagers\DipendentiBlacklistatiRelationManager;
 use App\Filament\Resources\Clientis\RelationManagers\LimitsRelationManager;
 use App\Filament\Resources\Clientis\RelationManagers\ProvvigioniRelationManager;
 use App\Filament\Resources\Clientis\Schemas\ClientiForm;
@@ -56,6 +57,7 @@ class ClientiResource extends Resource
             LimitsRelationManager::class,
             WebsitesRelationManager::class,
             AgentiBlacklistatiRelationManager::class,
+            DipendentiBlacklistatiRelationManager::class,
         ];
     }
 

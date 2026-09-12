@@ -117,6 +117,25 @@ class Employee extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    /**
+     * Le banche che hanno bloccato questo dipendente (blacklist).
+     */
+    public function bancheBlacklist(): HasMany
+    {
+        return $this->hasMany(BlacklistClienteEmployee::class, 'employee_id');
+    }
+
+    /**
+     * Helper per verificare rapidamente se il dipendente è bloccato da una specifica banca.
+     */
+    public function isBlacklistedBy(string $clienteId): bool
+    {
+        return $this->bancheBlacklist()
+            ->attivi()
+            ->where('cliente_id', $clienteId)
+            ->exists();
+    }
+
     public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
     {
         return $query->where('hiring_date', '<=', $semester->end)
