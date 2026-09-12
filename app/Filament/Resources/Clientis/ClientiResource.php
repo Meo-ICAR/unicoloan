@@ -1,14 +1,17 @@
 <?php
 
-namespace App\Filament\Resources\Clientis;
+namespace App\Filament\Unicofin\Resources\Clientis;
 
-use App\Filament\Resources\Clientis\Pages\CreateClienti;
-use App\Filament\Resources\Clientis\Pages\EditClienti;
-use App\Filament\Resources\Clientis\Pages\ListClientis;
-use App\Filament\Resources\Clientis\Schemas\ClientiForm;
-use App\Filament\Resources\Clientis\Tables\ClientisTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
-use App\Filament\Traits\HasPlanAccess;
+use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
+use App\Filament\Unicofin\Resources\Clientis\Pages\CreateClienti;
+use App\Filament\Unicofin\Resources\Clientis\Pages\EditClienti;
+use App\Filament\Unicofin\Resources\Clientis\Pages\ListClientis;
+use App\Filament\Unicofin\Resources\Clientis\RelationManagers\AgentiBlacklistatiRelationManager;
+use App\Filament\Unicofin\Resources\Clientis\RelationManagers\LimitsRelationManager;
+use App\Filament\Unicofin\Resources\Clientis\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Unicofin\Resources\Clientis\Schemas\ClientiForm;
+use App\Filament\Unicofin\Resources\Clientis\Tables\ClientisTable;
 use App\Models\PROFORMA\Clienti;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,23 +21,21 @@ use UnitEnum;
 
 class ClientiResource extends Resource
 {
-    // use HasPlanAccess;
-
     protected static ?string $model = Clienti::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';
 
-    protected static ?string $recordTitleAttribute = 'name';
-
     protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
 
-    protected static ?string $navigationLabel = 'Istituti Eroganti';
+    protected static ?string $navigationLabel = 'Istituti';
 
     protected static ?string $modelLabel = 'Istituto';
 
     protected static ?string $pluralModelLabel = 'Istituti';
 
-    protected static ?int $navigationSort = 5;
+    // protected static ?int $navigationSort = 5;
+
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {
@@ -49,10 +50,12 @@ class ClientiResource extends Resource
     public static function getRelations(): array
     {
         return [
+
+            ProvvigioniRelationManager::class,
             DocumentsRelationManager::class,
-            //   WebsitesRelationManager::class,
-            //  BranchesRelationManager::class,
-            //   InspectionsRelationManager::class,
+            LimitsRelationManager::class,
+            WebsitesRelationManager::class,
+            AgentiBlacklistatiRelationManager::class,
         ];
     }
 

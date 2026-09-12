@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Filament\Resources\Fornitores\Pages;
+namespace App\Filament\Unicofin\Resources\Fornitores\Pages;
 
-use App\Filament\Resources\Fornitores\FornitoreResource;
+use App\Filament\Unicofin\Resources\Fornitores\FornitoreResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Contracts\Support\Htmlable;  // CORRETTO
-use Illuminate\Support\HtmlString;
 
 class ListFornitores extends ListRecords
 {
@@ -15,12 +13,7 @@ class ListFornitores extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()->label('On Boarding'),
         ];
-    }
-
-    public function getSubheading(): string|Htmlable
-    {
-        return new HtmlString('Selezionare i fornitori per cui si vuole aggiungere plico  documentale');
     }
 }

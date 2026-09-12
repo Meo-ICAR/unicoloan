@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Clientis\Schemas;
+namespace App\Filament\Unicofin\Resources\Clientis\Schemas;
 
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -38,22 +38,12 @@ class ClientiForm
                                             'assicurazione' => 'Assicurazione',
                                             '--' => '--',
                                         ])
-                                        ->label('Tipo'),
-                                    Select::make('submission_type')
-                                        ->label('Gestione inoltro')
-                                        ->options([
-
-                                            '--' => '--',
-                                            'accesso portale' => 'Accentrato',
-                                            'inoltro' => 'Decentrato',
-                                            'entrambi' => 'Modalita combinata',
-                                        ])
-                                        ->default('accesso portale')
-                                        ->required()
-                                        ->label('Modalità Inoltro Pratiche'),
-
+                                        ->label('Tipo Convenzionato'),
+                                    TextInput::make('piva')
+                                        ->maxLength(16)
+                                        ->label('Partita IVA'),
                                 ]),
-                                Grid::make(4)->schema([]),
+                                Grid::make(3)->schema([]),
                                 Section::make('Stato Operativo')
                                     ->compact()
                                     ->schema([
@@ -62,17 +52,14 @@ class ClientiForm
                                                 ->required()
                                                 ->maxLength(255)
                                                 ->label('Dizione in istruttoria'),
-                                            TextInput::make('abi_name')
-                                                ->maxLength(255)
-                                                ->label('Dizione Finanziatore da elenco'),
-
                                             Toggle::make('is_active')
                                                 ->default(true)
-                                                ->label('Attivo'),
-
+                                                ->label('Cliente Attivo operativo'),
+                                            Toggle::make('is_dummy')
+                                                ->default(false)
+                                                ->label('Record di Test (Dummy)'),
                                         ]),
                                     ]),
-                                /*
                                 Section::make('Associazione prodotti')
                                     ->description('Seleziona i prodotti convenzionati con questa mandante.')
                                     ->collapsible()
@@ -92,9 +79,7 @@ class ClientiForm
                                             ->gridDirection('row'),
                                     ])
                                     ->columnSpanFull(),
-                                    */
                             ]),
-                        /*
                         // TAB 2: DATI MANDATO E VIGILANZA (OAM / IVASS)
                         Tabs\Tab::make('Mandato & Vigilanza')
                             ->icon('heroicon-m-shield-check')
@@ -118,13 +103,21 @@ class ClientiForm
                                         DatePicker::make('dismissed_at')
                                             ->label('Data Recesso'),
 
+                                        Select::make('submission_type')
+                                            ->label('Gestione inoltro')
+                                            ->options([
+
+                                                '--' => '--',
+                                                'accesso portale' => 'Accentrato',
+                                                'inoltro' => 'Decentrato',
+                                                'entrambi' => 'Modalita combinata',
+                                            ])
+                                            ->default('accesso portale')
+                                            ->required()
+                                            ->label('Modalità Inoltro Pratiche'),
                                         Toggle::make('is_exclusive')
                                             ->inline(false)
                                             ->label('Mandato in Esclusiva'),
-                                        Toggle::make('is_dummy')
-                                            ->default(false)
-                                            ->label('Duplicato'),
-                                        /*
                                         Select::make('status')
                                             ->options([
                                                 'ATTIVO' => 'Attivo',
@@ -134,8 +127,7 @@ class ClientiForm
                                             ])
                                             ->default('ATTIVO')
                                             ->required()
-                                            ->label('Stato Mandato'), */
-                        /*
+                                            ->label('Stato Mandato'),
                                     ]),
                                 Grid::make(2)->schema([
                                     Section::make('Sezione OAM')
@@ -146,7 +138,7 @@ class ClientiForm
                                                 ->label('Codice ABI / Numero RUI'),
                                             TextInput::make('abi_name')
                                                 ->maxLength(255)
-                                                ->label('Nome Ufficiale da elenco'),
+                                                ->label('Nome Ufficiale Banca'),
                                             TextInput::make('oam')
                                                 ->maxLength(30)
                                                 ->label('Codice Iscrizione OAM'),
@@ -206,9 +198,7 @@ class ClientiForm
                                     ->label('Note su Provvigioni Particolari o Patti Specifici')
                                     ->placeholder('Inserisci qui accordi extra, sconti o patti di storno...'),
                             ]),
-                             */
                     ]),
-
             ])
             ->columns(1);  // Mantiene il contenitore dei Tab a larghezza piena
     }

@@ -1,28 +1,24 @@
 <?php
 
-namespace App\Filament\Resources\Fornitores;
+namespace App\Filament\Unicofin\Resources\Fornitores;
 
-use App\Filament\Resources\Fornitores\Pages\CreateFornitore;
-use App\Filament\Resources\Fornitores\Pages\EditFornitore;
-use App\Filament\Resources\Fornitores\Pages\ListFornitores;
-use App\Filament\Resources\Fornitores\Schemas\FornitoreForm;
-use App\Filament\Resources\Fornitores\Tables\FornitoresTable;
-use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
-use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
-use App\Filament\Traits\HasPlanAccess;
+use App\Filament\Unicofin\Resources\Fornitores\Pages\CreateFornitore;
+use App\Filament\Unicofin\Resources\Fornitores\Pages\EditFornitore;
+use App\Filament\Unicofin\Resources\Fornitores\Pages\ListFornitores;
+use App\Filament\Unicofin\Resources\Fornitores\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Unicofin\Resources\Fornitores\Schemas\FornitoreForm;
+use App\Filament\Unicofin\Resources\Fornitores\Tables\FornitoresTable;
 use App\Models\PROFORMA\Fornitore;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum; // Assicurati di importare questo!
+use UnitEnum;
 
 class FornitoreResource extends Resource
 {
-    use HasPlanAccess;
-
     protected static ?string $model = Fornitore::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
@@ -39,7 +35,7 @@ class FornitoreResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Produttori';
 
-    protected static ?int $navigationSort = 2;
+    // protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -54,10 +50,8 @@ class FornitoreResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ProvvigioniRelationManager::class,
             DocumentsRelationManager::class,
-            //   InspectionsRelationManager::class,
-            WebsitesRelationManager::class,
-            BranchesRelationManager::class,
         ];
     }
 

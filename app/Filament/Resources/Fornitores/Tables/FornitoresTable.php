@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Filament\Resources\Fornitores\Tables;
+namespace App\Filament\Unicofin\Resources\Fornitores\Tables;
 
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\Company;
 use App\Models\Task;
-use App\ValueObjects\OamSemester;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -17,7 +16,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use pxlrbt\FilamentExcel\Actions\ExportAction;
@@ -41,6 +39,11 @@ class FornitoresTable
 
             ->columns([
                 // DATI PRINCIPALI
+                TextColumn::make('name')
+                    ->label('Agente')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
                 TextColumn::make('nome')
                     ->label('Ragione Sociale')
                     ->searchable()
@@ -72,24 +75,20 @@ class FornitoresTable
                     ->label('IVASS')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('name')
-                    ->label('Denominazione Istruttoria')
-                    ->searchable()
-                    ->sortable(),
+
                 // STATO E INQUADRAMENTO
 
             ])
             ->filters([
                 // Filtro per stato attivo/inattivo
-                Filter::make('semestre_attuale')
-                    ->label('Solo semestre in corso')
-                    ->toggle() // <--- Trasforma la Checkbox in un interruttore Toggle grafico
+                Filter::make('is_active')
                     ->default(true)
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $data['isActive']
-                            ? $query->perSemestreOam(OamSemester::getInBaseAlMeseCorrente())
-                            : $query;
-                    }),
+                    ->label('Attivo'),
+                // ->query(fn ($query) => $query->whereDate('stipulated_at', '<=', now()->subMonth(6))),
+                Filter::make('dismissed_at')
+                    ->default(true)
+                    ->label('In essere')
+                    ->query(fn ($query) => $query->whereNull('dismissed_at')),
 
                 Filter::make('stipulated_at')
                     ->label('Mandato antecedente 6 mesi')
@@ -237,7 +236,7 @@ class FornitoresTable
                         }),
                 ]),
             ])
-            ->emptyStateHeading('Nessun fornitore trovato')
-            ->emptyStateDescription('Crea un nuovo fornitore o agente per iniziare.');
+            ->emptyStateHeading('Nessun agente trovato')
+            ->emptyStateDescription('Crea agente per iniziare.');
     }
 }
