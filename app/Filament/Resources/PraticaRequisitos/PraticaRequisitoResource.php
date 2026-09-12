@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaRequisitos;
+namespace App\Filament\Resources\PraticaRequisitos;
 
-use App\Filament\Unicofin\Resources\PraticaRequisitos\Pages\CreatePraticaRequisito;
-use App\Filament\Unicofin\Resources\PraticaRequisitos\Pages\EditPraticaRequisito;
-use App\Filament\Unicofin\Resources\PraticaRequisitos\Pages\ListPraticaRequisitos;
-use App\Filament\Unicofin\Resources\PraticaRequisitos\Schemas\PraticaRequisitoForm;
-use App\Filament\Unicofin\Resources\PraticaRequisitos\Tables\PraticaRequisitosTable;
+use App\Filament\Resources\PraticaRequisitos\Pages\CreatePraticaRequisito;
+use App\Filament\Resources\PraticaRequisitos\Pages\EditPraticaRequisito;
+use App\Filament\Resources\PraticaRequisitos\Pages\ListPraticaRequisitos;
+use App\Filament\Resources\PraticaRequisitos\Schemas\PraticaRequisitoForm;
+use App\Filament\Resources\PraticaRequisitos\Tables\PraticaRequisitosTable;
 use App\Models\PraticaRequisito;
 use BackedEnum;
 use Filament\Resources\Resource;

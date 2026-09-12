@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Praticas;
+namespace App\Filament\Resources\Praticas;
 
+use App\Filament\Resources\Praticas\Pages\CreatePratica;
+use App\Filament\Resources\Praticas\Pages\EditPratica;
+use App\Filament\Resources\Praticas\Pages\ListPraticas;
+use App\Filament\Resources\Praticas\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Resources\Praticas\RelationManagers\RequisitiRelationManager;
+use App\Filament\Resources\Praticas\Schemas\PraticaForm;
+use App\Filament\Resources\Praticas\Tables\PraticasTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
-use App\Filament\Unicofin\Resources\Praticas\Pages\CreatePratica;
-use App\Filament\Unicofin\Resources\Praticas\Pages\EditPratica;
-use App\Filament\Unicofin\Resources\Praticas\Pages\ListPraticas;
-use App\Filament\Unicofin\Resources\Praticas\RelationManagers\ProvvigioniRelationManager;
-use App\Filament\Unicofin\Resources\Praticas\RelationManagers\RequisitiRelationManager;
-use App\Filament\Unicofin\Resources\Praticas\Schemas\PraticaForm;
-use App\Filament\Unicofin\Resources\Praticas\Tables\PraticasTable;
 use App\Models\PROFORMA\Pratica;
 use BackedEnum;
 use Filament\Resources\Resource;

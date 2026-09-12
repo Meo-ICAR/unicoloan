@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Fornitores\Tables;
+namespace App\Filament\Resources\Fornitores\Tables;
 
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\Company;

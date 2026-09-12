@@ -1,13 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\ProvvigioniRules\Schemas;
+namespace App\Filament\Resources\ProvvigioniRules\Schemas;
 
-use App\Models\Cliente;
-use App\Models\Fornitore;
-use App\Models\FornitoriRole;
-use App\Models\TipoprodottoSub;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos;
+namespace App\Filament\Resources\RequisitoTipoFinanziamentos;
 
-use App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Pages\CreateRequisitoTipoFinanziamento;
-use App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Pages\EditRequisitoTipoFinanziamento;
-use App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Pages\ListRequisitoTipoFinanziamentos;
-use App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Schemas\RequisitoTipoFinanziamentoForm;
-use App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Tables\RequisitoTipoFinanziamentosTable;
+use App\Filament\Resources\RequisitoTipoFinanziamentos\Pages\CreateRequisitoTipoFinanziamento;
+use App\Filament\Resources\RequisitoTipoFinanziamentos\Pages\EditRequisitoTipoFinanziamento;
+use App\Filament\Resources\RequisitoTipoFinanziamentos\Pages\ListRequisitoTipoFinanziamentos;
+use App\Filament\Resources\RequisitoTipoFinanziamentos\Schemas\RequisitoTipoFinanziamentoForm;
+use App\Filament\Resources\RequisitoTipoFinanziamentos\Tables\RequisitoTipoFinanziamentosTable;
 use App\Models\RequisitoTipoFinanziamento;
 use BackedEnum;
 use Filament\Resources\Resource;

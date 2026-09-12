@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Pages;
+namespace App\Filament\Resources\TipoprodottoSubConstraints\Pages;
 
-use App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\TipoprodottoSubConstraintResource;
+use App\Filament\Resources\TipoprodottoSubConstraints\TipoprodottoSubConstraintResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 

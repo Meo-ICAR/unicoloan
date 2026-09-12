@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Fornitores\Schemas;
+namespace App\Filament\Resources\Fornitores\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;

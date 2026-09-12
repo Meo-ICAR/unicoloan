@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\ProvvigioniRules\Tables;
+namespace App\Filament\Resources\ProvvigioniRules\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

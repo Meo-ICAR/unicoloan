@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clients\RelationManagers;
+namespace App\Filament\Resources\Clients\RelationManagers;
 
-use App\Models\ClientRelation;
 use App\Models\ClientType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -18,7 +17,6 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
 
 class ClientRelationsRelationManager extends RelationManager
@@ -30,14 +28,14 @@ class ClientRelationsRelationManager extends RelationManager
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
         // Mostra la relazione solo se il cliente è una società (persona giuridica)
-        return !$ownerRecord->is_person;
+        return ! $ownerRecord->is_person;
     }
 
-    public function table(Tables\Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
             ->recordTitleAttribute('client.name')
-            ->modifyQueryUsing(fn($query) => $query->with(['clientType' => fn($q) => $q->where('is_company', true)]))
+            ->modifyQueryUsing(fn ($query) => $query->with(['clientType' => fn ($q) => $q->where('is_company', true)]))
             ->columns([
                 TextColumn::make('client.name')
                     ->label('Persona')

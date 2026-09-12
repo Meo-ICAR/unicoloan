@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Praticas\Tables;
+namespace App\Filament\Resources\Praticas\Tables;
 
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\PraticaStati;

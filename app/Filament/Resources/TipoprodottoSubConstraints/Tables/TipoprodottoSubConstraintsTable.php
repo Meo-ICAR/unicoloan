@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Tables;
+namespace App\Filament\Resources\TipoprodottoSubConstraints\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

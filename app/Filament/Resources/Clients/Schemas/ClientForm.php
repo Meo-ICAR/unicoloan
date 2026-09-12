@@ -1,21 +1,18 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clients\Schemas;
+namespace App\Filament\Resources\Clients\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
-use Illuminate\Database\Eloquent\Model;
-
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 
 class ClientForm
 {
@@ -32,7 +29,7 @@ class ClientForm
                                 Section::make('Dati Identificativi')
                                     ->schema([
                                         TextInput::make('name')
-                                            ->label(fn(Get $get) => $get('is_person') ? 'Cognome / Ragione Sociale' : 'Ragione Sociale')
+                                            ->label(fn (Get $get) => $get('is_person') ? 'Cognome / Ragione Sociale' : 'Ragione Sociale')
                                             ->required()
                                             ->maxLength(255),
                                         Toggle::make('is_person')
@@ -41,10 +38,10 @@ class ClientForm
                                             ->live(),  // Ricarica la form al cambio
                                         TextInput::make('first_name')
                                             ->label('Nome')
-                                            ->visible(fn(Get $get) => $get('is_person'))  // Scompare se azienda
+                                            ->visible(fn (Get $get) => $get('is_person'))  // Scompare se azienda
                                             ->maxLength(255),
                                         TextInput::make('tax_code')
-                                            ->label(fn(Get $get) => $get('is_person') ? 'Codice Fiscale' : 'P.IVA')
+                                            ->label(fn (Get $get) => $get('is_person') ? 'Codice Fiscale' : 'P.IVA')
                                             ->unique(ignoreRecord: true)
                                             ->maxLength(16),
                                     ])

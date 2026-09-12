@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Praticas\RelationManagers;
+namespace App\Filament\Resources\Praticas\RelationManagers;
 
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clientis\RelationManagers;
+namespace App\Filament\Resources\Clientis\RelationManagers;
 
-use App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\TipoprodottoSubConstraintResource;
+use App\Filament\Resources\TipoprodottoSubConstraints\TipoprodottoSubConstraintResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;

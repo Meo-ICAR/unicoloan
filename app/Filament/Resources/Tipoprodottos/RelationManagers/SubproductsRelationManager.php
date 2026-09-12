@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Tipoprodottos\RelationManagers;
+namespace App\Filament\Resources\Tipoprodottos\RelationManagers;
 
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\Tables\TipoprodottoSubsTable;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\TipoprodottoSubResource;
+use App\Filament\Resources\TipoprodottoSubs\Tables\TipoprodottoSubsTable;
+use App\Filament\Resources\TipoprodottoSubs\TipoprodottoSubResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;

@@ -211,7 +211,7 @@ class Fornitore extends Model
 
     public function bancheBlacklist()
     {
-        return $this->belongsToMany(Cliente::class, 'blacklist_clienti_fornitori', 'fornitore_id', 'cliente_id')
+        return $this->belongsToMany(Clienti::class, 'blacklist_clienti_fornitori', 'fornitore_id', 'cliente_id')
             ->withPivot(['motivo', 'data_inizio', 'data_fine'])
             ->withTimestamps();
     }

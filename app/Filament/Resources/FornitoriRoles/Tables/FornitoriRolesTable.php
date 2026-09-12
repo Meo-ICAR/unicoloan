@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\FornitoriRoles\Tables;
+namespace App\Filament\Resources\FornitoriRoles\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

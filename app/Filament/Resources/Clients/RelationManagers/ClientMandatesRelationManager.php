@@ -1,37 +1,24 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clients\RelationManagers;
+namespace App\Filament\Resources\Clients\RelationManagers;
 
 use App\Models\ClientMandate;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Filament\Forms;
-use Filament\Tables;
-use Illuminate\Database\Eloquent\Model;
 
 class ClientMandatesRelationManager extends RelationManager
 {
@@ -69,7 +56,7 @@ class ClientMandatesRelationManager extends RelationManager
                             $progressive = 1;
                         }
 
-                        return 'MAND-' . str_pad($progressive, 6, '0', STR_PAD_LEFT) . "-{$year}";
+                        return 'MAND-'.str_pad($progressive, 6, '0', STR_PAD_LEFT)."-{$year}";
                     }),
                 TextInput::make('importo_richiesto_mandato')
                     ->label('Importo Richiesto')
@@ -184,8 +171,7 @@ class ClientMandatesRelationManager extends RelationManager
                 CreateAction::make(),
             ])
             ->actions([
-               
-                
+
                 EditAction::make(),
                 DeleteAction::make(),
             ])

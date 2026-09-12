@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clientis\Schemas;
+namespace App\Filament\Resources\Clientis\Schemas;
 
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;

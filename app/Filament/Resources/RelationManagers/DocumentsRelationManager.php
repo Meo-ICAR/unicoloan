@@ -33,6 +33,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 // CORRETTO
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use pxlrbt\FilamentExcel\Actions\ExportAction; // <-- Importa il trait
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\Pages;
+namespace App\Filament\Resources\PraticaRequisitoOperativos\Pages;
 
-use App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\PraticaRequisitoOperativoResource;
+use App\Filament\Resources\PraticaRequisitoOperativos\PraticaRequisitoOperativoResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreatePraticaRequisitoOperativo extends CreateRecord

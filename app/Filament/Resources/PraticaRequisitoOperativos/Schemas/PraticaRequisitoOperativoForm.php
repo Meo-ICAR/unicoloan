@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\Schemas;
+namespace App\Filament\Resources\PraticaRequisitoOperativos\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class PraticaRequisitoOperativoForm

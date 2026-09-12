@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\FornitoriRoles;
+namespace App\Filament\Resources\FornitoriRoles;
 
-use App\Filament\Unicofin\Resources\FornitoriRoles\Pages\CreateFornitoriRole;
-use App\Filament\Unicofin\Resources\FornitoriRoles\Pages\EditFornitoriRole;
-use App\Filament\Unicofin\Resources\FornitoriRoles\Pages\ListFornitoriRoles;
-use App\Filament\Unicofin\Resources\FornitoriRoles\RelationManagers\ProvvigioniRelationManager;
-use App\Filament\Unicofin\Resources\FornitoriRoles\Schemas\FornitoriRoleForm;
-use App\Filament\Unicofin\Resources\FornitoriRoles\Tables\FornitoriRolesTable;
+use App\Filament\Resources\FornitoriRoles\Pages\CreateFornitoriRole;
+use App\Filament\Resources\FornitoriRoles\Pages\EditFornitoriRole;
+use App\Filament\Resources\FornitoriRoles\Pages\ListFornitoriRoles;
+use App\Filament\Resources\FornitoriRoles\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Resources\FornitoriRoles\Schemas\FornitoriRoleForm;
+use App\Filament\Resources\FornitoriRoles\Tables\FornitoriRolesTable;
 use App\Models\FornitoriRole;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

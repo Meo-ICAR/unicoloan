@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clientis\RelationManagers;
+namespace App\Filament\Resources\Clientis\RelationManagers;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -46,9 +46,9 @@ class AgentiBlacklistatiRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('ragionesociale')
+            ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('ragionesociale') // O 'nome', 'cognome' dell'agente
+                TextColumn::make('name')
                     ->label('Agente'),
                 TextColumn::make('motivo')
                     ->limit(50),

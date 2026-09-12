@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\TipoprodottoSubs\Tables;
+namespace App\Filament\Resources\TipoprodottoSubs\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

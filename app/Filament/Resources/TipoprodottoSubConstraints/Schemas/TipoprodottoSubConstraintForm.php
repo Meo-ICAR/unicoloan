@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Schemas;
+namespace App\Filament\Resources\TipoprodottoSubConstraints\Schemas;
 
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class TipoprodottoSubConstraintForm

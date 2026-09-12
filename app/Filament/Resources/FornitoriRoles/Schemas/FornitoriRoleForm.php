@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\FornitoriRoles\Schemas;
+namespace App\Filament\Resources\FornitoriRoles\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;

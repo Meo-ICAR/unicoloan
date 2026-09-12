@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\TipoprodottoSubConstraints;
+namespace App\Filament\Resources\TipoprodottoSubConstraints;
 
-use App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Pages\CreateTipoprodottoSubConstraint;
-use App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Pages\EditTipoprodottoSubConstraint;
-use App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Pages\ListTipoprodottoSubConstraints;
-use App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Schemas\TipoprodottoSubConstraintForm;
-use App\Filament\Unicofin\Resources\TipoprodottoSubConstraints\Tables\TipoprodottoSubConstraintsTable;
+use App\Filament\Resources\TipoprodottoSubConstraints\Pages\CreateTipoprodottoSubConstraint;
+use App\Filament\Resources\TipoprodottoSubConstraints\Pages\EditTipoprodottoSubConstraint;
+use App\Filament\Resources\TipoprodottoSubConstraints\Pages\ListTipoprodottoSubConstraints;
+use App\Filament\Resources\TipoprodottoSubConstraints\Schemas\TipoprodottoSubConstraintForm;
+use App\Filament\Resources\TipoprodottoSubConstraints\Tables\TipoprodottoSubConstraintsTable;
 use App\Models\TipoprodottoSubConstraint;
 use BackedEnum;
 use Filament\Resources\Resource;

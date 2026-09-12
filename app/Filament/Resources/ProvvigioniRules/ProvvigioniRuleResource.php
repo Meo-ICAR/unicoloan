@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\ProvvigioniRules;
+namespace App\Filament\Resources\ProvvigioniRules;
 
-use App\Filament\Unicofin\Resources\ProvvigioniRules\Pages\CreateProvvigioniRule;
-use App\Filament\Unicofin\Resources\ProvvigioniRules\Pages\EditProvvigioniRule;
-use App\Filament\Unicofin\Resources\ProvvigioniRules\Pages\ListProvvigioniRules;
-use App\Filament\Unicofin\Resources\ProvvigioniRules\Schemas\ProvvigioniRuleForm;
-use App\Filament\Unicofin\Resources\ProvvigioniRules\Tables\ProvvigioniRulesTable;
+use App\Filament\Resources\ProvvigioniRules\Pages\CreateProvvigioniRule;
+use App\Filament\Resources\ProvvigioniRules\Pages\EditProvvigioniRule;
+use App\Filament\Resources\ProvvigioniRules\Pages\ListProvvigioniRules;
+use App\Filament\Resources\ProvvigioniRules\Schemas\ProvvigioniRuleForm;
+use App\Filament\Resources\ProvvigioniRules\Tables\ProvvigioniRulesTable;
 use App\Models\ProvvigioniRule;
 use BackedEnum;
 use Filament\Resources\Resource;

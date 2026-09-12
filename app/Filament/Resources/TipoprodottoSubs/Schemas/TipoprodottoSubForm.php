@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\TipoprodottoSubs\Schemas;
+namespace App\Filament\Resources\TipoprodottoSubs\Schemas;
 
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;

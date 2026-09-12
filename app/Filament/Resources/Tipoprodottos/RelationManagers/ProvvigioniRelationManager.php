@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Tipoprodottos\RelationManagers;
+namespace App\Filament\Resources\Tipoprodottos\RelationManagers;
 
 use App\Models\FornitoriRole; // <--- Corretto namespace da Model a Models
 use Filament\Actions\AssociateAction;

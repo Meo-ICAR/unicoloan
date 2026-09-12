@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Tables;
+namespace App\Filament\Resources\RequisitoTipoFinanziamentos\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

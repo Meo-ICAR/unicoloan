@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\PROFORMA\Clienti;
+use App\Models\PROFORMA\Fornitore;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BlacklistClienteFornitore extends Model
 {
     use HasFactory;
+
+    protected $connection = 'mysql_proforma';
 
     /**
      * Il nome della tabella associata al modello.
@@ -55,7 +59,7 @@ class BlacklistClienteFornitore extends Model
      */
     public function cliente(): BelongsTo
     {
-        return $this->belongsTo(Cliente::class, 'cliente_id');
+        return $this->belongsTo(Clienti::class, 'cliente_id');
     }
 
     /**

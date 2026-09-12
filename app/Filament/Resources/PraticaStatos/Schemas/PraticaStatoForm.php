@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaStatos\Schemas;
+namespace App\Filament\Resources\PraticaStatos\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\PROFORMA\Clienti;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -90,8 +91,7 @@ class TipoprodottoSubConstraint extends Model
      */
     public function client(): BelongsTo
     {
-        // Adatta il nome della classe del modello (es. Cliente o Clientis) in base al tuo progetto
-        return $this->belongsTo(Cliente::class, 'clienti_id');
+        return $this->belongsTo(Clienti::class, 'clienti_id');
     }
 
     /**

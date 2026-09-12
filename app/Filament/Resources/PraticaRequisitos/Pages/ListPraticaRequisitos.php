@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaRequisitos\Pages;
+namespace App\Filament\Resources\PraticaRequisitos\Pages;
 
-use App\Filament\Unicofin\Resources\PraticaRequisitos\PraticaRequisitoResource;
+use App\Filament\Resources\PraticaRequisitos\PraticaRequisitoResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 

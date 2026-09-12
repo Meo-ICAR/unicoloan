@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Tipoprodottos;
+namespace App\Filament\Resources\Tipoprodottos;
 
-use App\Filament\Unicofin\Resources\Tipoprodottos\Pages\CreateTipoprodotto;
-use App\Filament\Unicofin\Resources\Tipoprodottos\Pages\EditTipoprodotto;
-use App\Filament\Unicofin\Resources\Tipoprodottos\Pages\ListTipoprodottos;
-use App\Filament\Unicofin\Resources\Tipoprodottos\RelationManagers\ProvvigioniRelationManager;
-use App\Filament\Unicofin\Resources\Tipoprodottos\RelationManagers\SubproductsRelationManager;
-use App\Filament\Unicofin\Resources\Tipoprodottos\Schemas\TipoprodottoForm;
-use App\Filament\Unicofin\Resources\Tipoprodottos\Tables\TipoprodottosTable;
+use App\Filament\Resources\Tipoprodottos\Pages\CreateTipoprodotto;
+use App\Filament\Resources\Tipoprodottos\Pages\EditTipoprodotto;
+use App\Filament\Resources\Tipoprodottos\Pages\ListTipoprodottos;
+use App\Filament\Resources\Tipoprodottos\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Resources\Tipoprodottos\RelationManagers\SubproductsRelationManager;
+use App\Filament\Resources\Tipoprodottos\Schemas\TipoprodottoForm;
+use App\Filament\Resources\Tipoprodottos\Tables\TipoprodottosTable;
 use App\Models\Tipoprodotto;
 use BackedEnum;
 use Filament\Resources\Resource;

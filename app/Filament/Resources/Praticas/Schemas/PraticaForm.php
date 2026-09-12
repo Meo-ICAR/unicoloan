@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Praticas\Schemas;
+namespace App\Filament\Resources\Praticas\Schemas;
 
 use App\Models\PraticaStato;
 use App\Models\Tipoprodotto;

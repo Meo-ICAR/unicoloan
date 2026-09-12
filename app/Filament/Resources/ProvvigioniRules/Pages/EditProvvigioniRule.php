@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\ProvvigioniRules\Pages;
+namespace App\Filament\Resources\ProvvigioniRules\Pages;
 
-use App\Filament\Unicofin\Resources\ProvvigioniRules\ProvvigioniRuleResource;
+use App\Filament\Resources\ProvvigioniRules\ProvvigioniRuleResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 

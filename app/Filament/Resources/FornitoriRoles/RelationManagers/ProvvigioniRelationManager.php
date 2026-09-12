@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\FornitoriRoles\RelationManagers;
+namespace App\Filament\Resources\FornitoriRoles\RelationManagers;
 
 use App\Models\PROFORMA\Clienti;
 use App\Models\Tipoprodotto;

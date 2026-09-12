@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Schemas;
+namespace App\Filament\Resources\RequisitoTipoFinanziamentos\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;

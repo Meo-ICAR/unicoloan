@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clientis\RelationManagers;
+namespace App\Filament\Resources\Clientis\RelationManagers;
 
-use App\Filament\Unicofin\Resources\ProvvigioniRules\ProvvigioniRuleResource;
+use App\Filament\Resources\ProvvigioniRules\ProvvigioniRuleResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;

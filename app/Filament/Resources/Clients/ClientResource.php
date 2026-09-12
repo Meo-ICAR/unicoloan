@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clients;
+namespace App\Filament\Resources\Clients;
 
+use App\Filament\Resources\Clients\Pages\CreateClient;
+use App\Filament\Resources\Clients\Pages\EditClient;
+use App\Filament\Resources\Clients\Pages\ListClients;
+use App\Filament\Resources\Clients\RelationManagers\ClientMandatesRelationManager;
+use App\Filament\Resources\Clients\RelationManagers\ClientRelationsRelationManager;
+use App\Filament\Resources\Clients\Schemas\ClientForm;
+use App\Filament\Resources\Clients\Tables\ClientsTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
-use App\Filament\Unicofin\Resources\Clients\Pages\CreateClient;
-use App\Filament\Unicofin\Resources\Clients\Pages\EditClient;
-use App\Filament\Unicofin\Resources\Clients\Pages\ListClients;
-use App\Filament\Unicofin\Resources\Clients\RelationManagers\ClientMandatesRelationManager;
-use App\Filament\Unicofin\Resources\Clients\RelationManagers\ClientRelationsRelationManager;
-use App\Filament\Unicofin\Resources\Clients\Schemas\ClientForm;
-use App\Filament\Unicofin\Resources\Clients\Tables\ClientsTable;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

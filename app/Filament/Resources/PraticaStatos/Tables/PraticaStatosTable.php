@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaStatos\Tables;
+namespace App\Filament\Resources\PraticaStatos\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

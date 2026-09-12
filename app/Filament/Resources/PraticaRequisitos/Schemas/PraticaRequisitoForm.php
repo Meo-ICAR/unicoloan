@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaRequisitos\Schemas;
+namespace App\Filament\Resources\PraticaRequisitos\Schemas;
 
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class PraticaRequisitoForm

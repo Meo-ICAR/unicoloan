@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Praticas\RelationManagers;
+namespace App\Filament\Resources\Praticas\RelationManagers;
 
-use App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\PraticaRequisitoOperativoResource;
+use App\Filament\Resources\PraticaRequisitoOperativos\PraticaRequisitoOperativoResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;

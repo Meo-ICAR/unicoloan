@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Fornitores;
+namespace App\Filament\Resources\Fornitores;
 
+use App\Filament\Resources\Fornitores\Pages\CreateFornitore;
+use App\Filament\Resources\Fornitores\Pages\EditFornitore;
+use App\Filament\Resources\Fornitores\Pages\ListFornitores;
+use App\Filament\Resources\Fornitores\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Resources\Fornitores\Schemas\FornitoreForm;
+use App\Filament\Resources\Fornitores\Tables\FornitoresTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
-use App\Filament\Unicofin\Resources\Fornitores\Pages\CreateFornitore;
-use App\Filament\Unicofin\Resources\Fornitores\Pages\EditFornitore;
-use App\Filament\Unicofin\Resources\Fornitores\Pages\ListFornitores;
-use App\Filament\Unicofin\Resources\Fornitores\RelationManagers\ProvvigioniRelationManager;
-use App\Filament\Unicofin\Resources\Fornitores\Schemas\FornitoreForm;
-use App\Filament\Unicofin\Resources\Fornitores\Tables\FornitoresTable;
 use App\Models\PROFORMA\Fornitore;
 use BackedEnum;
 use Filament\Resources\Resource;

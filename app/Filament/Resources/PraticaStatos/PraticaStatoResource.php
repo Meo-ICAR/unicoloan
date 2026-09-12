@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaStatos;
+namespace App\Filament\Resources\PraticaStatos;
 
-use App\Filament\Unicofin\Resources\PraticaStatos\Pages\CreatePraticaStato;
-use App\Filament\Unicofin\Resources\PraticaStatos\Pages\EditPraticaStato;
-use App\Filament\Unicofin\Resources\PraticaStatos\Pages\ListPraticaStatos;
-use App\Filament\Unicofin\Resources\PraticaStatos\Schemas\PraticaStatoForm;
-use App\Filament\Unicofin\Resources\PraticaStatos\Tables\PraticaStatosTable;
+use App\Filament\Resources\PraticaStatos\Pages\CreatePraticaStato;
+use App\Filament\Resources\PraticaStatos\Pages\EditPraticaStato;
+use App\Filament\Resources\PraticaStatos\Pages\ListPraticaStatos;
+use App\Filament\Resources\PraticaStatos\Schemas\PraticaStatoForm;
+use App\Filament\Resources\PraticaStatos\Tables\PraticaStatosTable;
 use App\Models\PraticaStato;
 use BackedEnum;
 use Filament\Resources\Resource;

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\PraticaRequisitoOperativos;
+namespace App\Filament\Resources\PraticaRequisitoOperativos;
 
-use App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\Pages\CreatePraticaRequisitoOperativo;
-use App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\Pages\EditPraticaRequisitoOperativo;
-use App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\Pages\ListPraticaRequisitoOperativos;
-use App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\Schemas\PraticaRequisitoOperativoForm;
-use App\Filament\Unicofin\Resources\PraticaRequisitoOperativos\Tables\PraticaRequisitoOperativosTable;
+use App\Filament\Resources\PraticaRequisitoOperativos\Pages\CreatePraticaRequisitoOperativo;
+use App\Filament\Resources\PraticaRequisitoOperativos\Pages\EditPraticaRequisitoOperativo;
+use App\Filament\Resources\PraticaRequisitoOperativos\Pages\ListPraticaRequisitoOperativos;
+use App\Filament\Resources\PraticaRequisitoOperativos\Schemas\PraticaRequisitoOperativoForm;
+use App\Filament\Resources\PraticaRequisitoOperativos\Tables\PraticaRequisitoOperativosTable;
 use App\Models\PraticaRequisitoOperativo;
 use BackedEnum;
 use Filament\Resources\Resource;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\Pages;
+namespace App\Filament\Resources\RequisitoTipoFinanziamentos\Pages;
 
-use App\Filament\Unicofin\Resources\RequisitoTipoFinanziamentos\RequisitoTipoFinanziamentoResource;
+use App\Filament\Resources\RequisitoTipoFinanziamentos\RequisitoTipoFinanziamentoResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 

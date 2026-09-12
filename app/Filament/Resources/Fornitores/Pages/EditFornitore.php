@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Fornitores\Pages;
+namespace App\Filament\Resources\Fornitores\Pages;
 
-use App\Filament\Unicofin\Resources\Fornitores\FornitoreResource;
+use App\Filament\Resources\Fornitores\FornitoreResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 

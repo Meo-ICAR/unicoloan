@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\TipoprodottoSubs;
+namespace App\Filament\Resources\TipoprodottoSubs;
 
 // Collega la risorsa figlia alla risorsa padre
-use App\Filament\Unicofin\Resources\Tipoprodottos\TipoprodottoResource;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\Pages\CreateTipoprodottoSub;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\Pages\EditTipoprodottoSub;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\Pages\ListTipoprodottoSubs;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\RelationManagers\LimitsRelationManager;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\RelationManagers\ProvvigioniRelationManager;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\Schemas\TipoprodottoSubForm;
-use App\Filament\Unicofin\Resources\TipoprodottoSubs\Tables\TipoprodottoSubsTable;
+use App\Filament\Resources\Tipoprodottos\TipoprodottoResource;
+use App\Filament\Resources\TipoprodottoSubs\Pages\CreateTipoprodottoSub;
+use App\Filament\Resources\TipoprodottoSubs\Pages\EditTipoprodottoSub;
+use App\Filament\Resources\TipoprodottoSubs\Pages\ListTipoprodottoSubs;
+use App\Filament\Resources\TipoprodottoSubs\RelationManagers\LimitsRelationManager;
+use App\Filament\Resources\TipoprodottoSubs\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Resources\TipoprodottoSubs\Schemas\TipoprodottoSubForm;
+use App\Filament\Resources\TipoprodottoSubs\Tables\TipoprodottoSubsTable;
 use App\Models\TipoprodottoSub;
 use BackedEnum;
 use Filament\Resources\ParentResourceRegistration;

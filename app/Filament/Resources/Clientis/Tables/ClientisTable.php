@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Unicofin\Resources\Clientis\Tables;
+namespace App\Filament\Resources\Clientis\Tables;
 
 use App\Filament\Exports\DynamicGroupExport;
 use Filament\Actions\DeleteBulkAction;
