@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Employees\Pages;
 
+use App\Filament\Actions\BpmActivitiesAction;
 use App\Filament\Resources\Employees\EmployeeResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -15,6 +16,7 @@ class EditEmployee extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            BpmActivitiesAction::make()->modelType('employee'),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),
