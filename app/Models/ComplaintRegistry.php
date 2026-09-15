@@ -9,8 +9,6 @@ use App\Enums\ReceptionChannel;
 use App\Models\Concerns\LogsComplianceActivity;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
-use App\ValueObjects\OamSemester;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -163,12 +161,5 @@ class ComplaintRegistry extends Model
         }
 
         return $this->deadline_at && $this->deadline_at->isPast();
-    }
-
-    public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('received_at', '<=', $semester->end)
-            ->where('received_at', '>=', $semester->start);
-
     }
 }

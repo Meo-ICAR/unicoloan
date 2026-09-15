@@ -5,8 +5,6 @@ namespace App\Models\PROFORMA;
 use App\Models\Document;
 use App\Models\OamCode;
 use App\Models\PraticaStato;
-use App\ValueObjects\OamSemester;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -138,26 +136,6 @@ class Pratica extends Model
     public function provvigioni()
     {
         return $this->HasMany(Provvigione::class, 'id_pratica', 'id');
-    }
-
-    public function scopePerSemestreOam(Builder $query, ?OamSemester $semester = null): Builder
-    {
-        $semester ??= OamSemester::current();
-
-        return $query
-            ->whereNull('rejected_at')
-            ->where('data_inserimento_pratica', '>=', '2025-01-01') // Cutoff storico
-            ->where('data_inserimento_pratica', '<', $semester->end)
-            ->where('stato_pratica', '<>', 'INSERITA')
-            ->where('is_notowned', 0)
-            ->whereNotIn('tipo_prodotto', ['Utenza', 'Polizza'])
-            ->where(function (Builder $q) use ($semester) {
-                $q->whereNull('erogated_at')
-                    ->orWhere(function (Builder $subQ) use ($semester) {
-                        $subQ->where('erogated_at', '>=', $semester->start)
-                            ->where('erogated_at', '<', $semester->end);
-                    });
-            });
     }
 
     /**

@@ -7,6 +7,7 @@ use BackedEnum;
 use Filament\Pages\Page;
 use NeuronAI\Chat\Messages\UserMessage;
 use Throwable;
+use UnitEnum;
 
 /**
  * Assistente AI che risponde a domande sull'uso dell'applicazione, indicizzato
@@ -17,6 +18,8 @@ class AssistenteAi extends Page
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
     protected string $view = 'filament.pages.assistente-ai';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Documentazione';
 
     protected static ?string $navigationLabel = 'Assistente AI';
 

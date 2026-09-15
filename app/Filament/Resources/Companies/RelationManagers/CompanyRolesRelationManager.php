@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Companies\RelationManagers;
 
-use App\ValueObjects\OamSemester;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -19,9 +18,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class CompanyRolesRelationManager extends RelationManager
 {
@@ -103,17 +100,7 @@ class CompanyRolesRelationManager extends RelationManager
                     ->numeric()
                     ->sortable(),
             ])
-            ->filters([
-                Filter::make('semestre_attuale')
-                    ->label('Solo semestre in corso')
-                    ->toggle() // <--- Trasforma la Checkbox in un interruttore Toggle grafico
-                    ->default(true)
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $data['isActive']
-                            ? $query->perSemestreOam(OamSemester::getInBaseAlMeseCorrente())
-                            : $query;
-                    }),
-            ])
+            ->filters([])
             ->headerActions([
                 CreateAction::make(),
                 //  AssociateAction::make(),

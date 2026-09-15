@@ -48,6 +48,6 @@ class FornitoriRole extends Model
     public function provvigioni(): HasMany
     {
         // Specifichiamo la chiave esterna poiché il modello non si chiama 'TipoprodottoSub' standard
-        return $this->hasMany(ProvvigioniRule::class, 'fornitorirole_id');
+        return $this->hasMany(ProvvigioniRule::class, 'kind_id');
     }
 }

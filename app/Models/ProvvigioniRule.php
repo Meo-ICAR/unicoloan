@@ -13,6 +13,16 @@ class ProvvigioniRule extends Model
     use HasFactory;
 
     /**
+     * La connessione al database associata al modello.
+     * Deve essere esplicita, altrimenti le relazioni hasMany/hasOne definite
+     * su modelli PROFORMA (connessione mysql_proforma) erediterebbero
+     * erroneamente quella connessione invece di usare 'mysql'.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
+    /**
      * Il nome della tabella associata al modello.
      *
      * @var string
@@ -28,7 +38,7 @@ class ProvvigioniRule extends Model
         'tipoprodotto_id',
         'tipoprodotto_sub_id',
         'clienti_id',
-        'fornitorirole_id',
+        'kind_id',
         'fornitori_id',
         'coordinamento',
         'iscliente',
@@ -92,7 +102,6 @@ class ProvvigioniRule extends Model
      */
     public function fornitoriRole(): BelongsTo
     {
-        // Sostituisci "Kind::class" con il nome reale del tuo modello per i ruoli/livelli
-        return $this->belongsTo(FornitoriRole::class, 'fornitorirole_id');
+        return $this->belongsTo(FornitoriRole::class, 'kind_id');
     }
 }

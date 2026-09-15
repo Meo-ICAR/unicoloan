@@ -7,9 +7,8 @@ namespace App\Models\PROFORMA;
 use App\Models\Branch;
 use App\Models\ComplaintRegistry;
 use App\Models\Document;
+use App\Models\ProvvigioniRule;
 use App\Models\Website;
-use App\ValueObjects\OamSemester;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -190,15 +189,6 @@ class Fornitore extends Model
         return $this->belongsTo(Branch::class, 'branch_id');
     }
 
-    public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('stipulated_at', '<=', $semester->end)
-            ->where(function ($q) use ($semester) {
-                $q->whereNull('dismissed_at')
-                    ->orWhere('dismissed_at', '>=', $semester->start);
-            });
-    }
-
     /**
      * Ottiene i sottoprodotti associati a questo prodotto finanziario.
      * Relazione 1 a Molti.
@@ -206,7 +196,7 @@ class Fornitore extends Model
     public function provvigioni(): HasMany
     {
         // Specifichiamo la chiave esterna poiché il modello non si chiama 'TipoprodottoSub' standard
-        return $this->hasMany(ProvvigioniRule::class, 'clienti_id');
+        return $this->hasMany(ProvvigioniRule::class, 'fornitori_id');
     }
 
     public function bancheBlacklist()

@@ -99,7 +99,7 @@ class PraticasTable
                         return $query;
                     }),
                 SelectFilter::make('tipo_prodotto')
-                    ->options(Tipoprodotto::pluck('tipo_prodotto', 'name'))
+                    ->options(Tipoprodotto::whereNotNull('tipo_prodotto')->pluck('tipo_prodotto', 'name'))
                     ->multiple()
                     ->label('Tipo Prodotto'),
                 Filter::make('data_inserimento')

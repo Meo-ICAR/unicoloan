@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\DocumentStatus;
-use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -177,27 +176,6 @@ class Document extends Model implements HasMedia
         return $query
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now()->addDays($days)->toDateString());
-    }
-
-    /**
-     * Filtra l'ultimo aggiornamento di ogni tipo di documento entro la fine del semestre OAM.
-     */
-    public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('emitted_at', '<=', $semester->end)
-            ->whereIn('id', function ($subquery) use ($semester) {
-                // Usando il metodo del query builder, ma puntando alla data massima correlata
-                $subquery->select('id')
-                    ->from('documents as d1')
-                    ->where('d1.emitted_at', '<=', $semester->end)
-                    ->whereRaw('d1.emitted_at = (
-                    SELECT MAX(d2.emitted_at)
-                    FROM documents as d2
-                    WHERE d2.document_type_id = d1.document_type_id
-                    AND d2.emitted_at <= ?
-                    AND d2.deleted_at IS NULL
-                )', [$semester->end]);
-            });
     }
 
     // Dentro la classe Document...

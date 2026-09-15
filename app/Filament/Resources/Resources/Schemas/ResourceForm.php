@@ -14,8 +14,7 @@ class ResourceForm
             ->components([
                 TextInput::make('app_name')
                     ->required(),
-                TextInput::make('key')
-                    ->required(),
+
                 TextInput::make('name')
                     ->required(),
                 TextInput::make('group'),

@@ -2,8 +2,6 @@
 
 namespace App\Models\PROFORMA;
 
-use App\ValueObjects\OamSemester;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -171,22 +169,6 @@ class Provvigione extends Model
             ->sum('importo');
     }
 
-    // FIX: cambiato il parametro da $tipo a $id_pratica e aggiunto il $semester
-    public static function getProvvigioneStorno(string $id_pratica, ?OamSemester $semester = null): float
-    {
-        // Fallback: se non passi il semestre, prendiamo quello corrente
-        $semester = $semester ?? OamSemester::getInBaseAlMeseCorrente();
-
-        $totale = (float) static::where('id_pratica', $id_pratica)
-            ->where('tipo', 'Istituto')
-            ->perSemestreOam($semester) // Ora lo scope riceve l'oggetto corretto
-            ->where('descrizione', 'like', '%storno%')
-            ->sum('importo');
-
-        // Se è 0 ritorna 0.0, altrimenti ritorna l'importo negativo
-        return $totale === 0.0 ? 0.0 : $totale;
-    }
-
     public static function getProvvigioneAgenti(string $id_pratica): ?float
     {
         $provvcliente = static::where('id_pratica', $id_pratica)
@@ -194,31 +176,5 @@ class Provvigione extends Model
             ->sum('importo');
 
         return $provvcliente ? (float) $provvcliente : 0.0;
-    }
-
-    /**
-     * Provvigioni con data_status compresa nel semestre indicato.
-     */
-    public function scopePerSemestreOam(Builder $query, ?OamSemester $semester = null): Builder
-    {
-        $semester ??= OamSemester::current();
-
-        return $query
-            ->where('data_status', '>=', $semester->start)
-            ->where('data_status', '<=', $semester->end);
-    }
-
-    /**
-     * Storni di provvigione Istituto contabilizzati nel semestre indicato.
-     */
-    public function scopeStorniOam(Builder $query, ?OamSemester $semester = null): Builder
-    {
-        $semester ??= OamSemester::current();
-
-        return $query
-            ->where('tipo', 'Istituto')
-            ->where('descrizione', 'like', '%storno%')
-            ->where('data_status', '>=', $semester->start)
-            ->where('data_status', '<=', $semester->end);
     }
 }

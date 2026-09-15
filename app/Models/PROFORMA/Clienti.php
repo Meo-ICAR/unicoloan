@@ -9,8 +9,6 @@ use App\Models\OamCode;
 use App\Models\ProvvigioniRule;
 use App\Models\TipoprodottoSubConstraint;
 use App\Models\Website;
-use App\ValueObjects\OamSemester;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -224,42 +222,6 @@ class Clienti extends Model
             ->where('is_active', true)  // <-- FILTRO: Mostra solo gli OamCode attivi
             ->withPivot('dal', 'al')  // Recupera i campi extra della tabella pivot
             ->withTimestamps();  // Gestisce automaticamente created_at e updated_at nella pivot
-    }
-
-    public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('stipulated_at', '<=', $semester->end)
-            ->where(function ($q) use ($semester) {
-                $q->whereNull('dismissed_at')
-                    ->orWhere('dismissed_at', '>=', $semester->start);
-            });
-    }
-
-    public static function getisConvenzione(?string $name): ?bool
-    {
-        // Se il nome è nullo o vuoto, ritorniamo subito false
-        if (empty($name)) {
-            return false;
-        }
-
-        $cliente = static::where('abi_name', $name)->first();
-
-        // Se non trovo il cliente, oppure se NON ha una data di stipula (null), non c'è convenzione
-        if (! $cliente || empty($cliente->stipulated_at)) {
-            return false;
-        }
-
-        $defaultSemester = OamSemester::getInBaseAlMeseCorrente();
-
-        // Ora siamo sicuri che stipulated_at non è null
-        $is_convenzione = $cliente->stipulated_at < $defaultSemester->end;
-
-        // Se c'è una data di cessazione (non null), verifichiamo che sia successiva alla fine del semestre
-        if (! empty($cliente->dismissed_at)) {
-            $is_convenzione = $is_convenzione && $cliente->dismissed_at > $defaultSemester->end;
-        }
-
-        return $is_convenzione;
     }
 
     /**

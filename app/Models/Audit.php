@@ -4,8 +4,6 @@ namespace App\Models;
 
 use App\Enums\AuditStatus;
 use App\Models\Concerns\LogsComplianceActivity;
-use App\ValueObjects\OamSemester;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -145,22 +143,6 @@ class Audit extends Model
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
-    }
-
-    public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('executed_at', '<=', $semester->end)
-            ->where('executed_at', '>=', $semester->start);
-
-    }
-
-    public function scopeRilieviOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('executed_at', '<=', $semester->end)
-            ->where('executed_at', '>=', $semester->start)
-            ->whereNotNull('outcome')
-            ->where('outcome', '!=', 'conforme');
-
     }
 
     /**

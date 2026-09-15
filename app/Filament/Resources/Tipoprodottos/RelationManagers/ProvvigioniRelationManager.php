@@ -33,7 +33,7 @@ class ProvvigioniRelationManager extends RelationManager
         return $schema
             ->components([
                 // Corretto: usando relationship() oppure pluck('nome', 'id')
-                Select::make('fornitorirole_id')
+                Select::make('kind_id')
                     ->label('Tipologia')
                     ->options(FornitoriRole::pluck('code', 'id')) // Sostituisci 'nome' col campo del database se diverso (es. 'name')
                     ->searchable()

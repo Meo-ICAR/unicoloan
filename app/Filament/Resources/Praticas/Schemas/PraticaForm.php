@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Praticas\Schemas;
 
-use App\Models\PraticaStato;
+use App\Models\PraticaStati;
 use App\Models\Tipoprodotto;
 use App\Models\TipoprodottoSub;
 use App\Services\BlacklistChecker;
@@ -36,7 +36,7 @@ class PraticaForm
 
                         Select::make('stato_pratica')
                             ->label('Stato Pratica')
-                            ->options(PraticaStato::pluck('stato_pratica', 'stato_pratica'))
+                            ->options(PraticaStati::pluck('stato_pratica', 'stato_pratica'))
                             ->searchable()
                             ->required()
                             ->columnSpan(['sm' => 1, 'md' => 2]), // Dà il doppio dello spazio per evitare che il testo vada a capo
@@ -85,7 +85,7 @@ class PraticaForm
                             ->default(false),
 
                         Select::make('tipo_prodotto')
-                            ->options(Tipoprodotto::pluck('tipo_prodotto', 'name'))
+                            ->options(Tipoprodotto::whereNotNull('tipo_prodotto')->pluck('tipo_prodotto', 'name'))
                             ->label('Macro Prodotto'),
                         //  ->maxLength(191),
 

@@ -17,22 +17,14 @@ class ResourcesTable
             ->columns([
                 TextColumn::make('app_name')
                     ->searchable(),
-                TextColumn::make('key')
-                    ->searchable(),
+
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('group')
                     ->searchable(),
                 TextColumn::make('min_plan')
                     ->badge(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+
             ])
             ->filters([
                 //

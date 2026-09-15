@@ -28,7 +28,7 @@ class ResourceResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'System';
 
-    protected static ?string $navigationLabel = 'Moduli';
+    protected static ?string $navigationLabel = 'Abilitazioni';
 
     protected static ?string $modelLabel = 'Modulo';
 

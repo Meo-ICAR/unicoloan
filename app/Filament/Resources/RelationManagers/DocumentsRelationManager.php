@@ -7,7 +7,6 @@ use App\Filament\Exports\DynamicGroupExport;
 use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\Document;
 use App\Models\DocumentType;
-use App\ValueObjects\OamSemester;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -200,15 +199,6 @@ class DocumentsRelationManager extends RelationManager
 
             ])
             ->filters([
-                Filter::make('semestre_attuale')
-                    ->label('Solo semestre in corso')
-                    ->toggle() // <--- Trasforma la Checkbox in un interruttore Toggle grafico
-                    ->default(true)
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $data['isActive']
-                            ? $query->perSemestreOam(OamSemester::getInBaseAlMeseCorrente())
-                            : $query;
-                    }),
                 SelectFilter::make('document_type_id')
                     ->label('Tipo documento')
                     ->relationship('documentType', 'name')

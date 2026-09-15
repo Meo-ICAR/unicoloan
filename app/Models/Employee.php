@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\ValueObjects\OamSemester;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -134,15 +133,6 @@ class Employee extends Model
             ->attivi()
             ->where('cliente_id', $clienteId)
             ->exists();
-    }
-
-    public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('hiring_date', '<=', $semester->end)
-            ->where(function ($q) use ($semester) {
-                $q->whereNull('termination_date')
-                    ->orWhere('termination_date', '>=', $semester->start);
-            });
     }
 
     /**

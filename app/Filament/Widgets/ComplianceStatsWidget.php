@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\DocumentSchedules\DocumentScheduleResource;
+use App\Filament\Resources\Documents\DocumentResource;
 // use App\Models\CompanyInspection;
 use App\Models\AuditFinding;
 use App\Models\ComplaintRegistry;
@@ -27,10 +27,9 @@ class ComplianceStatsWidget extends BaseWidget
                 ->description('Richiedono rinnovo')
                 ->descriptionIcon('heroicon-m-clipboard-document-check')
                 ->color('warning')
-                ->url(DocumentScheduleResource::getUrl('index', [
+                ->url(DocumentResource::getUrl('index', [
                     'filters' => [
-                        'scaduti' => ['isActive' => true],
-
+                        'expires_at' => ['expires_until' => now()->toDateString()],
                     ],
                 ])),
 

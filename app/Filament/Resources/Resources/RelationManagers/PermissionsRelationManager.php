@@ -24,8 +24,7 @@ class PermissionsRelationManager extends RelationManager
                 TextColumn::make('name')
                     ->label('Tipo Dipendente / Ruolo')
                     ->searchable()
-                    ->sortable()
-                    ->description(fn (EmployeeType $record) => "ID: {$record->id}".($record->key ? " | Chiave: {$record->key}" : '')),
+                    ->sortable(),
 
                 /* =========================================================================
                  | TOGGLE MASTER (Abilita / Disabilita tutto per questo ruolo)

@@ -6,7 +6,6 @@ namespace App\Filament\Resources\Employees\Tables;
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\Company;
 use App\Models\Task;
-use App\ValueObjects\OamSemester;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 // use App\Models\Rui;
@@ -18,7 +17,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -71,16 +69,6 @@ class EmployeesTable
                     ->sortable(),
             ])
             ->filters([
-                Filter::make('semestre_attuale')
-                    ->label('Solo semestre in corso')
-                    ->toggle() // <--- Trasforma la Checkbox in un interruttore Toggle grafico
-                    ->default(true)
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $data['isActive']
-                            ? $query->perSemestreOam(OamSemester::getInBaseAlMeseCorrente())
-                            : $query;
-                    }),
-
                 SelectFilter::make('employee_types')
                     ->label('Filtra per Ruolo')
                     ->options([

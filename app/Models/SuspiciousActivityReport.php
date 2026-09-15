@@ -4,8 +4,6 @@ namespace App\Models;
 
 use App\Models\Concerns\LogsComplianceActivity;
 use App\Models\PROFORMA\Clienti;
-use App\ValueObjects\OamSemester;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -82,12 +80,5 @@ class SuspiciousActivityReport extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Clienti::class, 'client_id');
-    }
-
-    public function scopePerSemestreOam(Builder $query, OamSemester $semester): Builder
-    {
-        return $query->where('reported_at', '<=', $semester->end)
-            ->where('reported_at', '>=', $semester->start);
-
     }
 }
