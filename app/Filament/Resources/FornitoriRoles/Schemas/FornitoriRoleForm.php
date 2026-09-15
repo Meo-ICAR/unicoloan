@@ -12,12 +12,16 @@ class FornitoriRoleForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Nome')
                     ->required(),
-                TextInput::make('code'),
+                TextInput::make('code')
+                    ->label('Codice'),
                 TextInput::make('level')
+                    ->label('Livello')
                     ->numeric()
                     ->default(1),
-                TextInput::make('description'),
+                TextInput::make('description')
+                    ->label('Descrizione'),
             ]);
     }
 }

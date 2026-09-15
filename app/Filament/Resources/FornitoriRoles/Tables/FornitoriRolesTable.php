@@ -15,19 +15,25 @@ class FornitoriRolesTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label('Nome')
                     ->searchable(),
                 TextColumn::make('code')
+                    ->label('Codice')
                     ->searchable(),
                 TextColumn::make('level')
+                    ->label('Livello')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('description')
+                    ->label('Descrizione')
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label('Creato il')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Aggiornato il')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

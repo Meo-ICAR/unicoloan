@@ -30,6 +30,7 @@ class ClientsTable
                         : $record->name),
                 // Stato Avanzamento (Badge colorati)
                 TextColumn::make('status')
+                    ->label('Stato')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'raccolta_dati' => 'gray',
@@ -93,6 +94,7 @@ class ClientsTable
                     ->falseLabel('Persone Giuridiche'),
                 // Filtro per Stato
                 SelectFilter::make('status')
+                    ->label('Stato')
                     ->multiple()  // Permette di vedere più stati contemporaneamente
                     ->options([
                         'raccolta_dati' => 'Raccolta Dati',

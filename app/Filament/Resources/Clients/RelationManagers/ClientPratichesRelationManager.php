@@ -21,14 +21,17 @@ class ClientPratichesRelationManager extends RelationManager
             ->defaultSort('tipo_prodotto')
             ->columns([
                 TextColumn::make('tipo_prodotto')
+                    ->label('Tipo Prodotto')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('denominazione_banca')
+                    ->label('Banca')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('stato_pratica')
+                    ->label('Stato Pratica')
                     ->badge()
                     ->sortable()
                     ->searchable(),
@@ -38,6 +41,7 @@ class ClientPratichesRelationManager extends RelationManager
                     ->searchable(),
 
                 TextColumn::make('data_inserimento_pratica')
+                    ->label('Data Inserimento')
                     ->date()
                     ->sortable()
                     ->searchable(),

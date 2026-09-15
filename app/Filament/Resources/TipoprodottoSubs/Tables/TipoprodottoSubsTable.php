@@ -30,7 +30,8 @@ class TipoprodottoSubsTable
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                ToggleColumn::make('is_active'),
+                ToggleColumn::make('is_active')
+                    ->label('Attivo'),
                 TextColumn::make('code')
                     ->label('Codice')
                     ->searchable()
@@ -54,6 +55,7 @@ class TipoprodottoSubsTable
             ])
             ->filters([
                 Filter::make('is_active')
+                    ->label('Attivo')
                     ->default(true),
                 SelectFilter::make('tipoprodotto_id')
                     ->relationship('tipoProdotto', 'name')

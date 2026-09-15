@@ -48,7 +48,7 @@ class ClientForm
                                     ->columns(4),
                                 Section::make('Contatti & Origine')
                                     ->schema([
-                                        TextInput::make('email')->email(),
+                                        TextInput::make('email')->email()->label('Email'),
                                         TextInput::make('phone')->label('Telefono')->tel(),
                                         Select::make('client_type_id')
                                             ->label('Tipologia')

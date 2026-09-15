@@ -17,18 +17,24 @@ class EmployeeTypesTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label('Nome')
                     ->searchable(),
                 TextColumn::make('icon')
+                    ->label('Icona')
                     ->searchable(),
                 TextColumn::make('companytype')
+                    ->label('Tipo azienda')
                     ->searchable(),
                 IconColumn::make('is_external')
+                    ->label('Esterno')
                     ->boolean(),
                 TextColumn::make('created_at')
+                    ->label('Creato il')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Aggiornato il')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

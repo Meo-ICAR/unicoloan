@@ -43,9 +43,11 @@ class ProvvigioniRelationManager extends RelationManager
                     ->label('Riconosciute da cliente'),
 
                 Toggle::make('coordinamento')
+                    ->label('Coordinamento')
                     ->required(),
 
                 Select::make('tipo_provvigioni')
+                    ->label('Tipo Provvigione')
                     ->options([
                         'Lordo' => 'Lordo',
                         'Erogato' => 'Erogato',
@@ -57,15 +59,19 @@ class ProvvigioniRelationManager extends RelationManager
                     ->default('Lordo'), // Corretto: 'Lordo' con la L maiuscola per combaciare con le opzioni
 
                 TextInput::make('value')
+                    ->label('Valore')
                     ->numeric()
                     ->default(0.0),
 
                 DatePicker::make('valid_from')
+                    ->label('Valido dal')
                     ->default(now()),
 
-                DatePicker::make('valid_to'),
+                DatePicker::make('valid_to')
+                    ->label('Valido al'),
 
                 Textarea::make('notes')
+                    ->label('Note')
                     ->columnSpanFull(),
             ]);
     }
@@ -76,6 +82,7 @@ class ProvvigioniRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('tipo_provvigioni')
+                    ->label('Tipo Provvigione')
                     ->searchable(),
 
                 TextColumn::make('fornitoriRole.code')
@@ -84,9 +91,11 @@ class ProvvigioniRelationManager extends RelationManager
                     ->sortable()
                     ->default('-'),
                 IconColumn::make('coordinamento')
+                    ->label('Coordinamento')
                     ->boolean(),
 
                 TextColumn::make('value')
+                    ->label('Valore')
                     ->numeric()
                     ->sortable(),
 

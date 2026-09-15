@@ -13,15 +13,20 @@ class RequisitoTipoFinanziamentoForm
         return $schema
             ->components([
                 TextInput::make('tipoprodotto_id')
+                    ->label('Tipo prodotto')
                     ->numeric(),
                 TextInput::make('tipoprodotto_sub_id')
+                    ->label('Sottotipo prodotto')
                     ->numeric(),
                 TextInput::make('pratica_requisito_id')
+                    ->label('Requisito pratica')
                     ->required()
                     ->numeric(),
                 Toggle::make('obbligatorio')
+                    ->label('Obbligatorio')
                     ->required(),
                 TextInput::make('ordine')
+                    ->label('Ordine')
                     ->required()
                     ->numeric()
                     ->default(0),

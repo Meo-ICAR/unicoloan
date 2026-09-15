@@ -40,9 +40,11 @@ class ProvvigioniRelationManager extends RelationManager
                     ->label('Riconosciute da cliente'),
 
                 Toggle::make('coordinamento')
+                    ->label('Coordinamento')
                     ->required(),
 
                 Select::make('tipo_provvigioni')
+                    ->label('Tipo Provvigione')
                     ->options([
                         'Lordo' => 'Lordo',
                         'Erogato' => 'Erogato',
@@ -54,15 +56,19 @@ class ProvvigioniRelationManager extends RelationManager
                     ->required(),
 
                 TextInput::make('value')
+                    ->label('Valore')
                     ->numeric()
                     ->default(fn ($livewire) => $livewire->getOwnerRecord()->tipoProdotto?->value ?? 0.0),
 
                 DatePicker::make('valid_from')
+                    ->label('Valido dal')
                     ->default(now()),
 
-                DatePicker::make('valid_to'),
+                DatePicker::make('valid_to')
+                    ->label('Valido al'),
 
                 Textarea::make('notes')
+                    ->label('Note')
                     ->columnSpanFull(),
             ]);
     }
@@ -73,6 +79,7 @@ class ProvvigioniRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('tipo_provvigioni')
+                    ->label('Tipo Provvigione')
                     ->searchable(),
                 TextColumn::make('fornitoriRole.code')
                     ->label('Tipologia')
@@ -84,8 +91,10 @@ class ProvvigioniRelationManager extends RelationManager
                     ->label('Da cliente'),
 
                 IconColumn::make('coordinamento')
+                    ->label('Coordinamento')
                     ->boolean(),
                 TextColumn::make('value')
+                    ->label('Valore')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('valid_from')

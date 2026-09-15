@@ -15,17 +15,23 @@ class PraticaRequisitoOperativoForm
         return $schema
             ->components([
                 Select::make('pratica_id')
+                    ->label('Pratica')
                     ->relationship('pratica', 'id')
                     ->required(),
                 TextInput::make('pratica_requisito_id')
+                    ->label('Requisito pratica')
                     ->required()
                     ->numeric(),
                 TextInput::make('stato')
+                    ->label('Stato')
                     ->required()
                     ->default('da_richiedere'),
-                DateTimePicker::make('data_richiesta'),
-                DateTimePicker::make('data_completamento'),
+                DateTimePicker::make('data_richiesta')
+                    ->label('Data richiesta'),
+                DateTimePicker::make('data_completamento')
+                    ->label('Data completamento'),
                 Textarea::make('note')
+                    ->label('Note')
                     ->columnSpanFull(),
             ]);
     }

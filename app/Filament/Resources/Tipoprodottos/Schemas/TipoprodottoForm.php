@@ -14,12 +14,18 @@ class TipoprodottoForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Nome')
                     ->required(),
-                TextInput::make('code'),
-                Toggle::make('is_external'),
-                Toggle::make('is_oneclient'),
-                TextInput::make('oam'),
+                TextInput::make('code')
+                    ->label('Codice'),
+                Toggle::make('is_external')
+                    ->label('Esterno'),
+                Toggle::make('is_oneclient')
+                    ->label('Prodotto Mono-Cliente'),
+                TextInput::make('oam')
+                    ->label('Codice OAM'),
                 Select::make('tipo_provvigioni')
+                    ->label('Tipo Provvigione')
                     ->options(['Lordo' => 'Lordo', 'Erogato' => 'Erogato', 'Netto' => 'Netto']),
             ]);
     }

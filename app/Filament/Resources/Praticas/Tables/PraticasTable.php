@@ -28,17 +28,21 @@ class PraticasTable
                     ->searchable(),
 
                 TextColumn::make('nome_cliente')
+                    ->label('Nome')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('tipo_prodotto')
+                    ->label('Tipo Prodotto')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('denominazione_banca')
+                    ->label('Banca')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('stato_pratica')
+                    ->label('Stato Pratica')
                     ->badge()
                     ->sortable()
                     ->searchable(),
@@ -48,6 +52,7 @@ class PraticasTable
                     ->searchable(),
 
                 TextColumn::make('data_inserimento_pratica')
+                    ->label('Data Inserimento')
                     ->date()
                     ->sortable()
                     ->searchable(),
@@ -57,6 +62,7 @@ class PraticasTable
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('codice_pratica')
+                    ->label('Codice Pratica')
                     ->searchable(),
             ])
             ->filters([

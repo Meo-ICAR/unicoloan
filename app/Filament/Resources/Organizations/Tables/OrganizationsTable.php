@@ -19,26 +19,35 @@ class OrganizationsTable
         return $table
             ->columns([
                 TextColumn::make('acronym')
+                    ->label('Sigla')
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label('Denominazione')
                     ->searchable(),
                 TextColumn::make('reference_law')
+                    ->label('Norma di riferimento')
                     ->searchable(),
                 TextColumn::make('website')
+                    ->label('Sito web')
                     ->searchable(),
                 TextColumn::make('pec_email')
+                    ->label('Email PEC')
                     ->searchable(),
                 IconColumn::make('is_active')
+                    ->label('Attivo')
                     ->boolean(),
                 TextColumn::make('created_at')
+                    ->label('Creato il')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Aggiornato il')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('deleted_at')
+                    ->label('Eliminato il')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

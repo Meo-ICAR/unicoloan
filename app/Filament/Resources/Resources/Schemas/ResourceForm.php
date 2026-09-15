@@ -13,12 +13,16 @@ class ResourceForm
         return $schema
             ->components([
                 TextInput::make('app_name')
+                    ->label('Applicazione')
                     ->required(),
 
                 TextInput::make('name')
+                    ->label('Nome modulo')
                     ->required(),
-                TextInput::make('group'),
+                TextInput::make('group')
+                    ->label('Gruppo'),
                 Select::make('min_plan')
+                    ->label('Piano minimo')
                     ->options(['BASE' => 'Base', 'MEDIUM' => 'Medium', 'FULL' => 'Full'])
                     ->default('BASE')
                     ->required(),

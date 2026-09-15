@@ -19,11 +19,14 @@ class ProvvigioniRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('denominazione_riferimento'),
-                TextInput::make('importo'),
+                TextInput::make('denominazione_riferimento')
+                    ->label('Produttore'),
+                TextInput::make('importo')
+                    ->label('Importo'),
                 //  ->money('EUR')
                 // ->alignEnd()
                 TextInput::make('descrizione')
+                    ->label('Descrizione')
                     ->required()
                     ->maxLength(255),
             ]);
@@ -33,12 +36,16 @@ class ProvvigioniRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextEntry::make('entrata_uscita'),
-                TextEntry::make('segnalatore'),
+                TextEntry::make('entrata_uscita')
+                    ->label('Entrata/Uscita'),
+                TextEntry::make('segnalatore')
+                    ->label('Segnalatore'),
                 TextEntry::make('importo')
+                    ->label('Importo')
                     ->money('EUR')
                     ->alignEnd(),
-                TextEntry::make('descrizione'),
+                TextEntry::make('descrizione')
+                    ->label('Descrizione'),
             ]);
     }
 
@@ -49,6 +56,7 @@ class ProvvigioniRelationManager extends RelationManager
             ->recordTitleAttribute('Provvigioni associate alla pratica')
             ->columns([
                 TextColumn::make('entrata_uscita')
+                    ->label('Entrata/Uscita')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Entrata' => 'success',
@@ -58,12 +66,16 @@ class ProvvigioniRelationManager extends RelationManager
                 TextColumn::make('denominazione_riferimento')
                     ->label('Produttore'),
                 TextColumn::make('importo')
+                    ->label('Importo')
                     ->money('EUR')
                     ->alignEnd(),
-                TextColumn::make('descrizione'),
+                TextColumn::make('descrizione')
+                    ->label('Descrizione'),
 
-                TextColumn::make('status_compenso'),
+                TextColumn::make('status_compenso')
+                    ->label('Stato Compenso'),
                 TextColumn::make('data_status')
+                    ->label('Data Stato')
                     ->date(),
 
             ])

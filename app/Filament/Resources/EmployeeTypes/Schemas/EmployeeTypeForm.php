@@ -12,10 +12,14 @@ class EmployeeTypeForm
     {
         return $schema
             ->components([
-                TextInput::make('name'),
-                TextInput::make('icon'),
-                TextInput::make('companytype'),
-                Toggle::make('is_external'),
+                TextInput::make('name')
+                    ->label('Nome'),
+                TextInput::make('icon')
+                    ->label('Icona'),
+                TextInput::make('companytype')
+                    ->label('Tipo azienda'),
+                Toggle::make('is_external')
+                    ->label('Esterno'),
             ]);
     }
 }

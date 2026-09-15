@@ -13,10 +13,13 @@ class PraticaRequisitoForm
         return $schema
             ->components([
                 TextInput::make('codice')
+                    ->label('Codice')
                     ->required(),
                 TextInput::make('name')
+                    ->label('Nome')
                     ->required(),
                 Textarea::make('descrizione')
+                    ->label('Descrizione')
                     ->columnSpanFull(),
             ]);
     }

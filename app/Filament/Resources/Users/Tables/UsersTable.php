@@ -16,11 +16,13 @@ class UsersTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label('Nome')
                     ->searchable(),
                 TextColumn::make('email')
-                    ->label('Email address')
+                    ->label('Indirizzo email')
                     ->searchable(),
                 TextColumn::make('role')
+                    ->label('Ruolo')
                     ->searchable(),
             ])
             ->filters([

@@ -13,12 +13,14 @@ class UserForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Nome')
                     ->required(),
                 TextInput::make('email')
                     ->label('Email')
                     ->email()
                     ->required(),
                 Select::make('role')
+                    ->label('Ruolo')
                     ->options([
                         'user' => 'Utente',
                         'quality' => 'Qualita',
@@ -28,6 +30,7 @@ class UserForm
                     ])
                     ->required(),
                 TextInput::make('password')
+                    ->label('Password')
                     ->password()
                     ->required(),
 

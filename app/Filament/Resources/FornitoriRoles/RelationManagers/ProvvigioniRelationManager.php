@@ -35,6 +35,7 @@ class ProvvigioniRelationManager extends RelationManager
         return $schema
             ->components([
                 Select::make('tipoprodotto_id')
+                    ->label('Prodotto')
                     ->relationship(
                         name: 'tipoprodotto',
                         titleAttribute: 'name',
@@ -44,6 +45,7 @@ class ProvvigioniRelationManager extends RelationManager
                     ->preload(),
 
                 Select::make('tipoprodotto_sub_id')
+                    ->label('Sub Prodotto')
                     ->relationship(
                         name: 'tipoprodottoSub',
                         titleAttribute: 'name',
@@ -64,9 +66,11 @@ class ProvvigioniRelationManager extends RelationManager
                     ->searchable()
                     ->preload(),
                 Toggle::make('coordinamento')
+                    ->label('Coordinamento')
                     ->required(),
 
                 Select::make('tipo_provvigioni')
+                    ->label('Tipo Provvigione')
                     ->options([
                         'Lordo' => 'Lordo',
                         'Erogato' => 'Erogato',
@@ -78,15 +82,19 @@ class ProvvigioniRelationManager extends RelationManager
                     ->required(),
 
                 TextInput::make('value')
+                    ->label('Valore')
                     ->numeric()
                     ->default(fn ($livewire) => $livewire->getOwnerRecord()->tipoProdotto?->value ?? 0.0),
 
                 DatePicker::make('valid_from')
+                    ->label('Valido dal')
                     ->default(now()),
 
-                DatePicker::make('valid_to'),
+                DatePicker::make('valid_to')
+                    ->label('Valido al'),
 
                 Textarea::make('notes')
+                    ->label('Note')
                     ->columnSpanFull(),
             ]);
     }
@@ -112,8 +120,10 @@ class ProvvigioniRelationManager extends RelationManager
                     ->label('Coord')
                     ->boolean(),
                 TextColumn::make('tipo_provvigioni')
+                    ->label('Tipo Provvigione')
                     ->searchable(),
                 TextColumn::make('value')
+                    ->label('Valore')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('valid_from')

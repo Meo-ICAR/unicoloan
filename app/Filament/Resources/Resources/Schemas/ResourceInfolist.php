@@ -12,12 +12,17 @@ class ResourceInfolist
         return $schema
             ->columns(5)
             ->components([
-                TextEntry::make('app_name'),
-                TextEntry::make('key'),
-                TextEntry::make('name'),
+                TextEntry::make('app_name')
+                    ->label('Applicazione'),
+                TextEntry::make('key')
+                    ->label('Chiave'),
+                TextEntry::make('name')
+                    ->label('Nome modulo'),
                 TextEntry::make('group')
+                    ->label('Gruppo')
                     ->placeholder('-'),
                 TextEntry::make('min_plan')
+                    ->label('Piano minimo')
                     ->badge(),
 
             ]);

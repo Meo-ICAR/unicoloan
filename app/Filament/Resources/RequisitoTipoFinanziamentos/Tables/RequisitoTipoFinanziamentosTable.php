@@ -16,17 +16,22 @@ class RequisitoTipoFinanziamentosTable
         return $table
             ->columns([
                 TextColumn::make('tipoprodotto_id')
+                    ->label('Tipo prodotto')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('tipoprodotto_sub_id')
+                    ->label('Sottotipo prodotto')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('pratica_requisito_id')
+                    ->label('Requisito pratica')
                     ->numeric()
                     ->sortable(),
                 IconColumn::make('obbligatorio')
+                    ->label('Obbligatorio')
                     ->boolean(),
                 TextColumn::make('ordine')
+                    ->label('Ordine')
                     ->numeric()
                     ->sortable(),
             ])

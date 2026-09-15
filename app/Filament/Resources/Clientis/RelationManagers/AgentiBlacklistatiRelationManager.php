@@ -51,10 +51,13 @@ class AgentiBlacklistatiRelationManager extends RelationManager
                 TextColumn::make('name')
                     ->label('Agente'),
                 TextColumn::make('motivo')
+                    ->label('Motivo')
                     ->limit(50),
                 TextColumn::make('data_inizio')
+                    ->label('Data Inizio')
                     ->date(),
                 TextColumn::make('data_fine')
+                    ->label('Data Fine')
                     ->date()
                     ->placeholder('Indeterminato'),
             ])

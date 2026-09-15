@@ -16,13 +16,17 @@ class ResourcesTable
         return $table
             ->columns([
                 TextColumn::make('app_name')
+                    ->label('Applicazione')
                     ->searchable(),
 
                 TextColumn::make('name')
+                    ->label('Nome modulo')
                     ->searchable(),
                 TextColumn::make('group')
+                    ->label('Gruppo')
                     ->searchable(),
                 TextColumn::make('min_plan')
+                    ->label('Piano minimo')
                     ->badge(),
 
             ])
