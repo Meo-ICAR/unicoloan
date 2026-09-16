@@ -3,12 +3,15 @@
 namespace App\Filament\Resources\Clients\RelationManagers;
 
 use App\Filament\Resources\Praticas\PraticaResource;
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
 
 class ClientPratichesRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'clientPratiches';
 
     protected static ?string $relatedResource = PraticaResource::class;

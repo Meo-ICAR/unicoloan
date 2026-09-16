@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Clientis\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\PROFORMA\Fornitore;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -18,6 +19,8 @@ use Filament\Tables\Table;
 
 class BlacklistRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'blacklistRecords';
 
     protected static ?string $title = 'Blacklist Agenti';

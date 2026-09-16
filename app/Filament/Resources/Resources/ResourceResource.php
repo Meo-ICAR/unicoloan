@@ -10,6 +10,7 @@ use App\Filament\Resources\Resources\RelationManagers\PermissionsRelationManager
 use App\Filament\Resources\Resources\Schemas\ResourceForm;
 use App\Filament\Resources\Resources\Schemas\ResourceInfolist;
 use App\Filament\Resources\Resources\Tables\ResourcesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Resource as ResourceModel;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -20,6 +21,8 @@ use UnitEnum;
 
 class ResourceResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = ResourceModel::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

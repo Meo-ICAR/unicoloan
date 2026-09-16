@@ -11,6 +11,7 @@ use App\Filament\Resources\Praticas\RelationManagers\StatusHistoryRelationManage
 use App\Filament\Resources\Praticas\Schemas\PraticaForm;
 use App\Filament\Resources\Praticas\Tables\PraticasTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\PROFORMA\Pratica;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -20,6 +21,8 @@ use Filament\Tables\Table; // <--- AGGIUNTO QUESTO IMPORT MANCANTE
 
 class PraticaResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Pratica::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';  // Heroicon::OutlinedRectangleStack;

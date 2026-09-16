@@ -9,6 +9,7 @@ use App\Filament\Resources\Tipoprodottos\RelationManagers\ProvvigioniRelationMan
 use App\Filament\Resources\Tipoprodottos\RelationManagers\SubproductsRelationManager;
 use App\Filament\Resources\Tipoprodottos\Schemas\TipoprodottoForm;
 use App\Filament\Resources\Tipoprodottos\Tables\TipoprodottosTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Tipoprodotto;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,6 +20,8 @@ use UnitEnum;
 
 class TipoprodottoResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Tipoprodotto::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

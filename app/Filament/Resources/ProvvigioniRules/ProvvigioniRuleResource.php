@@ -7,6 +7,7 @@ use App\Filament\Resources\ProvvigioniRules\Pages\EditProvvigioniRule;
 use App\Filament\Resources\ProvvigioniRules\Pages\ListProvvigioniRules;
 use App\Filament\Resources\ProvvigioniRules\Schemas\ProvvigioniRuleForm;
 use App\Filament\Resources\ProvvigioniRules\Tables\ProvvigioniRulesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\ProvvigioniRule;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,8 @@ use Filament\Tables\Table;
 
 class ProvvigioniRuleResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = ProvvigioniRule::class;
 
     protected static bool $shouldRegisterNavigation = false;

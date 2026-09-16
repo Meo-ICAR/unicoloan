@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Clients\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\ClientMandate;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -22,6 +23,8 @@ use Filament\Tables\Table;
 
 class ClientMandatesRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'clientMandates';
 
     protected static ?string $title = 'Mandati Cliente';

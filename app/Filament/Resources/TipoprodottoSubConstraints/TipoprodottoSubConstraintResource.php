@@ -7,6 +7,7 @@ use App\Filament\Resources\TipoprodottoSubConstraints\Pages\EditTipoprodottoSubC
 use App\Filament\Resources\TipoprodottoSubConstraints\Pages\ListTipoprodottoSubConstraints;
 use App\Filament\Resources\TipoprodottoSubConstraints\Schemas\TipoprodottoSubConstraintForm;
 use App\Filament\Resources\TipoprodottoSubConstraints\Tables\TipoprodottoSubConstraintsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\TipoprodottoSubConstraint;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,8 @@ use UnitEnum;
 
 class TipoprodottoSubConstraintResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = TipoprodottoSubConstraint::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

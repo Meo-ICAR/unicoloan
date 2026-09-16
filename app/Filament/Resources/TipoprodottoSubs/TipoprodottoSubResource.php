@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\TipoprodottoSubs;
 
-// Collega la risorsa figlia alla risorsa padre
 use App\Filament\Resources\Tipoprodottos\TipoprodottoResource;
+// Collega la risorsa figlia alla risorsa padre
 use App\Filament\Resources\TipoprodottoSubs\Pages\CreateTipoprodottoSub;
 use App\Filament\Resources\TipoprodottoSubs\Pages\EditTipoprodottoSub;
 use App\Filament\Resources\TipoprodottoSubs\Pages\ListTipoprodottoSubs;
@@ -11,6 +11,7 @@ use App\Filament\Resources\TipoprodottoSubs\RelationManagers\LimitsRelationManag
 use App\Filament\Resources\TipoprodottoSubs\RelationManagers\ProvvigioniRelationManager;
 use App\Filament\Resources\TipoprodottoSubs\Schemas\TipoprodottoSubForm;
 use App\Filament\Resources\TipoprodottoSubs\Tables\TipoprodottoSubsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\TipoprodottoSub;
 use BackedEnum;
 use Filament\Resources\ParentResourceRegistration;
@@ -22,6 +23,8 @@ use UnitEnum;
 
 class TipoprodottoSubResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = TipoprodottoSub::class;
 
     // Collega la risorsa figlia alla risorsa padre

@@ -12,6 +12,7 @@ use App\Filament\Resources\Clients\Tables\ClientsTable;
 use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
+use App\Filament\Traits\HasPlanAccess;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -20,6 +21,8 @@ use Filament\Tables\Table;
 
 class ClientResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     // Volutamente senza navigationGroup: Filament mette le voci senza gruppo

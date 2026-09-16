@@ -8,6 +8,7 @@ use App\Filament\Resources\FornitoriRoles\Pages\ListFornitoriRoles;
 use App\Filament\Resources\FornitoriRoles\RelationManagers\ProvvigioniRelationManager;
 use App\Filament\Resources\FornitoriRoles\Schemas\FornitoriRoleForm;
 use App\Filament\Resources\FornitoriRoles\Tables\FornitoriRolesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\FornitoriRole;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,6 +17,8 @@ use UnitEnum;
 
 class FornitoriRoleResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = FornitoriRole::class;
 
     protected static ?string $navigationLabel = 'Tipo Produttori';

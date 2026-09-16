@@ -7,17 +7,20 @@ use App\Filament\Resources\MailAccounts\Pages\EditMailAccount;
 use App\Filament\Resources\MailAccounts\Pages\ListMailAccounts;
 use App\Filament\Resources\MailAccounts\Schemas\MailAccountForm;
 use App\Filament\Resources\MailAccounts\Tables\MailAccountsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\MailAccount;
+use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use BackedEnum;
 
 class MailAccountResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = MailAccount::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

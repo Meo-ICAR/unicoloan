@@ -7,6 +7,7 @@ use App\Filament\Resources\PraticaRequisitoOperativos\Pages\EditPraticaRequisito
 use App\Filament\Resources\PraticaRequisitoOperativos\Pages\ListPraticaRequisitoOperativos;
 use App\Filament\Resources\PraticaRequisitoOperativos\Schemas\PraticaRequisitoOperativoForm;
 use App\Filament\Resources\PraticaRequisitoOperativos\Tables\PraticaRequisitoOperativosTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\PraticaRequisitoOperativo;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,8 @@ use Filament\Tables\Table;
 
 class PraticaRequisitoOperativoResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = PraticaRequisitoOperativo::class;
 
     protected static bool $shouldRegisterNavigation = false;

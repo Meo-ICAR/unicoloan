@@ -7,6 +7,7 @@ use App\Filament\Resources\RequisitoTipoFinanziamentos\Pages\EditRequisitoTipoFi
 use App\Filament\Resources\RequisitoTipoFinanziamentos\Pages\ListRequisitoTipoFinanziamentos;
 use App\Filament\Resources\RequisitoTipoFinanziamentos\Schemas\RequisitoTipoFinanziamentoForm;
 use App\Filament\Resources\RequisitoTipoFinanziamentos\Tables\RequisitoTipoFinanziamentosTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\RequisitoTipoFinanziamento;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,8 @@ use Filament\Tables\Table;
 
 class RequisitoTipoFinanziamentoResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = RequisitoTipoFinanziamento::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

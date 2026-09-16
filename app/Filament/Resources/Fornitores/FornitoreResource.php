@@ -12,6 +12,7 @@ use App\Filament\Resources\Fornitores\Tables\FornitoresTable;
 use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\PROFORMA\Fornitore;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -22,6 +23,8 @@ use UnitEnum;
 
 class FornitoreResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Fornitore::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';

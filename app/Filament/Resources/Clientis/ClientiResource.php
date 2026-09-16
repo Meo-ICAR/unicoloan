@@ -13,6 +13,7 @@ use App\Filament\Resources\Clientis\Schemas\ClientiForm;
 use App\Filament\Resources\Clientis\Tables\ClientisTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\PROFORMA\Clienti;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -22,6 +23,8 @@ use UnitEnum;
 
 class ClientiResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Clienti::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';

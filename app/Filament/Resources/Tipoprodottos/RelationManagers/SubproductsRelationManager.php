@@ -4,12 +4,15 @@ namespace App\Filament\Resources\Tipoprodottos\RelationManagers;
 
 use App\Filament\Resources\TipoprodottoSubs\Tables\TipoprodottoSubsTable;
 use App\Filament\Resources\TipoprodottoSubs\TipoprodottoSubResource;
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
 
 class SubproductsRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'subproducts';
 
     protected static ?string $relatedResource = TipoprodottoSubResource::class;

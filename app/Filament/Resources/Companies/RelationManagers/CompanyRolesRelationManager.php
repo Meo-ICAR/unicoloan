@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Companies\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -22,6 +23,8 @@ use Filament\Tables\Table;
 
 class CompanyRolesRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'companyRoles';
 
     protected static ?string $recordTitleAttribute = 'name';

@@ -10,6 +10,7 @@ use App\Filament\Resources\EmployeeTypes\RelationManagers\PermissionsRelationMan
 use App\Filament\Resources\EmployeeTypes\Schemas\EmployeeTypeForm;
 use App\Filament\Resources\EmployeeTypes\Schemas\EmployeeTypeInfolist;
 use App\Filament\Resources\EmployeeTypes\Tables\EmployeeTypesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\EmployeeType;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -20,6 +21,8 @@ use UnitEnum;
 
 class EmployeeTypeResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = EmployeeType::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

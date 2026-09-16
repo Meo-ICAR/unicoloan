@@ -9,6 +9,7 @@ enum UserRole: string
     case INSPECTOR = 'inspector';
     case SOS = 'sos';
     case ADMIN = 'admin';
+    case SUPER_ADMIN = 'super_admin';
 
     /**
      * Ritorna l'elenco delle funzionalità consentite per ciascun ruolo.
@@ -16,8 +17,8 @@ enum UserRole: string
     public function features(): array
     {
         return match ($this) {
-            // L'Admin vede tutto ciò che il piano attivo gli permette
-            self::ADMIN => ['*'],
+            // Admin e SuperAdmin vedono sempre tutto (bypassati anche a monte in checkPiano())
+            self::ADMIN, self::SUPER_ADMIN => ['*'],
 
             // L'Ispettore vede solo Audit e Reclami
             self::INSPECTOR => [

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Praticas\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
@@ -13,6 +14,8 @@ use Filament\Tables\Table;
 
 class ProvvigioniRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'provvigioni';
 
     public function form(Schema $schema): Schema

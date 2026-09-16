@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Resources\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\EmployeeType;
 use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -11,6 +12,8 @@ use Filament\Tables\Table;
 
 class PermissionsRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'permissions';
 
     protected static ?string $title = 'Matrice Permessi e Accessi';

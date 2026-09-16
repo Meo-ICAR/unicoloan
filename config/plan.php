@@ -16,6 +16,6 @@ return [
     |
     */
 
-    'type' => env('APP_PLAN', PlanType::FULL->value),
+    'type' => env('APP_PLAN', PlanType::Full->value),
 
 ];

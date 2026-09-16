@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Praticas\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\PraticaStato;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -19,6 +20,8 @@ use Filament\Tables\Table;
 
 class StatusHistoryRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'statusHistory';
 
     protected static ?string $title = 'Storico Stati';

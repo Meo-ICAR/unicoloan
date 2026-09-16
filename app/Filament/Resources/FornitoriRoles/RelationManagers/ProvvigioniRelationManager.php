@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\FornitoriRoles\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\PROFORMA\Clienti;
 use App\Models\Tipoprodotto;
 use App\Models\TipoprodottoSub;
@@ -28,6 +29,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ProvvigioniRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'provvigioni';
 
     public function form(Schema $schema): Schema

@@ -7,6 +7,7 @@ use App\Filament\Resources\Organizations\Pages\EditOrganization;
 use App\Filament\Resources\Organizations\Pages\ListOrganizations;
 use App\Filament\Resources\Organizations\Schemas\OrganizationForm;
 use App\Filament\Resources\Organizations\Tables\OrganizationsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Organization;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,6 +19,8 @@ use UnitEnum;
 
 class OrganizationResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Organization::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';

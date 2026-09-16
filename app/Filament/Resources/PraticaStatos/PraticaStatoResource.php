@@ -7,6 +7,7 @@ use App\Filament\Resources\PraticaStatos\Pages\EditPraticaStato;
 use App\Filament\Resources\PraticaStatos\Pages\ListPraticaStatos;
 use App\Filament\Resources\PraticaStatos\Schemas\PraticaStatoForm;
 use App\Filament\Resources\PraticaStatos\Tables\PraticaStatosTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\PraticaStato;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,6 +20,8 @@ use UnitEnum;
 
 class PraticaStatoResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = PraticaStato::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';

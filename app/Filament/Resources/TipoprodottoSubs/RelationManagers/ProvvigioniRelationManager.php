@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TipoprodottoSubs\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\FornitoriRole;
 use Filament\Actions\Action; // <--- Corretto namespace da Model a Models
 use Filament\Actions\AssociateAction;
@@ -24,6 +25,8 @@ use Filament\Tables\Table;
 
 class ProvvigioniRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'provvigioni';
 
     public function form(Schema $schema): Schema

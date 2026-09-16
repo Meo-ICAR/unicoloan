@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
@@ -123,6 +124,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsA
     }
 
     /**
+     * Profilo polimorfico dell'utente (allineato al pattern usato da unicobpm),
+     * usato dal motore RBAC condiviso (vedi App\Models\EmployeeType e helpers.php).
+     * In questa applicazione il collegamento già popolato resta employee().
+     */
+    public function profile(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
      * Verifica i permessi dell'utente passando per i ruoli del suo Employee.
      */
     public function hasPermission(string $resource, string $action = 'viewAny'): bool
@@ -142,11 +153,20 @@ class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsA
         }
 
         // Verifica se almeno uno dei ruoli dell'impiegato ha il permesso attivo
+        $resourceId = Resource::query()
+            ->forCurrentApp()
+            ->where('key', $resource)
+            ->value('id');
+
+        if (! $resourceId) {
+            return false;
+        }
+
         return EmployeeTypePermission::query()
             ->whereHas('employeeType', function ($query) use ($employee) {
                 $query->whereIn('name', $employee->employee_roles);
             })
-            ->where('resource', $resource)
+            ->where('resource_id', $resourceId)
             ->where('action', $action)
             ->exists();
     }
