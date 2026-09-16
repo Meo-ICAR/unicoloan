@@ -4,12 +4,13 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('complaint_registry', function (Blueprint $table) {
             $table->comment('Registro ufficiale Reclami e Segnalazioni (OAM, IVASS, Privacy)');
-            $table->id();
+            $table->id()->comment('ID univoco del reclamo/segnalazione');
             $table->uuid('company_id')->comment('Logical FK: db_bpm.companies');
 
             // 1. IDENTIFICAZIONE E RICEZIONE
@@ -46,12 +47,12 @@ return new class extends Migration {
             $table->boolean('is_extended')->default(false)->comment('Se i termini sono stati estesi legalmente');
 
             // 6. RISOLUZIONE ED ESCALATION
-            $table->timestamp('resolved_at')->nullable();
+            $table->timestamp('resolved_at')->nullable()->comment('Data e ora di risoluzione del reclamo');
             $table->text('resolution_notes')->nullable()->comment("Esito dell'istruttoria e motivazioni");
             $table->string('escalated_to', 50)->nullable()->comment('Se rigettato, eventuale ricorso a: abf, oam, ivass, garante');
 
             $table->timestamps();
-            $table->softDeletes();
+            $table->softDeletes()->comment('Data di eliminazione logica del record');
 
             // INDICI OTTIMIZZATI PER LE DASHBOARD DI COMPLIANCE
             $table->index(['company_id', 'status']);

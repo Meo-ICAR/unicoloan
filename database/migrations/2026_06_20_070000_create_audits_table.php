@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -12,13 +13,13 @@ return new class extends Migration {
     {
         Schema::create('audits', function (Blueprint $table) {
             $table->comment('Registro dei controlli (audit) eseguiti sui collaboratori/impiegati, richiesti da enti interni o esterni.');
-            $table->id();
+            $table->id()->comment('Identificativo univoco del record');
 
             // -----------------------------------------------------------------
             // MULTI-TENANCY (Nativo in Filament 5)
             // -----------------------------------------------------------------
             // Filament isolerà i record in base alla Company attiva. Indispensabile l'indice.
-            $table->foreignUuid('company_id')->nullable()->index()->constrained('companies')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->index()->constrained('companies')->cascadeOnDelete()->comment('Azienda (tenant) proprietaria del record');
             $table->text('name')->nullable()->comment('Nome audit');
             // -----------------------------------------------------------------
             // 1. SU CHI? (Polimorfismo con UUID)
@@ -74,7 +75,7 @@ return new class extends Migration {
             $table->date('followup_date')->nullable()->comment('Data di verifica dei rimedi');
 
             $table->timestamps();
-            $table->softDeletes();
+            $table->softDeletes()->comment('Data di eliminazione logica del record');
         });
     }
 

@@ -20,12 +20,14 @@ return new class extends Migration
         }
 
         Schema::create('employee_types', function (Blueprint $table) {
+            $table->comment('Anagrafica dei tipi di dipendente/ruolo usati dal motore RBAC');
+
             // int firmato per restare compatibile con employee_type_permissions.employee_type_id
-            $table->integer('id')->autoIncrement();
-            $table->string('name')->nullable();
-            $table->string('icon')->nullable();
-            $table->string('companytype')->nullable();
-            $table->boolean('is_external')->default(false);
+            $table->integer('id')->autoIncrement()->comment('ID univoco del tipo di dipendente');
+            $table->string('name')->nullable()->comment('Nome del tipo di dipendente/ruolo');
+            $table->string('icon')->nullable()->comment('Icona associata al tipo di dipendente');
+            $table->string('companytype')->nullable()->comment('Tipologia di azienda a cui si applica il ruolo');
+            $table->boolean('is_external')->default(false)->comment('Indica se il ruolo è riservato a collaboratori esterni');
             $table->timestamps();
         });
     }

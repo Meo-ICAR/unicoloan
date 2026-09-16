@@ -65,13 +65,13 @@ return new class extends Migration
             $table->boolean('is_ghost')->default(false)->comment('Utenza tecnica di sistema');
 
             // Audit Trails (Utenti)
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable()->comment('Logical FK: users.id, utente che ha creato il record');
+            $table->unsignedBigInteger('updated_by')->nullable()->comment('Logical FK: users.id, utente che ha aggiornato per ultimo il record');
+            $table->unsignedBigInteger('deleted_by')->nullable()->comment('Logical FK: users.id, utente che ha eliminato il record');
 
             // Timestamps e SoftDeletes
             $table->timestamps();
-            $table->softDeletes();
+            $table->softDeletes()->comment('Data di eliminazione logica del record');
 
             // Indici Espliciti Richiesti
             $table->index('company_id', 'employees_company_id_foreign');

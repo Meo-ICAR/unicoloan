@@ -13,13 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::getConnection()->getDriverName() === 'mysql') {
-            DB::statement('ALTER TABLE media MODIFY model_id VARCHAR(255) NOT NULL');
+            DB::statement("ALTER TABLE media MODIFY model_id VARCHAR(255) NOT NULL COMMENT 'ID del modello collegato al media, memorizzato come stringa per supportare chiavi non numeriche (es. UUID)'");
 
             return;
         }
 
         Schema::table('media', function (Blueprint $table) {
-            $table->string('model_id')->change();
+            $table->string('model_id')->comment('ID del modello collegato al media, memorizzato come stringa per supportare chiavi non numeriche (es. UUID)')->change();
         });
     }
 

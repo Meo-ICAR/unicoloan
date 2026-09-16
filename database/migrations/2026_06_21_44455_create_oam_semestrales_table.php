@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,7 +14,7 @@ return new class extends Migration {
         Schema::create('oam_semestrales', function (Blueprint $table) {
             $table->comment('Dati aggregati per il report OAM: Profilo Economico/Operativo Base');
 
-            $table->id();
+            $table->id()->comment('ID univoco del record di report OAM semestrale');
             $table->uuid('company_id')->nullable()->index()->comment('ID Azienda (Tenant)');
             $table->char('period', 8)->nullable()->index()->comment('Anno e mese di riferimento del report');
 

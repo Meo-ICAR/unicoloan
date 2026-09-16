@@ -16,12 +16,14 @@ return new class extends Migration
         }
 
         Schema::create('resources', function (Blueprint $table) {
-            $table->id();
-            $table->string('app_name');                                // Es. "CRM", "PORTALE_OAM", "FINANCE"
-            $table->string('key');                                     // Identificatore (es. "employees")
-            $table->string('name');                                    // Nome leggibile (es. "Dipendenti")
-            $table->string('group')->nullable();                       // Gruppo menu (es. "Anagrafiche")
-            $table->enum('min_plan', ['BASE', 'MEDIUM', 'FULL'])->default('BASE');
+            $table->comment('Risorse/funzionalità applicative disponibili, raggruppabili per app e piano.');
+
+            $table->id()->comment('ID univoco della risorsa.');
+            $table->string('app_name')->comment('Applicazione di appartenenza della risorsa (es. CRM, PORTALE_OAM, FINANCE).');                                // Es. "CRM", "PORTALE_OAM", "FINANCE"
+            $table->string('key')->comment('Identificatore univoco della risorsa all\'interno dell\'app (es. employees).');                                     // Identificatore (es. "employees")
+            $table->string('name')->comment('Nome leggibile della risorsa (es. Dipendenti).');                                    // Nome leggibile (es. "Dipendenti")
+            $table->string('group')->nullable()->comment('Gruppo di menu a cui appartiene la risorsa (es. Anagrafiche).');                       // Gruppo menu (es. "Anagrafiche")
+            $table->enum('min_plan', ['BASE', 'MEDIUM', 'FULL'])->default('BASE')->comment('Piano minimo richiesto per accedere alla risorsa.');
             $table->timestamps();
 
             // Indice univoco per evitare duplicati della stessa risorsa nella stessa app

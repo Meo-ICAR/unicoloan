@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -70,13 +71,13 @@ return new class extends Migration {
             $table->unsignedTinyInteger('retention_years')->nullable()->comment('GDPR retention policy (anni)');
 
             // Audit Trails (Utenti)
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable()->comment('FK Utente creatore del record');
+            $table->unsignedBigInteger('updated_by')->nullable()->comment('FK Utente che ha aggiornato il record');
+            $table->unsignedBigInteger('deleted_by')->nullable()->comment('FK Utente che ha eliminato il record');
 
             // Timestamps e SoftDeletes
             $table->timestamps();
-            $table->softDeletes();
+            $table->softDeletes()->comment('Data di eliminazione logica del record');
         });
     }
 

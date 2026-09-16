@@ -38,6 +38,8 @@ return new class extends Migration
 
             // Indice sulle colonne di ricerca frequenti per ottimizzare i report sulle performance dei canali
             $blueprint->index(['type', 'is_active']);
+
+            $blueprint->comment('Sorgenti/canali di acquisizione dei lead, usate per tracciabilità e statistiche ROI');
         });
     }
 

@@ -12,15 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cache', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->mediumText('value');
-            $table->bigInteger('expiration')->index();
+            $table->comment('Voci della cache applicativa');
+            $table->string('key')->primary()->comment('Chiave univoca della voce di cache');
+            $table->mediumText('value')->comment('Valore serializzato memorizzato in cache');
+            $table->bigInteger('expiration')->index()->comment('Timestamp di scadenza della voce di cache');
         });
 
         Schema::create('cache_locks', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->string('owner');
-            $table->bigInteger('expiration')->index();
+            $table->comment('Lock utilizzati per la sincronizzazione della cache');
+            $table->string('key')->primary()->comment('Chiave del lock');
+            $table->string('owner')->comment('Identificativo del proprietario del lock');
+            $table->bigInteger('expiration')->index()->comment('Timestamp di scadenza del lock');
         });
     }
 

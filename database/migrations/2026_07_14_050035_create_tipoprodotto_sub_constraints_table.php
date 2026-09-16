@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tipoprodotto_sub_constraints', function (Blueprint $table) {
-            $table->id();
+            $table->id()->comment('ID univoco del vincolo.');
 
             // --- Relazione con la Banca (UUID) ---
             // Usiamo uuid() per creare la colonna senza generare vincoli fisici

@@ -4,6 +4,8 @@ namespace App\Models\PROFORMA;
 
 use App\Models\Document;
 use App\Models\OamCode;
+use App\Models\PraticaRequisito;
+use App\Models\PraticaRequisitoOperativo;
 use App\Models\PraticaStato;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

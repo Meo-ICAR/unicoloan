@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -12,7 +13,7 @@ return new class extends Migration {
     {
         Schema::create('email_templates', function (Blueprint $table) {
             $table->comment('Registro dei template email configurabili');
-            $table->id();
+            $table->id()->comment('Identificativo univoco del template');
             $table->string('code')->unique()->comment('Codice univoco di task  (es. AUDIT_REMOTE)');
             $table->string('name')->comment('Nome descrittivo per gli utenti');
             $table->string('subject')->comment('Oggetto della mail');

@@ -13,13 +13,15 @@ return new class extends Migration
         }
 
         Schema::create('employee_type_permissions', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Permessi assegnati a ciascuna tipologia di dipendente sulle risorse applicative.');
+
+            $table->id()->comment('ID univoco del permesso.');
 
             // Usiamo integer per combaciare con l'INT della tabella employee_types
-            $table->integer('employee_type_id');
+            $table->integer('employee_type_id')->comment('Tipologia di dipendente a cui è assegnato il permesso.');
 
-            $table->string('resource');
-            $table->string('action')->default('viewAny');
+            $table->string('resource')->comment('Risorsa/funzionalità applicativa a cui si riferisce il permesso.');
+            $table->string('action')->default('viewAny')->comment('Azione consentita sulla risorsa (es. viewAny, create, update).');
 
             $table->timestamps();
 

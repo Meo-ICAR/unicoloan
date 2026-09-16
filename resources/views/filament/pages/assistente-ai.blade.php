@@ -11,11 +11,12 @@
 
             <form wire:submit="send" class="space-y-4">
                 <x-filament::input.wrapper>
-                    <x-filament::input.textarea
+                    <textarea
                         wire:model="prompt"
                         rows="3"
                         placeholder="Es: come emetto un proforma?"
-                    />
+                        class="fi-input"
+                    ></textarea>
                 </x-filament::input.wrapper>
 
                 <x-filament::button type="submit" icon="heroicon-o-paper-airplane">

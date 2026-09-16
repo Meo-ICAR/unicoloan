@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::table('email_templates', function (Blueprint $table) {
             // Aggiunge l'identificativo per il multi-tenant/multi-app
             $table->string('app_identifier', 50)->nullable()
-                ->after('is_active')->index();
+                ->after('is_active')->index()
+                ->comment('Identificativo dell\'applicazione/tenant proprietaria del template email');
             //
         });
     }

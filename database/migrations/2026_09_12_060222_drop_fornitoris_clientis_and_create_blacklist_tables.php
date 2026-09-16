@@ -29,12 +29,14 @@ return new class extends Migration
 
         if (! $schema->hasTable('blacklist_clienti_fornitori')) {
             $schema->create('blacklist_clienti_fornitori', function (Blueprint $table) {
-                $table->uuid('id')->primary();
-                $table->uuid('cliente_id');
-                $table->uuid('fornitore_id');
-                $table->text('motivo')->nullable();
-                $table->date('data_inizio')->nullable();
-                $table->date('data_fine')->nullable();
+                $table->comment('Blacklist degli agenti (fornitoris) che non possono operare per una determinata banca (clientis).');
+
+                $table->uuid('id')->primary()->comment('ID univoco della voce di blacklist.');
+                $table->uuid('cliente_id')->comment('Banca (clientis) che blacklista l\'agente.');
+                $table->uuid('fornitore_id')->comment('Agente (fornitoris) blacklistato.');
+                $table->text('motivo')->nullable()->comment('Motivazione della blacklist.');
+                $table->date('data_inizio')->nullable()->comment('Data di inizio validità della blacklist.');
+                $table->date('data_fine')->nullable()->comment('Data di fine validità della blacklist.');
                 $table->timestamps();
 
                 $table->foreign('cliente_id')->references('id')->on('clientis')->cascadeOnDelete();
@@ -49,12 +51,14 @@ return new class extends Migration
         // fornitoris/clientis by denormalized value rather than a cross-database FK.
         if (! $schema->hasTable('blacklist_clienti_employees')) {
             $schema->create('blacklist_clienti_employees', function (Blueprint $table) {
-                $table->uuid('id')->primary();
-                $table->uuid('cliente_id');
-                $table->unsignedBigInteger('employee_id');
-                $table->text('motivo')->nullable();
-                $table->date('data_inizio')->nullable();
-                $table->date('data_fine')->nullable();
+                $table->comment('Blacklist dei dipendenti interni che non possono operare per una determinata banca (clientis).');
+
+                $table->uuid('id')->primary()->comment('ID univoco della voce di blacklist.');
+                $table->uuid('cliente_id')->comment('Banca (clientis) che blacklista il dipendente.');
+                $table->unsignedBigInteger('employee_id')->comment('Dipendente interno blacklistato.');
+                $table->text('motivo')->nullable()->comment('Motivazione della blacklist.');
+                $table->date('data_inizio')->nullable()->comment('Data di inizio validità della blacklist.');
+                $table->date('data_fine')->nullable()->comment('Data di fine validità della blacklist.');
                 $table->timestamps();
 
                 $table->foreign('cliente_id')->references('id')->on('clientis')->cascadeOnDelete();
@@ -72,10 +76,12 @@ return new class extends Migration
         Schema::connection('mysql_proforma')->dropIfExists('blacklist_clienti_fornitori');
 
         Schema::connection('mysql_proforma')->create('fornitoris_clientis', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('fornitori_id');
-            $table->uuid('clienti_id');
-            $table->string('name')->nullable();
+            $table->comment('Tabella di scaffold storica associazione agenti/banche, ripristinata solo per il rollback.');
+
+            $table->id()->comment('ID univoco della riga.');
+            $table->uuid('fornitori_id')->comment('Agente (fornitoris) associato.');
+            $table->uuid('clienti_id')->comment('Banca (clientis) associata.');
+            $table->string('name')->nullable()->comment('Nome descrittivo dell\'associazione.');
 
             $table->foreign('fornitori_id')->references('id')->on('fornitoris');
             $table->foreign('clienti_id')->references('id')->on('clientis');

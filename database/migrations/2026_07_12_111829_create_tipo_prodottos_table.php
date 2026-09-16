@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tipo_prodottos', function (Blueprint $table) {
-            $table->id();
+            $table->id()->comment('ID univoco del tipo di prodotto finanziario');
             $table->timestamps();
+
+            $table->comment('Tipologie di prodotto finanziario offerte tramite le pratiche di finanziamento');
         });
     }
 

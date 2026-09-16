@@ -11,20 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema aspirazionale: la tabella `clients` non e' gestita da migration.
+        // `clients` vive sulla connessione `mysql_proforma` (tabella `proforma.clients`,
+        // vedi App\Models\Client), non sulla connessione di default di questa migration.
         // Diventa un no-op dove `clients` non esiste, invece di fallire sul vincolo FK.
-        if (Schema::hasTable('client_mandates') || ! Schema::hasTable('clients')) {
+        if (Schema::hasTable('client_mandates') || ! Schema::connection('mysql_proforma')->hasTable('clients')) {
             return;
         }
 
         Schema::create('client_mandates', function (Blueprint $blueprint) {
             $blueprint->id()->comment('ID univoco mandato cliente');
 
-            // Allineato a BigInteger per matchare perfettamente il DDL di 'clients'
-            $blueprint->foreignId('client_id')
-                ->comment('Riferimento al cliente coinvolto')
-                ->constrained('clients')
-                ->onDelete('cascade');
+            // Nessun vincolo FK: `clients` vive su una connessione/database diversa
+            // (mysql_proforma), quindi non e' referenziabile con una FK nativa.
+            $blueprint->unsignedBigInteger('client_id')
+                ->comment('Riferimento al cliente coinvolto (mysql_proforma.clients.id)');
+            $blueprint->index('client_id');
 
             $blueprint->string('numero_mandato')->unique()->comment('Numero identificativo mandato');
             $blueprint->date('data_firma_mandato')->comment('Innesca Instaurazione Rapporto AUI');
@@ -37,7 +38,7 @@ return new class extends Migration
                 ->default('attivo')
                 ->comment('Stato del mandato');
 
-            $blueprint->string('ruolo')->nullable();
+            $blueprint->string('ruolo')->nullable()->comment('Ruolo del soggetto nella pratica (es. richiedente, garante, cointestatario)');
             $blueprint->string('name')->nullable()->comment('Descrizione');
             $blueprint->text('notes')->nullable()->comment('Note specifiche sul ruolo per questa pratica (es. "Garante solo per quota 50%")');
             $blueprint->text('purpose_of_relationship')->nullable()->comment('Es: Acquisto prima casa');
@@ -52,6 +53,8 @@ return new class extends Migration
             // Supporto integrato SoftDeletes richiesto dal tuo DDL (deleted_at)
             $blueprint->softDeletes();
             $blueprint->timestamps();
+
+            $blueprint->comment('Mandati conferiti dai clienti finali, con dettagli su ruolo, importo richiesto e stato della pratica');
         });
     }
 

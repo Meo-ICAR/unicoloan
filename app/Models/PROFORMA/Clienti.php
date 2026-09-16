@@ -5,14 +5,12 @@ namespace App\Models\PROFORMA;
 use App\Models\BlacklistClienteEmployee;
 use App\Models\Branch;
 use App\Models\Document;
-use App\Models\OamCode;
 use App\Models\ProvvigioniRule;
 use App\Models\TipoprodottoSubConstraint;
 use App\Models\Website;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -208,20 +206,6 @@ class Clienti extends Model
             'entrambi' => 'Modalita combinata',
             default => '--',
         };
-    }
-
-    public function oamCodes(): BelongsToMany
-    {
-        return $this
-            ->belongsToMany(
-                OamCode::class,  // Il modello correlato
-                'unicooam.clienti_oam',  // La tabella pivot personalizzata
-                'clienti_id',  // La chiave esterna di questa tabella nella pivot
-                'oam_code_id'  // La chiave esterna del modello correlato nella pivot
-            )
-            ->where('is_active', true)  // <-- FILTRO: Mostra solo gli OamCode attivi
-            ->withPivot('dal', 'al')  // Recupera i campi extra della tabella pivot
-            ->withTimestamps();  // Gestisce automaticamente created_at e updated_at nella pivot
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Clientis\Schemas;
 
-use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,7 +11,6 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 
 class ClientiForm
 {
@@ -60,25 +58,6 @@ class ClientiForm
                                                 ->label('Record di Test (Dummy)'),
                                         ]),
                                     ]),
-                                Section::make('Associazione prodotti')
-                                    ->description('Seleziona i prodotti convenzionati con questa mandante.')
-                                    ->collapsible()
-                                    ->collapsed()
-                                    ->schema([
-                                        CheckboxList::make('oamCodes')
-                                            ->label('Prodotti')
-                                            ->relationship(
-                                                name: 'oamCodes',
-                                                titleAttribute: 'tipo_prodotto',
-                                                modifyQueryUsing: fn (Builder $query) => $query
-                                                    ->where('is_dummy', false)
-                                            )
-                                            ->searchable()
-                                            ->bulkToggleable()
-                                            ->columns(7)
-                                            ->gridDirection('row'),
-                                    ])
-                                    ->columnSpanFull(),
                             ]),
                         // TAB 2: DATI MANDATO E VIGILANZA (OAM / IVASS)
                         Tabs\Tab::make('Mandato & Vigilanza')

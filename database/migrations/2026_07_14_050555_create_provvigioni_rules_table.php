@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('provvigioni_rules', function (Blueprint $table) {
-            $table->id();
+            $table->id()->comment('ID univoco della regola provvigionale.');
 
             // --- Gerarchia e Applicabilità ---
             $table->unsignedBigInteger('tipoprodotto_id')

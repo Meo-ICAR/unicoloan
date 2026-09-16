@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -42,7 +43,7 @@ return new class extends Migration {
 
             // Timestamps e SoftDeletes
             $table->timestamps();
-            $table->softDeletes();
+            $table->softDeletes()->comment('Data di eliminazione logica del record');
 
             // Indice composto polimorfico
             $table->index(['mailable_type', 'mailable_id'], 'mail_accounts_mailable_index');

@@ -11,10 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema aspirazionale: la tabella `clients` non e' gestita da migration.
-        // Su ambienti dove esiste (creata a mano) la tabella e' gia' presente;
-        // altrove la migration diventa un no-op invece di fallire sul vincolo FK.
-        if (Schema::hasTable('client_relations') || ! Schema::hasTable('clients')) {
+        if (Schema::hasTable('client_relations')) {
             return;
         }
 
@@ -24,8 +21,12 @@ return new class extends Migration
             // company_id è un CHAR(36), probabilmente un UUID
             $table->char('company_id', 36)->comment('ID società persona giuridica');
 
-            // client_id e client_type_id sono INT UNSIGNED nel tuo SQL
-            $table->unsignedInteger('client_id')->comment('ID persona fisica cliente');
+            // client_id e client_type_id sono INT UNSIGNED nel tuo SQL.
+            // Nessun vincolo FK: `clients` vive sulla connessione mysql_proforma
+            // (tabella `proforma.clients`, vedi App\Models\Client) e `client_types`
+            // non ha ancora una tabella propria, quindi non sono referenziabili
+            // con una FK nativa su questa connessione.
+            $table->unsignedInteger('client_id')->comment('ID persona fisica cliente (mysql_proforma.clients.id)');
             $table->unsignedInteger('client_type_id')->nullable()->comment('Tipo di cliente');
 
             $table->decimal('shares_percentage', 5, 2)->nullable()->comment('Percentuale quote possedute');
@@ -36,10 +37,11 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Foreign Keys con vincolo ON DELETE CASCADE come richiesto
+            $table->index('client_id');
+            $table->index('client_type_id');
+
+            // Foreign Key verso companies, che vive sulla stessa connessione di questa tabella.
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
-            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
-            $table->foreign('client_type_id')->references('id')->on('client_types')->onDelete('cascade');
 
             // Commento della tabella
             $table->comment('Compositions societaria');

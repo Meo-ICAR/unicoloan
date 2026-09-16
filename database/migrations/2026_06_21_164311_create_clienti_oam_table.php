@@ -4,14 +4,17 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('clienti_oam', function (Blueprint $table) {
-            $table->id();  // int NOT NULL AUTO_INCREMENT
+            $table->comment('Associazione tra banche mandatarie e codici OAM, con periodo di convenzione');
+
+            $table->id()->comment('ID univoco del record di associazione');  // int NOT NULL AUTO_INCREMENT
 
             // char(36) per l'UUID della mandataria
             $table->char('clienti_id', 36)->nullable()->comment('mandataria');
