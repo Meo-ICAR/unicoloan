@@ -24,7 +24,9 @@ class FornitoriRoleResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Tipi';
 
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
+
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $recordTitleAttribute = 'name';
 

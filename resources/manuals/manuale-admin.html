@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unicoloan — Manuale Operativo Admin</title>
+<style>
+  :root {
+    --purple: #6d28d9;
+    --purple-light: #f5f3ff;
+    --gray-900: #111827;
+    --gray-700: #374151;
+    --gray-500: #6b7280;
+    --gray-200: #e5e7eb;
+    --gray-50: #f9fafb;
+    --green: #15803d;
+    --amber: #b45309;
+    --red: #b91c1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--gray-900);
+    background: #fff;
+    margin: 0;
+    line-height: 1.6;
+  }
+  .layout { display: flex; max-width: 1200px; margin: 0 auto; }
+  nav.toc {
+    width: 270px;
+    flex-shrink: 0;
+    padding: 32px 16px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--gray-200);
+  }
+  nav.toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray-500); margin: 0 0 12px; }
+  nav.toc ul { list-style: none; padding: 0; margin: 0 0 20px; }
+  nav.toc li { margin-bottom: 4px; }
+  nav.toc a { color: var(--gray-700); text-decoration: none; font-size: 14px; display: block; padding: 4px 8px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--purple-light); color: var(--purple); }
+  main { flex: 1; padding: 40px 48px 100px; min-width: 0; }
+  header.hero {
+    background: linear-gradient(135deg, var(--purple), #7c3aed);
+    color: #fff;
+    padding: 40px 48px;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 28px; }
+  header.hero p { margin: 0; opacity: .9; font-size: 15px; }
+  h2 { font-size: 22px; margin-top: 48px; padding-top: 12px; border-top: 1px solid var(--gray-200); }
+  h2:first-of-type { border-top: none; margin-top: 0; }
+  h3 { font-size: 17px; margin-top: 28px; color: var(--gray-900); }
+  p { color: var(--gray-700); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
+  .badge.menu { background: var(--purple-light); color: var(--purple); }
+  ol, ul { color: var(--gray-700); padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14.5px;
+  }
+  .callout.tip { background: #ecfdf5; border-left: 4px solid var(--green); }
+  .callout.warn { background: #fffbeb; border-left: 4px solid var(--amber); }
+  .callout.danger { background: #fef2f2; border-left: 4px solid var(--red); }
+  .callout.note { background: var(--gray-50); border-left: 4px solid var(--gray-500); }
+  .callout strong { display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--gray-200); }
+  th { background: var(--gray-50); font-weight: 600; color: var(--gray-700); }
+  code { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 4px; padding: 1px 6px; font-size: 13px; }
+  pre {
+    background: #0f172a; color: #e2e8f0; padding: 14px 18px; border-radius: 8px;
+    overflow-x: auto; font-size: 13px; margin: 14px 0;
+  }
+  pre code { background: none; border: none; color: inherit; padding: 0; }
+  .steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .steps li { counter-increment: step; position: relative; padding-left: 36px; margin-bottom: 14px; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 0;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--purple); color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  @media print {
+    nav.toc { display: none; }
+    .layout { display: block; }
+    header.hero { background: none; color: var(--gray-900); }
+  }
+  @media (max-width: 800px) {
+    .layout { flex-direction: column; }
+    nav.toc { width: auto; position: static; border-right: none; border-bottom: 1px solid var(--gray-200); }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>Manuale Operativo — Amministratore</h1>
+  <p>Guida alla configurazione iniziale e alla manutenzione di Unicoloan: anagrafiche di sistema, catalogo prodotti, permessi, workflow e seeder.</p>
+</header>
+
+<div class="layout">
+  <nav class="toc">
+    <h2>Indice</h2>
+    <ul>
+      <li><a href="#panoramica">1. Panoramica della configurazione</a></li>
+      <li><a href="#utenti-permessi">2. Utenti e permessi (RBAC)</a></li>
+      <li><a href="#catalogo">3. Catalogo prodotti</a></li>
+      <li><a href="#provvigioni">4. Regole provvigionali</a></li>
+      <li><a href="#workflow">5. Stati pratica e requisiti</a></li>
+      <li><a href="#anagrafiche-sistema">6. Anagrafiche di sistema</a></li>
+      <li><a href="#blacklist-admin">7. Blacklist banca ↔ agente</a></li>
+      <li><a href="#seeder">8. Seeder di popolamento dati</a></li>
+      <li><a href="#assistente-ai-admin">9. Assistente AI e documentazione</a></li>
+      <li><a href="#connessioni">10. Le due connessioni al database</a></li>
+      <li><a href="#checklist">11. Checklist prima messa in produzione</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <h2 id="panoramica">1. Panoramica della configurazione</h2>
+    <p>Il gruppo di menu <strong>Sistema</strong> raccoglie tutte le sezioni riservate a chi configura l'applicazione. L'ordine consigliato per una configurazione iniziale da zero è:</p>
+    <ol class="steps">
+      <li>Utenti e Abilitazioni (chi può accedere e cosa può fare).</li>
+      <li>Catalogo Prodotti (quali prodotti finanziari esistono e con quali vincoli).</li>
+      <li>Regole Provvigionali (come si calcolano i compensi).</li>
+      <li>Stati Pratica e Requisiti (il workflow di lavorazione).</li>
+      <li>Anagrafiche di sistema (tipi documento, modelli email, organismi di vigilanza).</li>
+    </ol>
+
+    <h2 id="utenti-permessi">2. Utenti e permessi (RBAC)</h2>
+    <p>Il controllo accessi si basa su tre livelli, tutti sotto <strong>Sistema</strong>:</p>
+    <table>
+      <tr><th>Sezione</th><th>A cosa serve</th></tr>
+      <tr><td><strong>Utenti</strong></td><td>Account che accedono al pannello (email, ruolo, login social).</td></tr>
+      <tr><td><strong>Ruoli</strong> (Tipi Dipendente)</td><td>Definisce le tipologie di dipendente/ruolo usate dal motore permessi.</td></tr>
+      <tr><td><strong>Abilitazioni</strong> (Moduli)</td><td>I moduli/risorse dell'applicazione a cui un ruolo può avere accesso.</td></tr>
+    </table>
+    <div class="callout note">
+      <strong>Restrizione per dominio email</strong>
+      La configurazione <code>panel.allowed_email_domains</code> (file <code>.env</code> o config) limita l'accesso al pannello solo a email di determinati domini. Un elenco vuoto lascia l'accesso aperto a chiunque abbia un account valido.
+    </div>
+    <div class="callout warn">
+      <strong>Gating per piano</strong>
+      Alcune Resource (Utenti, Dipendenti, Azienda, Documenti, Tipi Documento, Modelli Email, Plico Documentale) usano il trait <code>HasPlanAccess</code>: la loro visibilità/accesso CRUD dipende dalla funzione <code>checkPiano()</code> e dal piano attivo, non solo dal ruolo utente. Se un utente con ruolo corretto non vede una sezione, verificare prima il piano configurato.
+    </div>
+
+    <h3>Blocco strutturale per Filament</h3>
+    <p>Le Resource Filament vengono scoperte in base al <strong>percorso del file</strong>, non al namespace dichiarato al suo interno. Se si sposta/rinomina una cartella di una Resource, occorre aggiornare anche la riga <code>namespace</code> in ogni file al suo interno, altrimenti la Resource smette silenziosamente di comparire nel pannello.</p>
+
+    <h2 id="catalogo">3. Catalogo prodotti</h2>
+    <p>Sotto <strong>Catalogo Prodotti</strong> si configura l'offerta commerciale:</p>
+    <ol class="steps">
+      <li><strong>Prodotti</strong> — le macro-categorie (Mutuo, Cessione del Quinto, Prestito Personale, Leasing, ecc.), ciascuna con codice, tipologia di provvigione di default (Lordo/Erogato/Netto) e flag "solo un cliente" se applicabile.</li>
+      <li><strong>Sotto-prodotti</strong> — varianti specifiche di un prodotto (es. "Mutuo Acquisto", "CQS Privati"), identificate da un codice univoco.</li>
+      <li><strong>Vincoli di fattibilità</strong> — per ogni sotto-prodotto e banca specifica: età minima/massima, importo minimo/massimo, durata, rapporto rata/reddito, LTV massimo, tipi di impiego ammessi.</li>
+    </ol>
+    <div class="callout warn">
+      <strong>Un vincolo appartiene sempre a una banca</strong>
+      Il campo "Istituto" di un vincolo di fattibilità è obbligatorio: non è possibile creare un vincolo generico valido per tutte le banche. Se serve un vincolo "di default", va comunque associato a un istituto specifico e poi eventualmente replicato per gli altri.
+    </div>
+
+    <h2 id="provvigioni">4. Regole provvigionali</h2>
+    <p>Le regole si applicano <strong>a cascata</strong>: Prodotto → Sotto-prodotto → Banca → Ruolo agente → Agente specifico. Una regola con un campo lasciato vuoto (es. nessuna banca specificata) si applica più in generale, come regola di "rete" di default; una regola più specifica (stessa combinazione ma con banca/agente valorizzati) prevale quando presente.</p>
+    <p>Per ogni regola si definisce: tipo di calcolo (lordo, erogato, netto, fisso), valore (percentuale o importo fisso), periodo di validità, ed eventuali flag di coordinamento/mediazione da cliente.</p>
+
+    <h2 id="workflow">5. Stati pratica e requisiti</h2>
+    <h3>Stati Pratica</h3>
+    <p>In <strong>Sistema → Stato Pratica</strong> si definiscono gli stati del workflow interno (bozza, richiesto, approvato, ecc.), ciascuno con: ordine di visualizzazione, colore, icona, e flag che indicano se rappresenta un rifiuto (<code>is_rejected</code>), una lavorazione in corso (<code>is_working</code>) o un'estinzione (<code>is_estingued</code>).</p>
+    <div class="callout note">
+      <strong>Due concetti di "stato" distinti — non confonderli</strong>
+      Lo <strong>Stato Pratica</strong> configurabile qui è il workflow interno del mediatore. Esiste separatamente lo <em>stato legacy della pratica</em> (proveniente dal gestionale esterno: "SOSPESA", "PERFEZIONATA", "DECLINATA", ecc.), che non è configurabile da questo pannello e viene mostrato/filtrato nell'elenco pratiche come dato di sola lettura.
+    </div>
+    <p>Le transizioni ammesse tra uno stato e l'altro si configurano a livello di dati (tabella <code>pratica_stati_transizioni</code>); se uno stato non ha transizioni configurate verso un altro, l'avanzamento tra i due non è consentito.</p>
+
+    <h3>Requisiti</h3>
+    <p>Un <strong>Requisito</strong> è un documento/adempimento richiedibile (es. "certificato di stipendio"). Tramite <strong>Requisito Tipo Finanziamento</strong> si associa un requisito a uno o più prodotti/sotto-prodotti, indicando se è obbligatorio e in che ordine va richiesto: questa configurazione genera automaticamente i requisiti operativi da evadere quando si apre una pratica su quel prodotto.</p>
+
+    <h2 id="anagrafiche-sistema">6. Anagrafiche di sistema</h2>
+    <table>
+      <tr><th>Sezione</th><th>A cosa serve</th></tr>
+      <tr><td>Tipi Documento</td><td>Le categorie di documento allegabili (contratto, identità, ecc.), con eventuale trigger di rinnovo automatico.</td></tr>
+      <tr><td>Modelli Email</td><td>Template per le comunicazioni automatiche (promemoria scadenza documenti, ecc.).</td></tr>
+      <tr><td>Tipo Produttori</td><td>I livelli/ruoli disponibili per gli agenti (es. Junior, Senior), usati nelle regole provvigionali.</td></tr>
+      <tr><td>Plico documentale</td><td>Configurazione dei task/checklist documentali ricorrenti.</td></tr>
+    </table>
+    <p>L'anagrafica <strong>Organismi</strong> (OAM, IVASS, ecc.) e la configurazione degli account email in uscita (<strong>MailAccount</strong>, gestita dalla scheda dedicata dell'Azienda) completano la configurazione di base.</p>
+
+    <h2 id="blacklist-admin">7. Blacklist banca ↔ agente</h2>
+    <p>La blacklist è gestibile sia dal lato Anagrafiche (vedi Manuale Operativo Utente) sia direttamente sui dati. Da un punto di vista di configurazione, è importante sapere che:</p>
+    <ul>
+      <li>Il controllo "questo agente/dipendente può lavorare con questa banca?" è centralizzato in <code>App\Services\BlacklistChecker</code> ed è oggi agganciato al campo agente del form Pratica.</li>
+      <li><strong>Non esiste ancora</strong> un aggancio equivalente lato dipendente in fase di creazione pratica (la tabella pratiche non ha una colonna dedicata al dipendente assegnato) — è un'estensione da valutare se serve enforcement anche su quel fronte.</li>
+    </ul>
+
+    <h2 id="seeder">8. Seeder di popolamento dati</h2>
+    <p>I seeder di catalogo <strong>non</strong> sono collegati a <code>DatabaseSeeder</code> e vanno lanciati singolarmente, in questo ordine se si parte da un database vuoto (le dipendenze sono tra parentesi):</p>
+    <pre><code>php artisan db:seed --class=ClientTypeSeeder
+php artisan db:seed --class=LeadSourceSeeder
+php artisan db:seed --class=TipoProdottoSeeder
+php artisan db:seed --class=TipoProdottoSubSeeder          # dipende da TipoProdottoSeeder
+php artisan db:seed --class=TipoProdottoSubConstraintsSeeder # dipende da TipoProdottoSubSeeder e da almeno una Clienti (banca) esistente
+php artisan db:seed --class=ProvvigioniRuleSeeder           # dipende da TipoProdottoSeeder
+php artisan db:seed --class=PraticaStatiSeeder
+php artisan db:seed --class=PraticaRequisitiSeeder
+php artisan db:seed --class=PraticaStatiTransizioniSeeder
+php artisan db:seed --class=RequisitoTipoFinanziamentoSeeder</code></pre>
+    <div class="callout tip">
+      <strong>Sicuri da rilanciare</strong>
+      Questi seeder controllano l'esistenza dei dati prima di inserire (per <code>id</code> fisso o per <code>code</code> univoco): rilanciarli su un database già popolato non crea duplicati né sovrascrive righe esistenti.
+    </div>
+    <div class="callout danger">
+      <strong>Attenzione ai vincoli NOT NULL</strong>
+      <code>TipoProdottoSubConstraintsSeeder</code> richiede che esista già almeno una banca (<code>Clienti</code>) nel database, perché il campo che indica la banca proprietaria del vincolo è obbligatorio: senza banche esistenti il seeder si interrompe con un avviso, senza inserire nulla.
+    </div>
+
+    <h2 id="assistente-ai-admin">9. Assistente AI e documentazione</h2>
+    <p>L'Assistente AI visibile agli utenti risponde solo sulla base di documenti esplicitamente indicizzati (oggi: <code>CLAUDE.md</code>). Dopo aver modificato la documentazione di progetto indicizzata, rilanciare:</p>
+    <pre><code>php artisan manual:sync</code></pre>
+    <p>Il comando ricostruisce da zero il vector store usato dall'assistente. Richiede le variabili d'ambiente <code>ANTHROPIC_API_KEY</code>, <code>GEMINI_API_KEY</code> e <code>GEMINI_BASE_URL</code> configurate.</p>
+
+    <h2 id="connessioni">10. Le due connessioni al database</h2>
+    <p>Unicoloan scrive su <strong>due database MySQL distinti</strong>, sullo stesso host:</p>
+    <table>
+      <tr><th>Connessione</th><th>Database</th><th>Proprietà</th></tr>
+      <tr><td><code>mysql</code> (default)</td><td><code>unicooam</code></td><td>Di questa applicazione</td></tr>
+      <tr><td><code>mysql_proforma</code></td><td><code>proforma</code></td><td>Di un'altra applicazione legacy (banche, agenti, pratiche, prodotti)</td></tr>
+    </table>
+    <p>Per i dettagli tecnici su questa architettura e sugli errori tipici che ne derivano, vedi <code>resources/manuals/domain-model.md</code> (manuale per sviluppatori).</p>
+
+    <h2 id="checklist">11. Checklist prima messa in produzione</h2>
+    <ul>
+      <li>☐ Almeno un utente amministratore creato e verificato l'accesso.</li>
+      <li>☐ Dominio/i email autorizzati configurati (se richiesto).</li>
+      <li>☐ Ruoli e Abilitazioni configurati per ciascun tipo di dipendente.</li>
+      <li>☐ Catalogo prodotti popolato (Prodotti → Sotto-prodotti → Vincoli di fattibilità).</li>
+      <li>☐ Regole provvigionali di base configurate.</li>
+      <li>☐ Stati Pratica e relative transizioni configurati.</li>
+      <li>☐ Requisiti e associazioni Requisito↔Prodotto configurati.</li>
+      <li>☐ Tipi Documento e Modelli Email configurati.</li>
+      <li>☐ Account email in uscita (MailAccount) configurato e testato.</li>
+      <li>☐ <code>php artisan manual:sync</code> lanciato dopo l'ultima modifica alla documentazione.</li>
+    </ul>
+
+  </main>
+</div>
+
+</body>
+</html>

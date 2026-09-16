@@ -3,6 +3,7 @@
 namespace App\Models\PROFORMA;
 
 use App\Models\BlacklistClienteEmployee;
+use App\Models\BlacklistClienteFornitore;
 use App\Models\Branch;
 use App\Models\Document;
 use App\Models\ProvvigioniRule;
@@ -228,11 +229,12 @@ class Clienti extends Model
         return $this->hasMany(ProvvigioniRule::class, 'clienti_id');
     }
 
-    public function agentiBlacklistati()
+    /**
+     * I record di blacklist (con agente, motivo e periodo) imposti da questo istituto.
+     */
+    public function blacklistRecords(): HasMany
     {
-        return $this->belongsToMany(Fornitore::class, 'blacklist_clienti_fornitori', 'cliente_id', 'fornitore_id')
-            ->withPivot(['motivo', 'data_inizio', 'data_fine'])
-            ->withTimestamps();
+        return $this->hasMany(BlacklistClienteFornitore::class, 'cliente_id');
     }
 
     /**

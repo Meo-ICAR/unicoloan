@@ -6,7 +6,7 @@ use App\Models\BlacklistClienteFornitore;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Tests\TestCase;
 
 class BlacklistClienteFornitoreTest extends TestCase
@@ -27,13 +27,13 @@ class BlacklistClienteFornitoreTest extends TestCase
         $this->assertInstanceOf(Fornitore::class, $blacklist->fornitore()->getRelated());
     }
 
-    public function test_fornitore_banche_blacklist_relation_resolves_to_clienti(): void
+    public function test_fornitore_blacklist_records_relation_resolves_to_blacklist_cliente_fornitore(): void
     {
         $fornitore = new Fornitore;
 
-        $relation = $fornitore->bancheBlacklist();
+        $relation = $fornitore->blacklistRecords();
 
-        $this->assertInstanceOf(BelongsToMany::class, $relation);
-        $this->assertInstanceOf(Clienti::class, $relation->getRelated());
+        $this->assertInstanceOf(HasMany::class, $relation);
+        $this->assertInstanceOf(BlacklistClienteFornitore::class, $relation->getRelated());
     }
 }

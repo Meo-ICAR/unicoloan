@@ -26,7 +26,7 @@ class ResourceResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
 
     protected static ?string $navigationLabel = 'Abilitazioni';
 
@@ -34,7 +34,7 @@ class ResourceResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Moduli';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

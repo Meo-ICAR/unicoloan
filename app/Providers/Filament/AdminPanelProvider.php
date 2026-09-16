@@ -9,6 +9,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -43,12 +44,31 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->navigationGroups([
+                NavigationGroup::make('Anagrafiche')
+                    ->collapsed(),
+                NavigationGroup::make('Catalogo Prodotti'),
+                NavigationGroup::make('Conformità'),
+                NavigationGroup::make('Sistema')
+                    ->collapsed(),
+                NavigationGroup::make('Documentazione'),
+            ])
             ->navigationItems([
                 NavigationItem::make('Manuale Utente')
-                    ->url(asset('docs/manuale_UnicoOAM.pdf'), shouldOpenInNewTab: true)
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->group('Documentazione') // Opzionale: raggruppa l'elemento in una sezione
-                    ->sort(99), // Opzionale: posizionalo in fondo al menu
+                    ->url(url('/manuali/utente'), shouldOpenInNewTab: true)
+                    ->icon('heroicon-o-book-open')
+                    ->group('Documentazione')
+                    ->sort(10),
+                NavigationItem::make('Manuale Admin')
+                    ->url(url('/manuali/admin'), shouldOpenInNewTab: true)
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->group('Documentazione')
+                    ->sort(11),
+                NavigationItem::make('Manuale Tecnico')
+                    ->url(url('/manuali/tecnico'), shouldOpenInNewTab: true)
+                    ->icon('heroicon-o-code-bracket')
+                    ->group('Documentazione')
+                    ->sort(12),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
@@ -89,7 +109,7 @@ class AdminPanelProvider extends PanelProvider
                 ActivityLogPlugin::make()
                     ->label('Log')
                     ->pluralLabel('Logs')
-                    ->navigationGroup('System')
+                    ->navigationGroup('Sistema')
             )
             ->authMiddleware([
                 Authenticate::class,

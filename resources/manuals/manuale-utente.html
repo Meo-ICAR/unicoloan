@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unicoloan — Manuale Operativo Utente</title>
+<style>
+  :root {
+    --blue: #1d4ed8;
+    --blue-light: #eff6ff;
+    --gray-900: #111827;
+    --gray-700: #374151;
+    --gray-500: #6b7280;
+    --gray-200: #e5e7eb;
+    --gray-50: #f9fafb;
+    --green: #15803d;
+    --amber: #b45309;
+    --red: #b91c1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--gray-900);
+    background: #fff;
+    margin: 0;
+    line-height: 1.6;
+  }
+  .layout { display: flex; max-width: 1200px; margin: 0 auto; }
+  nav.toc {
+    width: 260px;
+    flex-shrink: 0;
+    padding: 32px 16px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--gray-200);
+  }
+  nav.toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray-500); margin: 0 0 12px; }
+  nav.toc ul { list-style: none; padding: 0; margin: 0 0 20px; }
+  nav.toc li { margin-bottom: 4px; }
+  nav.toc a { color: var(--gray-700); text-decoration: none; font-size: 14px; display: block; padding: 4px 8px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--blue-light); color: var(--blue); }
+  main { flex: 1; padding: 40px 48px 100px; min-width: 0; }
+  header.hero {
+    background: linear-gradient(135deg, var(--blue), #2563eb);
+    color: #fff;
+    padding: 40px 48px;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 28px; }
+  header.hero p { margin: 0; opacity: .9; font-size: 15px; }
+  h2 { font-size: 22px; margin-top: 48px; padding-top: 12px; border-top: 1px solid var(--gray-200); }
+  h2:first-of-type { border-top: none; margin-top: 0; }
+  h3 { font-size: 17px; margin-top: 28px; color: var(--gray-900); }
+  p { color: var(--gray-700); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
+  .badge.menu { background: var(--blue-light); color: var(--blue); }
+  ol, ul { color: var(--gray-700); padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14.5px;
+  }
+  .callout.tip { background: #ecfdf5; border-left: 4px solid var(--green); }
+  .callout.warn { background: #fffbeb; border-left: 4px solid var(--amber); }
+  .callout.note { background: var(--gray-50); border-left: 4px solid var(--gray-500); }
+  .callout strong { display: block; margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--gray-200); }
+  th { background: var(--gray-50); font-weight: 600; color: var(--gray-700); }
+  code { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 4px; padding: 1px 6px; font-size: 13px; }
+  .steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .steps li { counter-increment: step; position: relative; padding-left: 36px; margin-bottom: 14px; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 0;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--blue); color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  @media print {
+    nav.toc { display: none; }
+    .layout { display: block; }
+    header.hero { background: none; color: var(--gray-900); }
+  }
+  @media (max-width: 800px) {
+    .layout { flex-direction: column; }
+    nav.toc { width: auto; position: static; border-right: none; border-bottom: 1px solid var(--gray-200); }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>Manuale Operativo — Utente</h1>
+  <p>Guida all'uso quotidiano di Unicoloan per chi lavora su un sistema già configurato: pratiche, clienti, documenti e provvigioni.</p>
+</header>
+
+<div class="layout">
+  <nav class="toc">
+    <h2>Indice</h2>
+    <ul>
+      <li><a href="#accesso">1. Accesso al pannello</a></li>
+      <li><a href="#navigazione">2. Struttura della navigazione</a></li>
+      <li><a href="#clienti">3. Anagrafica Clienti</a></li>
+      <li><a href="#pratiche">4. Gestire una Pratica</a></li>
+      <li><a href="#istituti-produttori">5. Istituti e Produttori</a></li>
+      <li><a href="#blacklist">6. Blacklist banca ↔ agente</a></li>
+      <li><a href="#documenti">7. Documenti</a></li>
+      <li><a href="#provvigioni">8. Provvigioni</a></li>
+      <li><a href="#assistente-ai">9. Assistente AI</a></li>
+      <li><a href="#faq">10. Domande frequenti</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <h2 id="accesso">1. Accesso al pannello</h2>
+    <p>Il pannello di amministrazione è raggiungibile all'indirizzo <code>/admin</code>. L'accesso avviene con email e password, oppure tramite login social (Microsoft/Google) se abilitato per il tuo account.</p>
+    <div class="callout note">
+      <strong>Accesso riservato per dominio email</strong>
+      L'amministratore può limitare l'accesso al pannello solo a indirizzi email di determinati domini aziendali. Se non riesci ad accedere pur avendo credenziali corrette, contatta l'amministratore.
+    </div>
+
+    <h2 id="navigazione">2. Struttura della navigazione</h2>
+    <p>Il menu laterale è organizzato in quattro gruppi:</p>
+    <table>
+      <tr><th>Gruppo</th><th>Cosa contiene</th></tr>
+      <tr><td><strong>Pratiche</strong></td><td>L'elenco delle pratiche di finanziamento in lavorazione.</td></tr>
+      <tr><td><strong>Anagrafiche</strong></td><td>Clienti finali, Produttori (agenti), Istituti (banche), Organigramma (dipendenti), Azienda.</td></tr>
+      <tr><td><strong>Catalogo Prodotti</strong></td><td>I prodotti finanziari (Mutuo, Cessione del Quinto, ecc.) offerti dalle banche.</td></tr>
+      <tr><td><strong>Sistema</strong></td><td>Impostazioni riservate agli amministratori — vedi il <em>Manuale Operativo Admin</em>.</td></tr>
+    </table>
+
+    <h2 id="clienti">3. Anagrafica Clienti</h2>
+    <p>La sezione <strong>Clienti</strong> (in cima al menu, essendo l'anagrafica più usata) gestisce i clienti finali, siano essi persone fisiche o società.</p>
+    <div class="callout note">
+      <strong>Se il cliente è una società</strong>
+      Nella scheda "Cariche sociali" del cliente-società puoi registrare chi sono i soci/titolari effettivi (persone fisiche), il loro ruolo (es. titolare, socio) e la percentuale di quote possedute.
+    </div>
+    <p>Altre schede disponibili sulla scheda cliente:</p>
+    <ul>
+      <li><strong>Mandati</strong> — i mandati firmati dal cliente, con numero, date, importo richiesto e stato.</li>
+      <li><strong>Documenti</strong> — documenti allegati al cliente (identità, reddituali, ecc.).</li>
+    </ul>
+
+    <h2 id="pratiche">4. Gestire una Pratica</h2>
+    <p>Una <strong>Pratica</strong> rappresenta una richiesta di finanziamento per un cliente, gestita dall'apertura fino all'erogazione o al rifiuto.</p>
+
+    <h3>Aprire una nuova pratica</h3>
+    <ol class="steps">
+      <li>Vai su <span class="badge menu">Pratiche</span> → <strong>Pratiche</strong> e clicca su "Nuovo".</li>
+      <li>Compila i dati identificativi: codice pratica, cliente, istituto (banca), agente proponente.</li>
+      <li>Seleziona il tipo di prodotto e il macro-prodotto associato.</li>
+      <li>Salva: la pratica viene creata con lo stato iniziale del workflow.</li>
+    </ol>
+
+    <h3>Seguire l'avanzamento</h3>
+    <p>Aprendo una pratica trovi diverse schede (tab):</p>
+    <ul>
+      <li><strong>Requisiti Operativi</strong> — l'elenco dei documenti/adempimenti richiesti per questa pratica specifica, con lo stato di ciascuno (da richiedere, richiesto, approvato, rifiutato, non necessario).</li>
+      <li><strong>Storico Stati</strong> — il log di tutti i cambi di stato della pratica nel tempo, con data e origine del cambiamento.</li>
+      <li><strong>Documenti</strong> — tutti i file allegati alla pratica.</li>
+      <li><strong>Provvigioni</strong> — le regole provvigionali applicabili e i compensi calcolati.</li>
+    </ul>
+    <div class="callout tip">
+      <strong>Filtro "Inseriti da 6 mesi"</strong>
+      L'elenco pratiche è filtrato di default sulle ultime 6 mesi. Se cerchi una pratica più vecchia, rimuovi questo filtro dalla barra dei filtri sopra la tabella.
+    </div>
+
+    <h3>Gestire un requisito operativo</h3>
+    <ol class="steps">
+      <li>Nella scheda "Requisiti Operativi" della pratica, clicca sul requisito da aggiornare.</li>
+      <li>Aggiorna lo stato (richiesto/approvato/rifiutato) e la data corrispondente.</li>
+      <li>Aggiungi eventuali note operative.</li>
+    </ol>
+
+    <h2 id="istituti-produttori">5. Istituti e Produttori</h2>
+    <p><strong>Istituti</strong> (banche mandanti) e <strong>Produttori</strong> (agenti della rete commerciale) sono entrambi in <strong>Anagrafiche</strong>. Da qui puoi consultare:</p>
+    <ul>
+      <li>i dati anagrafici e di iscrizione (OAM, IVASS);</li>
+      <li>i documenti allegati;</li>
+      <li>le regole provvigionali applicabili;</li>
+      <li>i limiti/vincoli sui prodotti (per gli istituti);</li>
+      <li>lo stato di blacklist (vedi sezione successiva).</li>
+    </ul>
+
+    <h2 id="blacklist">6. Blacklist banca ↔ agente</h2>
+    <p>Una banca può decidere di <strong>non lavorare più</strong> con un determinato agente o dipendente. Questo blocco si gestisce dalla scheda "Blacklist" presente sia sulla banca sia sull'agente/dipendente coinvolto.</p>
+    <ol class="steps">
+      <li>Apri la scheda dell'Istituto (o del Produttore/Organigramma) e vai sulla scheda "Blacklist Agenti" (o "Blacklist Banche").</li>
+      <li>Clicca "Nuovo" e seleziona la controparte (banca o agente/dipendente).</li>
+      <li>Indica la motivazione del blocco e la data di inizio (e, se già nota, la data di fine).</li>
+    </ol>
+    <div class="callout warn">
+      <strong>Effetto del blocco</strong>
+      Finché il blocco è attivo (nessuna data di fine, oppure data di fine futura), il sistema segnala che l'agente/dipendente non dovrebbe essere assegnato a pratiche di quella banca.
+    </div>
+
+    <h2 id="documenti">7. Documenti</h2>
+    <p>I documenti possono essere allegati a pratiche, clienti, istituti, produttori o dipendenti. Ogni documento ha un <strong>tipo</strong> (contratto, identità, reddituale, ecc.) e può avere una data di scadenza monitorata dal sistema.</p>
+    <div class="callout tip">
+      <strong>Documenti in scadenza</strong>
+      Nella dashboard trovi lo stat "Documenti scaduti": clicca per aprire l'elenco già filtrato sui documenti monitorati scaduti o in scadenza.
+    </div>
+
+    <h2 id="provvigioni">8. Provvigioni</h2>
+    <p>Le provvigioni riconosciute per una pratica dipendono dalle <strong>regole provvigionali</strong> configurate (per prodotto, banca, ruolo dell'agente). Sulla scheda "Provvigioni" di una pratica trovi il dettaglio applicato; sull'anagrafica di banca/agente/prodotto trovi le regole generali configurate dall'amministratore.</p>
+
+    <h2 id="assistente-ai">9. Assistente AI</h2>
+    <p>Nella sezione <strong>Documentazione → Assistente AI</strong> puoi porre domande in linguaggio naturale su come usare l'applicazione. L'assistente risponde solo sulla base della documentazione di progetto indicizzata: se non trova la risposta, te lo dice esplicitamente invece di inventarla.</p>
+
+    <h2 id="faq">10. Domande frequenti</h2>
+    <p><strong>Non trovo una pratica nell'elenco.</strong><br>Controlla il filtro "Inseriti da 6 mesi": potrebbe nascondere pratiche più vecchie.</p>
+    <p><strong>Un agente risulta bloccato da una banca ma dovrebbe essere sbloccato.</strong><br>Vai sulla scheda "Blacklist" della banca o dell'agente e imposta la data di fine blocco sulla riga corrispondente.</p>
+    <p><strong>Non riesco a modificare/creare qualcosa che vedo nel menu "Sistema".</strong><br>Quella sezione è riservata agli amministratori: consulta il <em>Manuale Operativo Admin</em> o contatta chi configura il sistema.</p>
+
+  </main>
+</div>
+
+</body>
+</html>

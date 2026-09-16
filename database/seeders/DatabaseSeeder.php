@@ -63,25 +63,17 @@ class DatabaseSeeder extends Seeder
         }
         $this->call([
             OrganizationSeeder::class,
-            RemediationSeeder::class,
             CompanySeeder::class,
             WebsiteSeeder::class,
-            BranchSeeder::class,
             MailAccountSeeder::class,
             CompanyRoleSeeder::class,
-            EmployeeSeeder::class,
             EmployeeTypeSeeder::class,
             ResourceSeeder::class,
             EmailTemplateSeeder::class,
-            OamCodeSeeder::class,
             DocumentTypeSeeder::class,
             TaskSeeder::class,
             TaskDocumentTypeSeeder::class,
-            SuspiciousActivityReportSeeder::class,
-            AuditSeeder::class,
-            ComplaintRegistrySeeder::class,
             DocumentSeeder::class,
-            TrainingRecordSeeder::class,
         ]);
     }
 }

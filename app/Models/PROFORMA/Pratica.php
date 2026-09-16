@@ -4,11 +4,10 @@ namespace App\Models\PROFORMA;
 
 use App\Models\Document;
 use App\Models\OamCode;
-use App\Models\PraticaRequisito;
 use App\Models\PraticaRequisitoOperativo;
 use App\Models\PraticaStato;
+use App\Models\PraticaStatusHistory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
@@ -159,22 +158,6 @@ class Pratica extends Model
     public function requisitiOperativi(): HasMany
     {
         return $this->hasMany(PraticaRequisitoOperativo::class, 'pratica_id');
-    }
-
-    /**
-     * Scorciatoia per accedere ai Requisiti di Catalogo legati a questa pratica,
-     * includendo le informazioni dello stato operativo come pivot.
-     */
-    public function requisiti(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            PraticaRequisito::class,
-            'pratica_requisiti_operativi',
-            'pratica_id',
-            'pratica_requisito_id'
-        )
-            ->withPivot(['id', 'stato', 'data_richiesta', 'data_completamento', 'note'])
-            ->withTimestamps();
     }
 
     /**

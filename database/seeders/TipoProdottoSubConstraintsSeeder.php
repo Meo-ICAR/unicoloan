@@ -2,27 +2,40 @@
 
 namespace Database\Seeders;
 
+use App\Models\PROFORMA\Clienti;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class TipoProdottoSubConstraintsSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Popola i vincoli di fattibilità per alcuni sottoprodotti seminati da
+     * TipoProdottoSubSeeder. `tipoprodotto_sub_id` viene risolto in base al
+     * `code` del sottoprodotto invece di un ID fisso, perché l'ID reale
+     * dipende dall'ordine di inserimento effettivo nella tabella (non più
+     * garantito da un truncate). `clienti_id` è NOT NULL a livello di schema
+     * (un vincolo è sempre imposto da una banca specifica): come esempio
+     * viene usata la prima banca (Clienti) esistente. Non inserisce due
+     * volte lo stesso vincolo.
      */
     public function run(): void
     {
-        // Generiamo un UUID fittizio per simulare un istituto di credito
-        $bancaId = null; // Str::uuid()->toString();
+        $bancaId = Clienti::query()->value('id');
+
+        if ($bancaId === null) {
+            $this->command?->warn('Nessuna Clienti (banca) trovata: TipoProdottoSubConstraintsSeeder saltato.');
+
+            return;
+        }
+
         $now = now();
 
         $constraints = [
-            // 1: Cessione del Quinto Stipendio (CQS)
+            // Cessione del Quinto Stipendio (CQS)
             [
                 'clienti_id' => $bancaId,
                 'tipoprodotto_id' => 7,
-                'tipoprodotto_sub_id' => 1,
+                'sub_code' => 'CQS',
                 'min_age' => 18,
                 'max_age_at_maturity' => 65,
                 'min_amount' => 3000.00,
@@ -42,11 +55,11 @@ class TipoProdottoSubConstraintsSeeder extends Seeder
                 'updated_at' => $now,
             ],
 
-            // 2: Cessione del Quinto Pensione (CQP)
+            // Cessione del Quinto Pensione (CQP)
             [
                 'clienti_id' => $bancaId,
                 'tipoprodotto_id' => 7,
-                'tipoprodotto_sub_id' => 2,
+                'sub_code' => 'CQP',
                 'min_age' => 60,
                 'max_age_at_maturity' => 85, // Età massima più elevata per i pensionati
                 'min_amount' => 3000.00,
@@ -66,11 +79,11 @@ class TipoProdottoSubConstraintsSeeder extends Seeder
                 'updated_at' => $now,
             ],
 
-            // 4: Mutuo Acquisto
+            // Mutuo Acquisto
             [
                 'clienti_id' => $bancaId,
                 'tipoprodotto_id' => 13,
-                'tipoprodotto_sub_id' => 4,
+                'sub_code' => 'MUT_ACQ',
                 'min_age' => 18,
                 'max_age_at_maturity' => 75,
                 'min_amount' => 50000.00,
@@ -90,11 +103,11 @@ class TipoProdottoSubConstraintsSeeder extends Seeder
                 'updated_at' => $now,
             ],
 
-            // 8: Prestito Personale
+            // Prestito Personale
             [
                 'clienti_id' => $bancaId,
                 'tipoprodotto_id' => 16,
-                'tipoprodotto_sub_id' => 8,
+                'sub_code' => 'PP',
                 'min_age' => 18,
                 'max_age_at_maturity' => 75,
                 'min_amount' => 1500.00,
@@ -113,11 +126,11 @@ class TipoProdottoSubConstraintsSeeder extends Seeder
                 'updated_at' => $now,
             ],
 
-            // 17: Anticipo TFS (Trattamento Fine Servizio)
+            // Anticipo TFS (Trattamento Fine Servizio)
             [
                 'clienti_id' => $bancaId,
                 'tipoprodotto_id' => 18,
-                'tipoprodotto_sub_id' => 17,
+                'sub_code' => 'TFS_ANT',
                 'min_age' => 55,
                 'max_age_at_maturity' => 75,
                 'min_amount' => 10000.00,
@@ -137,6 +150,31 @@ class TipoProdottoSubConstraintsSeeder extends Seeder
             ],
         ];
 
-        DB::table('tipoprodotto_sub_constraints')->insert($constraints);
+        foreach ($constraints as $constraint) {
+            $subCode = $constraint['sub_code'];
+            unset($constraint['sub_code']);
+
+            $subId = DB::connection('mysql_proforma')
+                ->table('tipoprodotto_sub')
+                ->where('code', $subCode)
+                ->value('id');
+
+            if ($subId === null) {
+                continue;
+            }
+
+            $constraint['tipoprodotto_sub_id'] = $subId;
+
+            $alreadyExists = DB::table('tipoprodotto_sub_constraints')
+                ->where('tipoprodotto_sub_id', $subId)
+                ->where('clienti_id', $bancaId)
+                ->exists();
+
+            if ($alreadyExists) {
+                continue;
+            }
+
+            DB::table('tipoprodotto_sub_constraints')->insert($constraint);
+        }
     }
 }

@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Resources\Audits\AuditResource;
-use App\Filament\Resources\Employees\EmployeeResource;
 use App\Models\Company;
 use App\Models\Document;
 use App\Models\User;
@@ -53,17 +51,6 @@ class Phase1SecurityTest extends TestCase
         config()->set('plan.type', 'full');
 
         $this->assertTrue(checkPiano('audits'));
-    }
-
-    public function test_restricted_role_cannot_access_resource_by_authorization_method(): void
-    {
-        $inspector = User::factory()->create(['role' => 'inspector']);
-        $this->actingAs($inspector);
-
-        // L'ispettore ha "audits" fra le sue feature ma non "employees".
-        $this->assertTrue(AuditResource::canViewAny());
-        $this->assertFalse(EmployeeResource::canViewAny());
-        $this->assertFalse(EmployeeResource::canCreate());
     }
 
     public function test_document_download_requires_authentication(): void

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -126,6 +127,12 @@ class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsA
      */
     public function hasPermission(string $resource, string $action = 'viewAny'): bool
     {
+        // Il super admin non ha (e non deve avere) un profilo Employee: bypassa
+        // il controllo granulare basato su Employee/EmployeeTypePermission.
+        if ($this->role === UserRole::ADMIN->value) {
+            return true;
+        }
+
         // Carica la relazione se non è ancora presente
         $employee = $this->employee;
 

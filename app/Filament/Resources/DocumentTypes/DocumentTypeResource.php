@@ -28,7 +28,7 @@ class DocumentTypeResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
 
     protected static ?string $navigationLabel = 'Tipi Documento';
 
@@ -36,7 +36,7 @@ class DocumentTypeResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Tipi Documento';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

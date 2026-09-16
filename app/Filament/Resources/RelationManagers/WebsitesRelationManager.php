@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RelationManagers;
 
 use App\Filament\Traits\HasRelationPlanAccess;
+use App\Models\Client;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -26,12 +27,29 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table; // <-- Importa il trait
+use Illuminate\Database\Eloquent\Model;
 
 class WebsitesRelationManager extends RelationManager
 {
-    use HasRelationPlanAccess;  // <-- Basta questo! Controlla automaticamente checkPiano('websites')
+    use HasRelationPlanAccess {  // <-- Basta questo! Controlla automaticamente checkPiano('websites')
+        canViewForRecord as protected planCanViewForRecord;
+    }
 
     protected static string $relationship = 'websites';
+
+    /**
+     * Per i clienti (App\Models\Client) i siti web hanno senso solo per le
+     * società: se il record è una persona fisica (is_person = true), nascondi
+     * la scheda a prescindere dal piano/permesso.
+     */
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        if ($ownerRecord instanceof Client && $ownerRecord->is_person) {
+            return false;
+        }
+
+        return static::planCanViewForRecord($ownerRecord, $pageClass);
+    }
 
     protected static ?string $title = 'Siti web';
 

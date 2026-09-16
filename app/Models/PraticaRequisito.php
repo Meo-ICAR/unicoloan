@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PraticaRequisito extends Model
 {
+    /**
+     * Connessione esplicita: senza di essa, quando questo modello viene caricato
+     * tramite una relazione da un modello PROFORMA (connessione mysql_proforma,
+     * es. Pratica), erediterebbe erroneamente quella connessione invece di
+     * usare 'mysql', dove vive realmente questa tabella.
+     */
+    protected $connection = 'mysql';
+
     protected $table = 'pratica_requisiti';
 
     protected $fillable = [

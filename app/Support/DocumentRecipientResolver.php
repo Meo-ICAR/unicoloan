@@ -2,9 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\Audit;
 use App\Models\Company;
-use App\Models\ComplaintRegistry;
 use App\Models\Document;
 use App\Models\Employee;
 use App\Models\PROFORMA\Clienti;
@@ -40,14 +38,6 @@ class DocumentRecipientResolver
             User::class => [
                 'name' => (string) $documentable->name,
                 'email' => $documentable->email,
-            ],
-            Audit::class => [
-                'name' => (string) ($documentable->title ?: 'Audit'),
-                'email' => null,
-            ],
-            ComplaintRegistry::class => [
-                'name' => (string) ($documentable->complainant_name ?: $documentable->protocol_number),
-                'email' => $documentable->complainant_email ?: $documentable->receiving_email,
             ],
             default => [
                 'name' => $this->modelLabel($documentable),
@@ -101,8 +91,6 @@ class DocumentRecipientResolver
             Clienti::class => 'Istituto',
             Company::class => 'Azienda',
             User::class => 'Utente',
-            Audit::class => 'Audit',
-            ComplaintRegistry::class => 'Reclamo',
             default => Str::headline(class_basename($type)),
         };
     }

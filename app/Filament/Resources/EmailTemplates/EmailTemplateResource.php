@@ -36,7 +36,9 @@ class EmailTemplateResource extends Resource
 
     // protected static bool $shouldRegisterNavigation = false;
 
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
+
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {

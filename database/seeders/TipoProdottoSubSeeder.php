@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\DB;
 class TipoProdottoSubSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Popola i sottotipi di prodotto. Non sovrascrive né elimina righe già
+     * esistenti: ogni sottotipo viene identificato dal proprio `code`
+     * (univoco) e inserito solo se non già presente.
      */
     public function run(): void
     {
@@ -53,19 +55,15 @@ class TipoProdottoSubSeeder extends Seeder
             ['tipoprodotto_id' => 12, 'name' => 'Microcredito Imprese', 'code' => 'MIC_IMP', 'vincoli' => 'Startup o imprese con meno di 5 anni'],
         ];
 
-        // Aggiungo i timestamp a ogni record
-        $subProdotti = array_map(function ($item) use ($now) {
-            $item['created_at'] = $now;
-            $item['updated_at'] = $now;
+        foreach ($subProdotti as $subProdotto) {
+            if (DB::table('proforma.tipoprodotto_sub')->where('code', $subProdotto['code'])->exists()) {
+                continue;
+            }
 
-            return $item;
-        }, $subProdotti);
+            $subProdotto['created_at'] = $now;
+            $subProdotto['updated_at'] = $now;
 
-        // Tronca la tabella prima di inserire per evitare duplicati se lanciato più volte
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('proforma.tipoprodotto_sub')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
-        DB::table('proforma.tipoprodotto_sub')->insert($subProdotti);
+            DB::table('proforma.tipoprodotto_sub')->insert($subProdotto);
+        }
     }
 }

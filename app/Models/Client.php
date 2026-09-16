@@ -148,6 +148,22 @@ class Client extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    /**
+     * Siti web collegati, rilevanti solo per clienti società (is_person = false).
+     */
+    public function websites(): MorphMany
+    {
+        return $this->morphMany(Website::class, 'websiteable');
+    }
+
+    /**
+     * Sedi/filiali collegate, rilevanti solo per clienti società (is_person = false).
+     */
+    public function branches(): MorphMany
+    {
+        return $this->morphMany(Branch::class, 'branchable');
+    }
+
     public function companyRelations()
     {
         return $this->hasMany(ClientRelation::class, 'company_id');

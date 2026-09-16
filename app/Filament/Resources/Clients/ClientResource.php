@@ -9,27 +9,29 @@ use App\Filament\Resources\Clients\RelationManagers\ClientMandatesRelationManage
 use App\Filament\Resources\Clients\RelationManagers\ClientRelationsRelationManager;
 use App\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Filament\Resources\Clients\Tables\ClientsTable;
+use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
+use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum; // <--- AGGIUNTO QUESTO IMPORT MANCANTE
 
 class ClientResource extends Resource
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    //   protected static string|UnitEnum|null $navigationGroup = 'Pratiche';
+    // Volutamente senza navigationGroup: Filament mette le voci senza gruppo
+    // in cima alla sidebar, prima di tutti i gruppi collassabili — qui serve
+    // perché Client è l'anagrafica più usata dell'app.
+    protected static ?string $navigationLabel = 'Clienti';
 
-    protected static ?string $navigationLabel = 'Anagrafiche';
+    protected static ?string $modelLabel = 'Cliente';
 
-    protected static ?string $modelLabel = 'Anagrafica';
+    protected static ?string $pluralModelLabel = 'Clienti';
 
-    protected static ?string $pluralModelLabel = 'Anagrafiche';
-
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -46,9 +48,10 @@ class ClientResource extends Resource
         return [
             // AddressesRelationManager::class,
             DocumentsRelationManager::class,
-            //   WebsitesRelationManager::class,
             ClientRelationsRelationManager::class,
             ClientMandatesRelationManager::class,
+            WebsitesRelationManager::class,
+            BranchesRelationManager::class,
             //   ChecklistsRelationManager::class,
 
         ];

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Employees;
 use App\Filament\Resources\Employees\Pages\CreateEmployee;
 use App\Filament\Resources\Employees\Pages\EditEmployee;
 use App\Filament\Resources\Employees\Pages\ListEmployees;
+use App\Filament\Resources\Employees\RelationManagers\BlacklistRelationManager;
 use App\Filament\Resources\Employees\Schemas\EmployeeForm;
 use App\Filament\Resources\Employees\Tables\EmployeesTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
@@ -37,7 +38,7 @@ class EmployeeResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Collaboratori';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {
@@ -53,6 +54,7 @@ class EmployeeResource extends Resource
     {
         return [
             DocumentsRelationManager::class,
+            BlacklistRelationManager::class,
         ];
     }
 

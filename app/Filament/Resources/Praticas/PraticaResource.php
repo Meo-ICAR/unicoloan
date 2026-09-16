@@ -6,7 +6,8 @@ use App\Filament\Resources\Praticas\Pages\CreatePratica;
 use App\Filament\Resources\Praticas\Pages\EditPratica;
 use App\Filament\Resources\Praticas\Pages\ListPraticas;
 use App\Filament\Resources\Praticas\RelationManagers\ProvvigioniRelationManager;
-use App\Filament\Resources\Praticas\RelationManagers\RequisitiRelationManager;
+use App\Filament\Resources\Praticas\RelationManagers\RequisitiOperativiRelationManager;
+use App\Filament\Resources\Praticas\RelationManagers\StatusHistoryRelationManager;
 use App\Filament\Resources\Praticas\Schemas\PraticaForm;
 use App\Filament\Resources\Praticas\Tables\PraticasTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
@@ -29,10 +30,10 @@ class PraticaResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Pratiche';
 
-    // protected static UnitEnum|string|null $navigationGroup = 'Pratiche';
-
-    protected static ?int $navigationSort = 10;
-    // protected static ?int $navigationSort = 10;
+    // Volutamente senza navigationGroup: Filament mette le voci senza gruppo
+    // in cima alla sidebar, prima di tutti i gruppi collassabili — qui serve
+    // perché Pratica è l'entità più usata dell'app.
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'cognome_cliente';
 
@@ -49,7 +50,8 @@ class PraticaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RequisitiRelationManager::class,
+            RequisitiOperativiRelationManager::class,
+            StatusHistoryRelationManager::class,
             DocumentsRelationManager::class,
             ProvvigioniRelationManager::class,
         ];

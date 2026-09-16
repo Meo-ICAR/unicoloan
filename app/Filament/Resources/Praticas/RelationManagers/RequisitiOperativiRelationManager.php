@@ -7,9 +7,11 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
 
-class RequisitiRelationManager extends RelationManager
+class RequisitiOperativiRelationManager extends RelationManager
 {
-    protected static string $relationship = 'requisiti';
+    protected static string $relationship = 'requisitiOperativi';
+
+    protected static ?string $title = 'Requisiti Operativi';
 
     protected static ?string $relatedResource = PraticaRequisitoOperativoResource::class;
 

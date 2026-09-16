@@ -4,8 +4,8 @@
 
 namespace App\Models\PROFORMA;
 
+use App\Models\BlacklistClienteFornitore;
 use App\Models\Branch;
-use App\Models\ComplaintRegistry;
 use App\Models\Document;
 use App\Models\ProvvigioniRule;
 use App\Models\Website;
@@ -169,11 +169,6 @@ class Fornitore extends Model
         return $this->morphMany(Website::class, 'websiteable');
     }
 
-    public function complaints(): MorphMany
-    {
-        return $this->morphMany(ComplaintRegistry::class, 'complainant');
-    }
-
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
@@ -199,11 +194,12 @@ class Fornitore extends Model
         return $this->hasMany(ProvvigioniRule::class, 'fornitori_id');
     }
 
-    public function bancheBlacklist()
+    /**
+     * I record di blacklist (con banca, motivo e periodo) che riguardano questo agente.
+     */
+    public function blacklistRecords(): HasMany
     {
-        return $this->belongsToMany(Clienti::class, 'blacklist_clienti_fornitori', 'fornitore_id', 'cliente_id')
-            ->withPivot(['motivo', 'data_inizio', 'data_fine'])
-            ->withTimestamps();
+        return $this->hasMany(BlacklistClienteFornitore::class, 'fornitore_id');
     }
 
     /**
@@ -211,12 +207,9 @@ class Fornitore extends Model
      */
     public function isBlacklistedBy(string $clienteId): bool
     {
-        return $this->bancheBlacklist()
+        return $this->blacklistRecords()
+            ->attivi()
             ->where('cliente_id', $clienteId)
-            ->where(function ($query) {
-                $query->whereNull('data_fine')
-                    ->orWhere('data_fine', '>=', now());
-            })
             ->exists();
     }
 }

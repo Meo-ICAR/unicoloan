@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\PROFORMA\Pratica;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PraticaRequisitoOperativo extends Model
 {
     // use LogsActivity;
+
+    /**
+     * Connessione esplicita: senza di essa, quando questo modello viene caricato
+     * tramite una relazione da un modello PROFORMA (connessione mysql_proforma,
+     * es. Pratica), erediterebbe erroneamente quella connessione invece di
+     * usare 'mysql', dove vive realmente questa tabella.
+     */
+    protected $connection = 'mysql';
 
     protected $table = 'pratica_requisiti_operativi';
 

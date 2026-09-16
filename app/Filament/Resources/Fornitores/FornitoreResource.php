@@ -5,10 +5,13 @@ namespace App\Filament\Resources\Fornitores;
 use App\Filament\Resources\Fornitores\Pages\CreateFornitore;
 use App\Filament\Resources\Fornitores\Pages\EditFornitore;
 use App\Filament\Resources\Fornitores\Pages\ListFornitores;
+use App\Filament\Resources\Fornitores\RelationManagers\BlacklistRelationManager;
 use App\Filament\Resources\Fornitores\RelationManagers\ProvvigioniRelationManager;
 use App\Filament\Resources\Fornitores\Schemas\FornitoreForm;
 use App\Filament\Resources\Fornitores\Tables\FornitoresTable;
+use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
+use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
 use App\Models\PROFORMA\Fornitore;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -52,6 +55,9 @@ class FornitoreResource extends Resource
         return [
             ProvvigioniRelationManager::class,
             DocumentsRelationManager::class,
+            WebsitesRelationManager::class,
+            BranchesRelationManager::class,
+            BlacklistRelationManager::class,
         ];
     }
 

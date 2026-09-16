@@ -27,7 +27,7 @@ class PraticaStatoResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
 
     protected static ?string $navigationLabel = 'Stato Pratica';
 
@@ -35,7 +35,7 @@ class PraticaStatoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Stati';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Schema $schema): Schema
     {

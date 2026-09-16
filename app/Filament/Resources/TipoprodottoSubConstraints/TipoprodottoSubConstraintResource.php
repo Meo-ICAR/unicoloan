@@ -27,7 +27,7 @@ class TipoprodottoSubConstraintResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Vincoli';
 
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static UnitEnum|string|null $navigationGroup = 'Catalogo Prodotti';
 
     protected static bool $shouldRegisterNavigation = false;
 
