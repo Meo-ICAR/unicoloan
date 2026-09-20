@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 Route::redirect('/', '/admin');
 
-// Manuali operativi/tecnici (resources/manuals/*.html|*.md). Whitelist esplicita
+// Manuali operativi/tecnici (resources/docs/*.html|*.md). Whitelist esplicita
 // per evitare path traversal: nessun input utente libero sul nome file.
 Route::get('/manuali/{manual}', function (string $manual) {
     $allowed = [
@@ -21,7 +21,7 @@ Route::get('/manuali/{manual}', function (string $manual) {
         abort(404);
     }
 
-    $path = resource_path('manuals/'.$allowed[$manual]);
+    $path = resource_path('docs/'.$allowed[$manual]);
 
     if (! is_file($path)) {
         abort(404);
