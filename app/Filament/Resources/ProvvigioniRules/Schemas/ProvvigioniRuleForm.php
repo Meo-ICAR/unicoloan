@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\ProvvigioniRules\Schemas;
 
+use App\Models\FornitoriRole;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -14,6 +16,11 @@ class ProvvigioniRuleForm
     {
         return $schema
             ->components([
+                Select::make('kind_id')
+                    ->label('Ruolo Fornitore')
+                    ->options(FornitoriRole::pluck('name', 'id'))
+                    ->searchable()
+                    ->preload(),
                 Toggle::make('coordinamento')
                     ->label('Coordinamento')
                     ->required(),

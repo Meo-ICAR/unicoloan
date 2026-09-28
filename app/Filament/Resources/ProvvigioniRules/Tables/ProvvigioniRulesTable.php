@@ -24,7 +24,7 @@ class ProvvigioniRulesTable
                 TextColumn::make('clienti_id')
                     ->label('Banca')
                     ->searchable(),
-                TextColumn::make('kind.name')
+                TextColumn::make('fornitoriRole.name')
                     ->label('Ruolo Fornitore')
                     ->searchable(),
                 TextColumn::make('fornitori_id')
