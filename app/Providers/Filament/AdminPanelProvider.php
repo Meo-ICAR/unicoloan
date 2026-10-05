@@ -103,7 +103,7 @@ class AdminPanelProvider extends PanelProvider
                             ->outlined(false)
                             ->stateless(false),
                     ])
-                    ->registration(true)
+                    // ->registration(true)
             )
             ->plugin(
                 ActivityLogPlugin::make()
