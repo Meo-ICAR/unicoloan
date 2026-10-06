@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class ClientForm
 {
@@ -56,6 +57,26 @@ class ClientForm
                                             ->searchable(),
                                     ])
                                     ->columns(3),
+                                Section::make('Dati Bancari e Lavorativi')
+                                    ->schema([
+                                        TextInput::make('iban')
+                                            ->label('IBAN')
+                                            ->maxLength(34)
+                                            ->dehydrateStateUsing(fn (?string $state): ?string => filled($state)
+                                                ? strtoupper(str_replace(' ', '', $state))
+                                                : null),
+                                        Select::make('employer_id')
+                                            ->label('Datore di lavoro')
+                                            ->relationship(
+                                                'employer',
+                                                'name',
+                                                fn (Builder $query) => $query->where('is_person', false),
+                                            )
+                                            ->searchable()
+                                            ->preload()
+                                            ->visible(fn (Get $get) => (bool) $get('is_person')),
+                                    ])
+                                    ->columns(2),
                             ]),
                         // --- TAB 4: AMMINISTRAZIONE ---
                         Tab::make('Admin / Stato')

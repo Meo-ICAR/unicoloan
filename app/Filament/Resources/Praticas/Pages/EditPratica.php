@@ -2,13 +2,16 @@
 
 namespace App\Filament\Resources\Praticas\Pages;
 
+use App\Filament\Actions\GeneraModuliPraticaAction;
 use App\Filament\Resources\Praticas\PraticaResource;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Pratica;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
 
 class EditPratica extends EditRecord
 {
@@ -65,6 +68,7 @@ class EditPratica extends EditRecord
                         ->success()
                         ->send();
                 }),
+            GeneraModuliPraticaAction::make(),
             DeleteAction::make(),
         ];
     }

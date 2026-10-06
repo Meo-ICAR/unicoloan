@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\PROFORMA\Pratica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -61,6 +62,8 @@ class Client extends Model
         'dpo_email',
         'is_iso27001_certified',
         'is_dummy',
+        'iban',
+        'employer_id',
     ];
 
     /**
@@ -138,6 +141,22 @@ class Client extends Model
     public function generatedLeads(): HasMany
     {
         return $this->hasMany(Client::class, 'leadsource_id');
+    }
+
+    /**
+     * Il datore di lavoro del cliente (Self-referencing).
+     */
+    public function employer(): BelongsTo
+    {
+        return $this->belongsTo(Client::class, 'employer_id');
+    }
+
+    /**
+     * I clienti che hanno questo cliente come datore di lavoro (Self-referencing).
+     */
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Client::class, 'employer_id');
     }
 
     /**
