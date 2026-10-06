@@ -30,6 +30,28 @@ enum ModuleSourceKey: string implements HasLabel
     case ClienteStipendio = 'client.salary';
     case ClienteIban = 'client.iban';
     case ClientePersonaFisica = 'client.is_person';
+    case ClienteDataNascita = 'client.birth_date';
+    case ClienteLuogoNascita = 'client.birth_place';
+    case ClienteSesso = 'client.sex';
+    case ClienteCittadinanza = 'client.citizenship';
+
+    case ClientePec = 'client.pec';
+    case ClienteAteco = 'client.ateco_code';
+    case ClienteCciaa = 'client.cciaa_registration';
+
+    case RappresentanteNominativo = 'legal_rep.nominativo';
+    case RappresentanteEmail = 'legal_rep.email';
+    case RappresentanteTelefono = 'legal_rep.phone';
+
+    case AgenteNominativo = 'agent.name';
+    case AgenteIndirizzo = 'agent.indirizzo_completo';
+    case AgenteEmail = 'agent.email';
+    case AgenteTelefono = 'agent.tel';
+    case AgenteCodiceFiscale = 'agent.cf';
+
+    case TerziBanca = 'third_party.denominazione_banca';
+    case TerziProdotto = 'third_party.denominazione_prodotto';
+    case TerziRata = 'third_party.rata';
     case DatoreNome = 'employer.name';
     case DatorePartitaIva = 'employer.vat_number';
     case DatoreIndirizzo = 'employer.address';
@@ -66,6 +88,24 @@ enum ModuleSourceKey: string implements HasLabel
             self::ClienteStipendio => 'Cliente: stipendio',
             self::ClienteIban => 'Cliente: IBAN',
             self::ClientePersonaFisica => 'Cliente: è persona fisica (casella)',
+            self::ClienteDataNascita => 'Cliente: data di nascita',
+            self::ClienteLuogoNascita => 'Cliente: luogo di nascita',
+            self::ClienteSesso => 'Cliente: sesso (M/F)',
+            self::ClienteCittadinanza => 'Cliente: cittadinanza',
+            self::ClientePec => 'Cliente: PEC',
+            self::ClienteAteco => 'Cliente: codice Ateco',
+            self::ClienteCciaa => 'Cliente: iscrizione CCIAA',
+            self::RappresentanteNominativo => 'Legale rappresentante: cognome e nome',
+            self::RappresentanteEmail => 'Legale rappresentante: email',
+            self::RappresentanteTelefono => 'Legale rappresentante: telefono',
+            self::AgenteNominativo => 'Collaboratore (fornitore): nome',
+            self::AgenteIndirizzo => 'Collaboratore (fornitore): indirizzo completo',
+            self::AgenteEmail => 'Collaboratore (fornitore): email',
+            self::AgenteTelefono => 'Collaboratore (fornitore): telefono',
+            self::AgenteCodiceFiscale => 'Collaboratore (fornitore): codice fiscale',
+            self::TerziBanca => 'Finanziamento di terzi: banca',
+            self::TerziProdotto => 'Finanziamento di terzi: prodotto',
+            self::TerziRata => 'Finanziamento di terzi: rata',
             self::DatoreNome => 'Datore di lavoro: ragione sociale',
             self::DatorePartitaIva => 'Datore di lavoro: partita IVA',
             self::DatoreIndirizzo => 'Datore di lavoro: indirizzo sede',

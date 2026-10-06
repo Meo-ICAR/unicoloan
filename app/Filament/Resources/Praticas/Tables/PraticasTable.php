@@ -19,6 +19,8 @@ class PraticasTable
     public static function configure(Table $table): Table
     {
         return $table
+            // Gli impegni di terzi (is_notowned) non sono pratiche: si vedono dal cliente.
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('is_notowned', false))
             ->reorderableColumns()
             ->defaultSort('cognome_cliente')
             ->columns([

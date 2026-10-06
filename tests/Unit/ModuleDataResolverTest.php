@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;
+use App\Models\PROFORMA\Fornitore;
 use App\Models\PROFORMA\Pratica;
 use App\Services\ModuleDataResolver;
 use Carbon\Carbon;
@@ -28,9 +29,9 @@ class ModuleDataResolverTest extends TestCase
         parent::tearDown();
     }
 
-    private function pratica(array $attributes = []): Pratica
+    private function pratica(array $attributes = [], ?Fornitore $agent = null): Pratica
     {
-        return new Pratica(array_merge([
+        $pratica = new Pratica(array_merge([
             'id' => 'pratica-1',
             'codice_pratica' => 'P-2026-001',
             'codice_fiscale' => 'RSSMRA80A01H501U',
@@ -43,6 +44,8 @@ class ModuleDataResolverTest extends TestCase
             'rata' => 250.5,
             'nrate' => 72,
         ], $attributes));
+
+        return $pratica->setRelation('agente', $agent);
     }
 
     /**
@@ -51,6 +54,10 @@ class ModuleDataResolverTest extends TestCase
      */
     private function client(array $attributes = [], array $branches = [], array $documents = [], ?Client $employer = null): Client
     {
+        $rep = $attributes['_rep'] ?? null;
+        $third = $attributes['_third'] ?? [];
+        unset($attributes['_rep'], $attributes['_third']);
+
         $client = new Client(array_merge([
             'name' => 'Rossi',
             'first_name' => 'Mario',
@@ -66,6 +73,8 @@ class ModuleDataResolverTest extends TestCase
         $client->setRelation('branches', collect($branches));
         $client->setRelation('documents', collect($documents));
         $client->setRelation('employer', $employer);
+        $client->setRelation('legalRepresentative', $rep);
+        $client->setRelation('thirdPartyFinancings', collect($third));
 
         return $client;
     }
@@ -124,6 +133,52 @@ class ModuleDataResolverTest extends TestCase
         $this->assertSame('RSSMRA80A01H501U', $data->get(Key::ClienteCodiceFiscale));
         $this->assertSame('IT60X0542811101000000123456', $data->get(Key::ClienteIban));
         $this->assertTrue($data->get(Key::ClientePersonaFisica));
+    }
+
+    public function test_resolves_birth_data_and_legal_representative(): void
+    {
+        $rep = new Client(['name' => 'Amministratore di Acme Spa', 'is_person' => true]);
+
+        $client = $this->client(['birth_date' => '1980-01-01', 'birth_place' => 'Roma (RM)', 'sex' => 'M', 'citizenship' => 'Italiana', '_rep' => $rep]);
+
+        $data = $this->resolve($this->pratica(), $client);
+
+        $this->assertSame('1980-01-01', $data->get(Key::ClienteDataNascita)->toDateString());
+        $this->assertSame('Roma (RM)', $data->get(Key::ClienteLuogoNascita));
+        $this->assertSame('M', $data->get(Key::ClienteSesso));
+        $this->assertSame('Italiana', $data->get(Key::ClienteCittadinanza));
+        $this->assertSame('Amministratore di Acme Spa', $data->get(Key::RappresentanteNominativo));
+        $this->assertFalse($this->resolve($this->pratica(), $this->client())->has(Key::RappresentanteNominativo));
+    }
+
+    public function test_resolves_agent_third_party_financing_and_company_data(): void
+    {
+        $agent = (new Fornitore)->forceFill(['name' => 'Agenzia Verdi', 'indirizzo' => 'Via Milano 5', 'cap' => '20100', 'comune' => 'Milano', 'prov' => 'MI', 'email' => 'verdi@example.test', 'tel' => '021234567', 'cf' => 'VRDGNN70A01F205X']);
+        $third = new Pratica(['denominazione_banca' => 'Finanziaria Terza', 'denominazione_prodotto' => 'Cessione del quinto', 'rata' => 300, 'is_notowned' => true]);
+        $rep = new Client(['name' => 'Amministratore di Acme Spa', 'email' => 'rep@example.test', 'phone' => '3330000000']);
+        $client = $this->client(['is_person' => false, 'pec' => 'acme@pec.example.test', 'ateco_code' => '62.01.00', 'cciaa_registration' => 'RM-123', '_rep' => $rep, '_third' => [$third]]);
+
+        $data = $this->resolve($this->pratica(agent: $agent), $client);
+
+        $this->assertSame('Agenzia Verdi', $data->get(Key::AgenteNominativo));
+        $this->assertSame('Via Milano 5, 20100 Milano (MI)', $data->get(Key::AgenteIndirizzo));
+        $this->assertSame('verdi@example.test', $data->get(Key::AgenteEmail));
+        $this->assertSame('021234567', $data->get(Key::AgenteTelefono));
+        $this->assertSame('VRDGNN70A01F205X', $data->get(Key::AgenteCodiceFiscale));
+
+        $this->assertSame('Finanziaria Terza', $data->get(Key::TerziBanca));
+        $this->assertSame('Cessione del quinto', $data->get(Key::TerziProdotto));
+        $this->assertEquals(300, $data->get(Key::TerziRata));
+
+        $this->assertSame('acme@pec.example.test', $data->get(Key::ClientePec));
+        $this->assertSame('62.01.00', $data->get(Key::ClienteAteco));
+        $this->assertSame('RM-123', $data->get(Key::ClienteCciaa));
+        $this->assertSame('rep@example.test', $data->get(Key::RappresentanteEmail));
+        $this->assertSame('3330000000', $data->get(Key::RappresentanteTelefono));
+
+        $empty = $this->resolve($this->pratica(), $this->client());
+        $this->assertFalse($empty->has(Key::AgenteNominativo));
+        $this->assertFalse($empty->has(Key::TerziBanca));
     }
 
     public function test_company_nominativo_is_just_the_business_name(): void
@@ -186,6 +241,26 @@ class ModuleDataResolverTest extends TestCase
         $data = $this->resolve($this->pratica(), $this->client(documents: [$licence]));
 
         $this->assertSame('PAT-1', $data->get(Key::DocumentoNumero));
+    }
+
+    public function test_the_combined_identity_document_type_used_by_the_app_is_accepted(): void
+    {
+        $document = $this->identity(['docnumber' => 'CIE-1'], 'ALTRO', 'Carta di Identità o Patente & cert. Residenza');
+
+        $data = $this->resolve($this->pratica(), $this->client(documents: [$document]));
+
+        $this->assertSame('CIE-1', $data->get(Key::DocumentoNumero));
+    }
+
+    public function test_a_residence_certificate_sharing_the_identity_type_is_not_used_as_identity_document(): void
+    {
+        $name = 'Carta di Identità o Patente & cert. Residenza';
+        $certificate = $this->identity(['docnumber' => 'CR-1', 'name' => 'Certificato di Residenza', 'emitted_at' => '2026-01-01'], 'ALTRO', $name);
+        $card = $this->identity(['docnumber' => 'CI-1', 'name' => "Carta d'Identità", 'emitted_at' => '2023-01-01'], 'ALTRO', $name);
+
+        $data = $this->resolve($this->pratica(), $this->client(documents: [$certificate, $card]));
+
+        $this->assertSame('CI-1', $data->get(Key::DocumentoNumero));
     }
 
     public function test_only_expired_identity_document_yields_no_values_and_is_reported_missing(): void

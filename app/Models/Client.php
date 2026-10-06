@@ -64,6 +64,14 @@ class Client extends Model
         'is_dummy',
         'iban',
         'employer_id',
+        'birth_date',
+        'birth_place',
+        'sex',
+        'citizenship',
+        'legal_representative_id',
+        'pec',
+        'ateco_code',
+        'cciaa_registration',
     ];
 
     /**
@@ -93,6 +101,7 @@ class Client extends Model
         // decimali
         'salary' => 'decimal:2',
         'salary_quote' => 'decimal:2',
+        'birth_date' => 'date',
 
         // Date e Timestamp
         'general_consent_at' => 'datetime',
@@ -157,6 +166,25 @@ class Client extends Model
     public function employees(): HasMany
     {
         return $this->hasMany(Client::class, 'employer_id');
+    }
+
+    /**
+     * Il legale rappresentante / amministratore del cliente societa' (Self-referencing).
+     */
+    public function legalRepresentative(): BelongsTo
+    {
+        return $this->belongsTo(Client::class, 'legal_representative_id');
+    }
+
+    /**
+     * I finanziamenti di terzi del cliente: pratiche "non nostre" (`is_notowned`) con lo stesso
+     * codice fiscale, usate ad esempio per la richiesta di conteggio estintivo.
+     */
+    public function thirdPartyFinancings(): HasMany
+    {
+        return $this->hasMany(Pratica::class, 'codice_fiscale', 'tax_code')
+            ->where('is_notowned', true)
+            ->orderByDesc('data_inserimento_pratica');
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Clients\Schemas;
 
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -57,6 +58,31 @@ class ClientForm
                                             ->searchable(),
                                     ])
                                     ->columns(3),
+                                Section::make('Dati Anagrafici')
+                                    ->schema([
+                                        DatePicker::make('birth_date')->label('Data di nascita'),
+                                        TextInput::make('birth_place')->label('Luogo di nascita')->maxLength(100),
+                                        Select::make('sex')->label('Sesso')->options(['M' => 'M', 'F' => 'F']),
+                                        TextInput::make('citizenship')->label('Cittadinanza')->maxLength(60),
+                                        Select::make('legal_representative_id')
+                                            ->label('Legale rappresentante')
+                                            ->relationship(
+                                                'legalRepresentative',
+                                                'name',
+                                                fn (Builder $query) => $query->where('is_person', true),
+                                            )
+                                            ->searchable()
+                                            ->visible(fn (Get $get) => ! $get('is_person')),
+                                    ])
+                                    ->columns(4),
+                                Section::make('Dati Societari')
+                                    ->schema([
+                                        TextInput::make('pec')->label('PEC')->email()->maxLength(255),
+                                        TextInput::make('ateco_code')->label('Codice Ateco')->maxLength(10),
+                                        TextInput::make('cciaa_registration')->label('Iscrizione CCIAA')->maxLength(60),
+                                    ])
+                                    ->columns(3)
+                                    ->visible(fn (Get $get) => ! $get('is_person')),
                                 Section::make('Dati Bancari e Lavorativi')
                                     ->schema([
                                         TextInput::make('iban')

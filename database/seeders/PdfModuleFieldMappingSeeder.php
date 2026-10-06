@@ -13,12 +13,12 @@ use Illuminate\Database\Seeder;
  * cittadinanza, dati del collaboratore e questionari restano da compilare a mano.
  *
  * Idempotente: tocca solo i campi ancora senza `source_key`, quindi non sovrascrive
- * mappature fatte da Filament. Eseguire dopo PdfModuleSeeder e modules:sync-fields.
+ * mappature fatte da Filament, salvo le voci con terzo elemento `true` (forzate). Eseguire dopo PdfModuleSeeder e modules:sync-fields.
  */
 class PdfModuleFieldMappingSeeder extends Seeder
 {
     /**
-     * @return array<string, array<string, array{0: Key, 1?: Fmt}>>
+     * @return array<string, array<string, array{0: Key, 1?: Fmt|null, 2?: bool}>>
      */
     private function mappings(): array
     {
@@ -34,6 +34,8 @@ class PdfModuleFieldMappingSeeder extends Seeder
             'nuovo1' => [Key::ClienteCognome],
             'nuovo2' => [Key::ClienteNome],
             'nuovo3' => [Key::ClienteCodiceFiscale],
+            'nuovo4' => [Key::ClienteLuogoNascita],
+            'nuovo5' => [Key::ClienteDataNascita, Fmt::DateIt],
             'Text6' => [Key::SedeIndirizzo],
             'Text7' => [Key::SedeCivico],
             'Text8' => [Key::SedeCap],
@@ -42,6 +44,10 @@ class PdfModuleFieldMappingSeeder extends Seeder
             'Text11' => [Key::ClienteTelefono],
             'Text12' => [Key::ClienteEmail],
             'Text26' => $importo,
+            'dummyFieldName1' => [Key::AgenteNominativo],
+            'Text2' => [Key::AgenteIndirizzo],
+            'dummyFieldName2' => [Key::AgenteEmail],
+            'Text4' => [Key::AgenteTelefono],
         ];
 
         return [
@@ -53,6 +59,8 @@ class PdfModuleFieldMappingSeeder extends Seeder
             ],
             'Compenso di mediazione fuori convenzione.pdf' => [
                 'Banca' => [Key::PraticaBanca],
+                'Collaboratore' => [Key::AgenteNominativo],
+                'Codice Fiscale' => [Key::AgenteCodiceFiscale],
                 'Intestatarario' => [Key::ClienteNominativo],
                 'Richiesta' => $importo,
                 'Durata' => [Key::PraticaNumeroRate],
@@ -61,6 +69,7 @@ class PdfModuleFieldMappingSeeder extends Seeder
             ],
             'Delega richiesta allegati statali_compressed.pdf' => [
                 'cliente' => [Key::ClienteNominativo],
+                'natoa a' => [Key::ClienteLuogoNascita],
                 'residenza' => [Key::SedeIndirizzoCompleto],
                 'Data2_af_date' => $oggi,
             ],
@@ -73,6 +82,9 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'Text1' => [Key::ClienteCognome],
                 'Text2' => [Key::ClienteNome],
                 'Text4' => [Key::ClienteCodiceFiscale],
+                'Text5' => [Key::ClienteLuogoNascita],
+                'Text6' => [Key::ClienteDataNascita, Fmt::DateIt],
+                'Text7' => [Key::ClienteCittadinanza],
                 'Text8' => [Key::SedeCitta],
                 'Text11' => [Key::SedeProvincia],
                 'Text12' => [Key::SedeIndirizzo],
@@ -86,6 +98,9 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'dummyFieldName10' => [Key::ClienteCognome],
                 'dummyFieldName11' => [Key::ClienteCodiceFiscale],
                 'dummyFieldName12' => [Key::SedeIndirizzoCompleto],
+                'dummyFieldName14' => [Key::ClienteCciaa],
+                'dummyFieldName15' => [Key::ClienteAteco],
+                'dummyFieldName16' => [Key::ClientePec],
                 'dummyFieldName17' => [Key::ClienteEmail],
                 'dummyFieldName19' => [Key::ClienteTelefono],
             ],
@@ -98,6 +113,8 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'nuovo1' => [Key::ClienteCognome],
                 'nuovo2' => [Key::ClienteNome],
                 'nuovo3' => [Key::ClienteCodiceFiscale],
+                'nuovo4' => [Key::ClienteLuogoNascita],
+                'nuovo5' => [Key::ClienteDataNascita, Fmt::DateIt],
                 'Text10' => [Key::SedeIndirizzo],
                 'Text11' => [Key::SedeCap],
                 'Text12' => [Key::SedeCitta],
@@ -105,6 +122,10 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'Text14' => [Key::ClienteTelefono],
                 'Text15' => [Key::ClienteEmail],
                 'Text16' => $importo,
+                'dummyFieldName1' => [Key::AgenteNominativo],
+                'dummyFieldName2' => [Key::AgenteIndirizzo],
+                'Text4' => [Key::AgenteEmail],
+                'Text5' => [Key::AgenteTelefono],
             ],
             'Races VERS. 03_2026 - Fascicolo completo retail CQ compilabile_compressed.pdf' => [
                 'Text1' => [Key::ClienteNominativo],
@@ -114,6 +135,8 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'nuovo1' => [Key::ClienteCognome],
                 'nuovo2' => [Key::ClienteNome],
                 'nuovo3' => [Key::ClienteCodiceFiscale],
+                'nuovo4' => [Key::ClienteLuogoNascita],
+                'nuovo5' => [Key::ClienteDataNascita, Fmt::DateIt],
                 'Text6' => [Key::SedeIndirizzo],
                 'Text8' => [Key::SedeCivico],
                 'Text9' => [Key::SedeCap],
@@ -121,7 +144,12 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'Text11' => [Key::SedeProvincia],
                 'Text12' => [Key::ClienteTelefono],
                 'Text13' => [Key::ClienteEmail],
+                'testo 1' => [Key::PraticaProdotto],
                 'testo 2' => $importo,
+                'dummyFieldName1' => [Key::AgenteNominativo],
+                'Text2' => [Key::AgenteIndirizzo],
+                'dummyFieldName2' => [Key::AgenteEmail],
+                'Text4' => [Key::AgenteTelefono],
             ],
             'Races VERS. 06_2025 - Fascicolo completo Corporate compilabile_compressed.pdf' => [
                 'Text1' => [Key::ClienteNominativo],
@@ -133,17 +161,32 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'dummyFieldName5' => [Key::SedeIndirizzoCompleto],
                 'dummyFieldName6' => [Key::ClienteEmail],
                 'dummyFieldName8' => [Key::ClienteTelefono],
+                'Text7' => [Key::RappresentanteNominativo],
+                'Text8' => [Key::RappresentanteEmail],
+                'Text9' => [Key::RappresentanteTelefono],
+                'Text10' => [Key::PraticaProdotto],
+                'dummyFieldName7' => [Key::ClientePec],
                 'Text11' => $importo,
+                'dummyFieldName1' => [Key::AgenteNominativo],
+                'Text2' => [Key::AgenteIndirizzo],
+                'dummyFieldName2' => [Key::AgenteEmail],
+                'Text4' => [Key::AgenteTelefono],
             ],
             'Richiesta Conteggio Estintivo_compressed.pdf' => [
-                'Spettabile 1' => [Key::PraticaBanca],
+                'Spettabile 1' => [Key::TerziBanca, null, true],
+                'tipo contratto' => [Key::TerziProdotto],
+                'O Cessione del quinto dello Stipendio con rata di €' => [Key::TerziRata, Fmt::MoneyIt],
                 'Io sottoscritto' => [Key::ClienteNominativo],
+                'nato a' => [Key::ClienteLuogoNascita],
                 'residente in' => [Key::SedeCitta],
                 'alla via' => [Key::SedeIndirizzo],
                 'Data1_af_date' => $oggi,
             ],
             'patronato_compressed.pdf' => [
                 'nome' => [Key::ClienteNominativo],
+                'nato_a' => [Key::ClienteLuogoNascita],
+                'nato_il' => [Key::ClienteDataNascita, Fmt::DateIt],
+                'cittad' => [Key::ClienteCittadinanza],
                 'citta' => [Key::SedeCitta],
                 'prov_res' => [Key::SedeProvincia],
                 'cap' => [Key::SedeCap],
@@ -152,6 +195,8 @@ class PdfModuleFieldMappingSeeder extends Seeder
                 'cf' => [Key::ClienteCodiceFiscale],
                 'data' => $oggi,
                 'Nome' => [Key::ClienteNominativo],
+                'com_nasc' => [Key::ClienteLuogoNascita],
+                'dt_nasc' => [Key::ClienteDataNascita, Fmt::DateIt],
                 'com_res' => [Key::SedeCitta],
                 'cap_res' => [Key::SedeCap],
                 'indir_res' => [Key::SedeIndirizzo],
@@ -176,11 +221,11 @@ class PdfModuleFieldMappingSeeder extends Seeder
             $mapped = 0;
 
             foreach ($fields as $name => $definition) {
-                [$key, $formatter] = [$definition[0], $definition[1] ?? null];
+                [$key, $formatter, $force] = [$definition[0], $definition[1] ?? null, $definition[2] ?? false];
 
                 $mapped += $module->fields()
                     ->where('pdf_field_name', $name)
-                    ->whereNull('source_key')
+                    ->when(! $force, fn ($query) => $query->whereNull('source_key'))
                     ->update([
                         'source_key' => $key->value,
                         'formatter' => $formatter?->value,

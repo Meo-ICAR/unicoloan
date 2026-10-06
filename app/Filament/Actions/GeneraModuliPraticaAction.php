@@ -40,6 +40,7 @@ class GeneraModuliPraticaAction extends Action
             ->modalHeading('Genera moduli PDF')
             ->modalDescription('Scegli i moduli da compilare con i dati della pratica e del cliente.')
             ->modalSubmitActionLabel('Genera')
+            ->hidden(fn (Pratica $record): bool => (bool) $record->is_notowned)
             ->disabled(fn (Pratica $record): bool => $this->clientFor($record) === null)
             ->tooltip(fn (Pratica $record): ?string => $this->clientFor($record) === null
                 ? 'Cliente non trovato per il codice fiscale della pratica'

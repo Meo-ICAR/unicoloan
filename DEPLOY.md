@@ -37,6 +37,8 @@ Ordine (tutte idempotenti, `php artisan migrate --force`):
 | Migration | Connessione | Cosa fa |
 |---|---|---|
 | `2026_10_06_100000_add_iban_and_employer_to_clients_table` | `mysql_proforma` | aggiunge `iban` ed `employer_id` (self-FK) a `proforma.clients` |
+| `2026_10_06_110000_add_birth_data_and_legal_representative_to_clients_table` | `mysql_proforma` | aggiunge `birth_date`, `birth_place`, `sex`, `citizenship`, `legal_representative_id` a `proforma.clients` |
+| `2026_10_06_120000_add_company_data_to_clients_table` | `mysql_proforma` | aggiunge `pec`, `ateco_code`, `cciaa_registration` a `proforma.clients` |
 | `2026_10_06_100100_create_pdf_modules_table` | `mysql` | tabella `pdf_modules` |
 | `2026_10_06_100200_create_pdf_module_fields_table` | `mysql` | tabella `pdf_module_fields` |
 
@@ -60,3 +62,7 @@ php artisan permissions:sync-resources                # registra la risorsa "Mod
 ```
 
 Poi, da Filament > Sistema > Moduli PDF, mappare i campi di ciascun modulo (aprire il PDF diagnostico per vedere dove sta ogni campo). `modules:sync-fields` va rieseguito quando si sostituisce un PDF con una nuova versione: non tocca le mappature esistenti.
+
+## 7. Solo ambiente di sviluppo: dati segnaposto
+
+`php artisan clients:create-missing [--dry-run] [--code=CF]` crea i clienti mancanti dalle pratiche e imposta dati **finti** (sedi "da inserire", IBAN `IT1234567890123456`, stipendio 999, amministratori dummy, dati societari, contatti dei fornitori, finanziamenti di terzi dummy per il conteggio estintivo). Non eseguirlo in produzione. Data e sesso si ricavano dal codice fiscale con `database/data/comuni-catastali.json` (comuni italiani; per i nati all'estero il luogo e' "Estero (Z…)").

@@ -16,7 +16,7 @@ class PdfModuleSeeder extends Seeder
     private const MODULES = [
         '20240403 - proforma fattura mutuo NO IVA.pdf' => [['Mutuo', 'IPOTECARIO'], PdfModuleClientScope::Entrambi],
         'Compenso di mediazione fuori convenzione.pdf' => [null, PdfModuleClientScope::Entrambi],
-        'Delega richiesta allegati statali_compressed.pdf' => [null, PdfModuleClientScope::Entrambi],
+        'Delega richiesta allegati statali_compressed.pdf' => [null, PdfModuleClientScope::PersonaFisica],
         'NUOVA  Infomativa privacy 2025 - Editato_compressed.pdf' => [null, PdfModuleClientScope::Entrambi],
         'QAV Persona fisica_compressed.pdf' => [null, PdfModuleClientScope::PersonaFisica],
         'QAV Persona giuridica_compressed.pdf' => [null, PdfModuleClientScope::PersonaGiuridica],
@@ -25,7 +25,7 @@ class PdfModuleSeeder extends Seeder
         'Races VERS. 03_2026 - Fascicolo completo retail  TFS compilabile_compressed.pdf' => [['TFS'], PdfModuleClientScope::PersonaFisica],
         'Races VERS. 03_2026 - Fascicolo completo retail CQ compilabile_compressed.pdf' => [['Cessione', 'Delega'], PdfModuleClientScope::PersonaFisica],
         'Races VERS. 06_2025 - Fascicolo completo Corporate compilabile_compressed.pdf' => [['Aziendale', 'PRESTITO AZIENDALE'], PdfModuleClientScope::PersonaGiuridica],
-        'Richiesta Conteggio Estintivo_compressed.pdf' => [null, PdfModuleClientScope::Entrambi],
+        'Richiesta Conteggio Estintivo_compressed.pdf' => [null, PdfModuleClientScope::PersonaFisica],
         'patronato_compressed.pdf' => [null, PdfModuleClientScope::PersonaFisica],
     ];
 

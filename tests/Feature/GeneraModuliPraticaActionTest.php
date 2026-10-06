@@ -63,6 +63,16 @@ class GeneraModuliPraticaActionTest extends TestCase
         return $module;
     }
 
+    public function test_action_is_hidden_on_third_party_commitments(): void
+    {
+        $this->module();
+        $pratica = $this->pratica('SCONOSCIUTO000000');
+        $pratica->update(['is_notowned' => true]);
+
+        Livewire::test(EditPratica::class, ['record' => $pratica->getKey()])
+            ->assertActionHidden('generaModuli');
+    }
+
     public function test_action_is_disabled_when_the_client_cannot_be_found(): void
     {
         $this->module();

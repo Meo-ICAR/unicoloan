@@ -32,11 +32,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
 
-            ->brandLogo(asset('images/unicoOAM_banner.png'))
+            ->brandLogo(asset('images/unicoloan.png'))
             // Opzionale: imposta un'altezza fissa se ti sembra troppo grande o piccolo
             //   ->brandLogoHeight('3rem')
             // Imposta l'icona del browser (favicon)
-            ->favicon(asset('images/unicoOAM.png'))
+            ->favicon(asset('images/unicoloan.png'))
 
             ->login()
             ->colors([
@@ -103,7 +103,7 @@ class AdminPanelProvider extends PanelProvider
                             ->outlined(false)
                             ->stateless(false),
                     ])
-                    // ->registration(true)
+                // ->registration(true)
             )
             ->plugin(
                 ActivityLogPlugin::make()

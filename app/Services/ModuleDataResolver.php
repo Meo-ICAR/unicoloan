@@ -25,7 +25,7 @@ class ModuleDataResolver
      *
      * @var array<int, string>
      */
-    public const IDENTITY_TYPE_NAMES = ['Patente di Guida'];
+    public const IDENTITY_TYPE_NAMES = ['Carta di Identità o Patente & cert. Residenza', 'Patente di Guida'];
 
     /**
      * Il legame pratica -> cliente e' il codice fiscale (o la P.IVA per le societa').
@@ -45,12 +45,16 @@ class ModuleDataResolver
 
     public function resolve(Pratica $pratica, Client $client): ResolvedModuleData
     {
-        $client->loadMissing(['branches', 'documents.documentType', 'employer.branches']);
+        $pratica->loadMissing('agente');
+        $client->loadMissing(['branches', 'documents.documentType', 'employer.branches', 'legalRepresentative', 'thirdPartyFinancings']);
 
         $branch = $this->mainBranch($client);
         $employer = $client->employer;
         $employerBranch = $employer ? $this->mainBranch($employer) : null;
         $identity = $this->identityDocument($client);
+        $agent = $pratica->agente;
+        $representative = $client->legalRepresentative;
+        $thirdParty = $client->thirdPartyFinancings->first();
 
         return new ResolvedModuleData([
             Key::PraticaCodice->value => $pratica->codice_pratica,
@@ -73,6 +77,28 @@ class ModuleDataResolver
             Key::ClienteStipendio->value => $client->salary,
             Key::ClienteIban->value => $client->iban,
             Key::ClientePersonaFisica->value => (bool) $client->is_person,
+            Key::ClienteDataNascita->value => $client->birth_date,
+            Key::ClienteLuogoNascita->value => $client->birth_place,
+            Key::ClienteSesso->value => $client->sex,
+            Key::ClienteCittadinanza->value => $client->citizenship,
+
+            Key::ClientePec->value => $client->pec,
+            Key::ClienteAteco->value => $client->ateco_code,
+            Key::ClienteCciaa->value => $client->cciaa_registration,
+
+            Key::RappresentanteNominativo->value => $representative ? $this->nominativo($representative) : null,
+            Key::RappresentanteEmail->value => $representative?->email,
+            Key::RappresentanteTelefono->value => $representative?->phone,
+
+            Key::AgenteNominativo->value => $agent?->name,
+            Key::AgenteIndirizzo->value => $agent ? $this->formatAddress($agent->indirizzo, $agent->cap, $agent->comune, $agent->prov) : null,
+            Key::AgenteEmail->value => $agent?->email,
+            Key::AgenteTelefono->value => $agent?->tel,
+            Key::AgenteCodiceFiscale->value => $agent?->cf,
+
+            Key::TerziBanca->value => $thirdParty?->denominazione_banca,
+            Key::TerziProdotto->value => $thirdParty?->denominazione_prodotto,
+            Key::TerziRata->value => $thirdParty?->rata,
 
             Key::DatoreNome->value => $employer?->name,
             Key::DatorePartitaIva->value => $employer?->vat_number,
@@ -118,11 +144,19 @@ class ModuleDataResolver
 
     private function fullAddress(Branch $branch): ?string
     {
-        $street = trim(($branch->address ?? '').' '.($branch->street_number ?? ''));
-        $city = trim(($branch->zip_code ?? '').' '.($branch->city ?? ''));
-        $province = filled($branch->province) ? '('.$branch->province.')' : '';
+        return $this->formatAddress(
+            trim(($branch->address ?? '').' '.($branch->street_number ?? '')),
+            $branch->zip_code,
+            $branch->city,
+            $branch->province,
+        );
+    }
 
-        $address = implode(', ', array_filter([$street, trim($city.' '.$province)]));
+    private function formatAddress(?string $street, ?string $zipCode, ?string $city, ?string $province): ?string
+    {
+        $place = trim(trim(($zipCode ?? '').' '.($city ?? '')).' '.(filled($province) ? '('.$province.')' : ''));
+
+        $address = implode(', ', array_filter([trim((string) $street), $place]));
 
         return $address === '' ? null : $address;
     }
@@ -145,7 +179,10 @@ class ModuleDataResolver
 
                 $notExpired = $document->expires_at === null || $document->expires_at->greaterThanOrEqualTo(today());
 
-                return $isIdentity && $notExpired;
+                // Il certificato di residenza condivide il tipo combinato con la carta d'identita'.
+                $isResidenceCertificate = str_contains(mb_strtolower((string) $document->name), 'residenza');
+
+                return $isIdentity && $notExpired && ! $isResidenceCertificate;
             })
             ->sortByDesc(fn (Document $document) => [$document->emitted_at?->getTimestamp() ?? 0, $document->created_at?->getTimestamp() ?? 0])
             ->first();
