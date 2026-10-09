@@ -2,22 +2,11 @@
 
 namespace App\Filament\Agenti\Resources\Pratiche\RelationManagers;
 
-use App\Enums\KycActivityLocation;
-use App\Enums\KycActivitySector;
-use App\Enums\KycCompanyPurpose;
-use App\Enums\KycEconomicActivity;
-use App\Enums\KycFinancingNature;
-use App\Enums\KycGeographicArea;
-use App\Enums\KycIncomeBand;
-use App\Enums\KycLegalNature;
-use App\Enums\KycPepStatus;
-use App\Enums\KycPersonPurpose;
-use App\Enums\KycRiskLevel;
 use App\Enums\KycStatus;
-use App\Enums\KycWealthBand;
 use App\Enums\SignerRole;
 use App\Filament\Actions\SendForSignatureAction;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
+use App\Filament\Resources\Clients\Schemas\KycQuestionnaireForm;
 use App\Models\KycQuestionnaire;
 use App\Models\PROFORMA\Pratica;
 use App\Services\Agenti\ClientForPraticaCreator;
@@ -29,10 +18,8 @@ use App\Services\Signature\SignerInput;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
@@ -83,42 +70,16 @@ class AdeguataVerificaRelationManager extends RelationManager
             Section::make('Dati comuni')
                 ->columns(2)
                 ->schema([
-                    Select::make('financing_purpose')
-                        ->label('Scopo del finanziamento')
-                        ->options(fn (): array => $this->purposeOptions())
-                        ->required(),
-                    Select::make('risk_level')
-                        ->label('Livello di rischio')
-                        ->options(KycRiskLevel::class)
-                        ->required(),
-                    Select::make('pep_status')
-                        ->label('Condizione PEP')
-                        ->options(KycPepStatus::class)
-                        ->visible($isPerson)
-                        ->required(),
+                    KycQuestionnaireForm::financingPurpose($isPerson, required: true),
+                    KycQuestionnaireForm::riskLevel(required: true),
+                    KycQuestionnaireForm::pepStatus($isPerson, required: true),
                     Textarea::make('notes')->label('Note')->columnSpanFull(),
                 ]),
-            Section::make('Persona fisica')
-                ->columns(2)
-                ->visible($isPerson)
-                ->schema([
-                    Select::make('economic_activity')->label('Attività economica')->options(KycEconomicActivity::class)->required(),
-                    Select::make('activity_sector')->label('Settore di attività')->options(KycActivitySector::class)->required(),
-                    Select::make('activity_location')->label('Luogo di svolgimento')->options(KycActivityLocation::class)->required(),
-                    Select::make('financing_nature')->label('Natura del finanziamento')->options(KycFinancingNature::class)->required(),
-                    Select::make('income_band')->label('Reddito annuo lordo')->options(KycIncomeBand::class)->required(),
-                    Select::make('wealth_band')->label('Patrimonio')->options(KycWealthBand::class)->required(),
-                    Toggle::make('acts_for_third_party')
-                        ->label('Agisce per conto di terzi')
-                        ->helperText('I titolari effettivi vengono inseriti dall\'istruttoria.'),
-                ]),
+            KycQuestionnaireForm::personSection($isPerson, required: true, thirdPartyHelper: 'I titolari effettivi vengono inseriti dall\'istruttoria.'),
             Section::make('Persona giuridica')
                 ->columns(2)
                 ->visible(fn (): bool => ! $this->isPerson())
-                ->schema([
-                    Select::make('legal_nature')->label('Natura giuridica')->options(KycLegalNature::class)->required(),
-                    Select::make('geographic_area')->label('Area geografica')->options(KycGeographicArea::class)->required(),
-                ]),
+                ->schema(KycQuestionnaireForm::companyFields(required: true)),
         ]);
     }
 
@@ -290,17 +251,5 @@ class AdeguataVerificaRelationManager extends RelationManager
         }
 
         Notification::make()->success()->title('Richiesta di firma inviata al cliente')->send();
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function purposeOptions(): array
-    {
-        $enum = $this->isPerson() ? KycPersonPurpose::class : KycCompanyPurpose::class;
-
-        return collect($enum::cases())
-            ->mapWithKeys(fn ($case): array => [$case->value => $case->getLabel()])
-            ->all();
     }
 }

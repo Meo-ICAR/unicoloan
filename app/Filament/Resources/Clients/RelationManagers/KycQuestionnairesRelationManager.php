@@ -2,22 +2,13 @@
 
 namespace App\Filament\Resources\Clients\RelationManagers;
 
-use App\Enums\KycActivityLocation;
-use App\Enums\KycActivitySector;
-use App\Enums\KycCompanyPurpose;
 use App\Enums\KycControlCriterion;
-use App\Enums\KycEconomicActivity;
 use App\Enums\KycExecutorLink;
-use App\Enums\KycFinancingNature;
-use App\Enums\KycGeographicArea;
-use App\Enums\KycIncomeBand;
-use App\Enums\KycLegalNature;
 use App\Enums\KycPepStatus;
-use App\Enums\KycPersonPurpose;
 use App\Enums\KycRiskLevel;
 use App\Enums\KycStatus;
-use App\Enums\KycWealthBand;
 use App\Filament\Actions\SendForSignatureAction;
+use App\Filament\Resources\Clients\Schemas\KycQuestionnaireForm;
 use App\Models\KycQuestionnaire;
 use App\Services\Kyc\BeneficialOwnerSuggester;
 use App\Services\Kyc\KycApprover;
@@ -29,7 +20,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -71,17 +61,9 @@ class KycQuestionnairesRelationManager extends RelationManager
                 Section::make('Dati comuni')
                     ->columns(2)
                     ->schema([
-                        Radio::make('pep_status')
-                            ->label('Condizione PEP')
-                            ->options(KycPepStatus::class)
-                            ->visible($isPerson)
-                            ->columnSpanFull(),
-                        Select::make('financing_purpose')
-                            ->label('Scopo del finanziamento')
-                            ->options(fn (): array => $this->purposeOptions()),
-                        Select::make('risk_level')
-                            ->label('Livello di rischio')
-                            ->options(KycRiskLevel::class),
+                        KycQuestionnaireForm::pepStatus($isPerson),
+                        KycQuestionnaireForm::financingPurpose($isPerson),
+                        KycQuestionnaireForm::riskLevel(),
                         Select::make('client_mandate_id')
                             ->label('Mandato')
                             ->options(fn (): array => $this->getOwnerRecord()->clientMandates()->pluck('numero_mandato', 'id')->all())
@@ -93,26 +75,12 @@ class KycQuestionnairesRelationManager extends RelationManager
                             ->label('Note')
                             ->columnSpanFull(),
                     ]),
-                Section::make('Persona fisica')
-                    ->columns(2)
-                    ->visible($isPerson)
-                    ->schema([
-                        Select::make('economic_activity')->label('Attività economica')->options(KycEconomicActivity::class),
-                        Select::make('activity_sector')->label('Settore di attività')->options(KycActivitySector::class),
-                        Select::make('activity_location')->label('Luogo di svolgimento')->options(KycActivityLocation::class),
-                        Select::make('financing_nature')->label('Natura del finanziamento')->options(KycFinancingNature::class),
-                        Select::make('income_band')->label('Reddito annuo lordo')->options(KycIncomeBand::class),
-                        Select::make('wealth_band')->label('Patrimonio')->options(KycWealthBand::class),
-                        Toggle::make('acts_for_third_party')
-                            ->label('Agisce per conto di terzi')
-                            ->live(),
-                    ]),
+                KycQuestionnaireForm::personSection($isPerson, liveThirdParty: true),
                 Section::make('Persona giuridica')
                     ->columns(2)
                     ->visible(fn (): bool => ! $this->getOwnerRecord()->is_person)
                     ->schema([
-                        Select::make('legal_nature')->label('Natura giuridica')->options(KycLegalNature::class),
-                        Select::make('geographic_area')->label('Area geografica')->options(KycGeographicArea::class),
+                        ...KycQuestionnaireForm::companyFields(),
                         Select::make('executor_client_id')
                             ->label('Esecutore')
                             ->relationship('executor', 'name', fn (Builder $query) => $query->where('is_person', true))
@@ -259,17 +227,5 @@ class KycQuestionnairesRelationManager extends RelationManager
                     ->label('Elimina')
                     ->hidden(fn (KycQuestionnaire $record): bool => $record->status === KycStatus::Approved),
             ]);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function purposeOptions(): array
-    {
-        $enum = $this->getOwnerRecord()->is_person ? KycPersonPurpose::class : KycCompanyPurpose::class;
-
-        return collect($enum::cases())
-            ->mapWithKeys(fn ($case): array => [$case->value => $case->getLabel()])
-            ->all();
     }
 }
