@@ -1,7 +1,13 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\Filament\AdminPanelProvider;
+use App\Providers\Filament\AgentiPanelProvider;
+use App\Providers\Filament\UnicofinPanelProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\Filament\AdminPanelProvider::class,
-    App\Providers\Filament\UnicofinPanelProvider::class,
+    AppServiceProvider::class,
+    AdminPanelProvider::class,
+    UnicofinPanelProvider::class,
+    AgentiPanelProvider::class,
 ];

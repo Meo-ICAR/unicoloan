@@ -8,6 +8,7 @@ enum UserRole: string
     case QUALITY = 'quality';
     case INSPECTOR = 'inspector';
     case SOS = 'sos';
+    case AGENT = 'agent';
     case ADMIN = 'admin';
     case SUPER_ADMIN = 'super_admin';
 
@@ -28,6 +29,9 @@ enum UserRole: string
                 'suspicious-activity-reports',
                 'oam-semestrales',
             ],
+
+            // L'agente/produttore usa solo il pannello dedicato (/agenti)
+            self::AGENT => [],
 
             self::QUALITY => [
                 'audits',

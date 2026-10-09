@@ -169,6 +169,17 @@ class Fornitore extends Model
         return $this->morphMany(Website::class, 'websiteable');
     }
 
+    /**
+     * Partite IVA degli agenti le cui pratiche questo fornitore puo' vedere nel portale agenti.
+     * Per ora solo la propria: il legame con i coordinati non e' modellato (coordinated_id e' numerico, gli id sono uuid).
+     *
+     * @return array<int, string>
+     */
+    public function visibleAgentPivas(): array
+    {
+        return array_values(array_filter([$this->piva]));
+    }
+
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

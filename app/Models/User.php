@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
+use App\Models\PROFORMA\Fornitore;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -71,6 +72,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsA
      */
     public function canAccessPanel(Panel $panel): bool
     {
+        // Gli agenti entrano solo nel pannello /agenti e solo se collegati a un fornitore;
+        // gli altri utenti non vedono mai quel pannello.
+        if ($panel->getId() === 'agenti') {
+            return $this->role === UserRole::AGENT->value && $this->fornitore()->exists();
+        }
+
+        if ($this->role === UserRole::AGENT->value) {
+            return false;
+        }
+
         $allowedDomains = array_filter((array) config('panel.allowed_email_domains', []));
 
         if ($allowedDomains === []) {
@@ -117,6 +128,14 @@ class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsA
             ->setDescriptionForEvent(fn (string $eventName) => "Utente {$this->name} ha effettuato l'evento: {$eventName}");
     }
             */
+
+    /**
+     * Anagrafica fornitore (agente/produttore) collegata all'utente.
+     */
+    public function fornitore(): HasOne
+    {
+        return $this->hasOne(Fornitore::class, 'user_id', 'id');
+    }
 
     public function employee(): HasOne
     {
