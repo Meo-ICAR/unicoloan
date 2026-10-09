@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Praticas\RelationManagers;
 
 use App\Filament\Traits\HasRelationPlanAccess;
-use App\Models\PraticaStato;
+use App\Models\PraticaStati;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -32,11 +32,11 @@ class StatusHistoryRelationManager extends RelationManager
             ->components([
                 Select::make('status_from')
                     ->label('Stato Precedente')
-                    ->options(fn () => PraticaStato::pluck('name', 'name'))
+                    ->options(fn () => PraticaStati::pluck('stato_pratica', 'stato_pratica'))
                     ->searchable(),
                 Select::make('status_to')
                     ->label('Nuovo Stato')
-                    ->options(fn () => PraticaStato::pluck('name', 'name'))
+                    ->options(fn () => PraticaStati::pluck('stato_pratica', 'stato_pratica'))
                     ->searchable()
                     ->required(),
                 DateTimePicker::make('changed_at')

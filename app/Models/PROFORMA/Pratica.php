@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\KycQuestionnaire;
 use App\Models\OamCode;
 use App\Models\PraticaRequisitoOperativo;
+use App\Models\PraticaStati;
 use App\Models\PraticaStato;
 use App\Models\PraticaStatusHistory;
 use Illuminate\Database\Eloquent\Model;
@@ -162,20 +163,13 @@ class Pratica extends Model
     }
 
     /**
-     * Lo stato corrente e' un esito di rifiuto secondo il catalogo degli stati (confronto per nome o codice, senza maiuscole).
+     * Lo stato corrente e' un esito di rifiuto secondo `pratiches_statos` (confronto senza distinzione di maiuscole).
      */
     public function isRejectedState(): bool
     {
         $stato = trim((string) $this->stato_pratica);
 
-        if ($stato === '') {
-            return false;
-        }
-
-        return PraticaStato::query()
-            ->where('is_rejected', true)
-            ->where(fn ($query) => $query->whereRaw('LOWER(name) = ?', [mb_strtolower($stato)])->orWhere('codice', Str::slug($stato, '_')))
-            ->exists();
+        return $stato !== '' && PraticaStati::query()->where('stato_pratica', $stato)->where('isrejected', true)->exists();
     }
 
     /**

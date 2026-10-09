@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\PraticaStato;
 use App\Models\PROFORMA\Pratica;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
+/**
+ * Usa gli stati reali di `pratiches_statos` (colonna isrejected): DECLINATA, PERIZIA KO, PRATICA RESPINTA e RINUNCIA CLIENTE sono rifiuti.
+ */
 class PraticaRejectedAtTest extends TestCase
 {
     use LazilyRefreshDatabase;
@@ -16,14 +18,6 @@ class PraticaRejectedAtTest extends TestCase
      * @var array<int, string>
      */
     protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        PraticaStato::create(['codice' => 'declinata', 'name' => 'Declinata', 'ordine' => 1, 'is_rejected' => true]);
-        PraticaStato::create(['codice' => 'inserita', 'name' => 'Inserita', 'ordine' => 2, 'is_rejected' => false]);
-    }
 
     private function pratica(?string $stato): Pratica
     {
@@ -38,6 +32,13 @@ class PraticaRejectedAtTest extends TestCase
         $this->assertTrue($pratica->fresh()->rejected_at->isToday());
     }
 
+    public function test_every_rejection_state_of_the_catalog_sets_rejected_at(): void
+    {
+        foreach (['DECLINATA', 'PERIZIA KO', 'PRATICA RESPINTA', 'RINUNCIA CLIENTE'] as $stato) {
+            $this->assertNotNull($this->pratica($stato)->fresh()->rejected_at, $stato);
+        }
+    }
+
     public function test_changing_to_a_rejected_state_sets_rejected_at(): void
     {
         $pratica = $this->pratica('INSERITA');
@@ -48,15 +49,12 @@ class PraticaRejectedAtTest extends TestCase
         $this->assertNotNull($pratica->fresh()->rejected_at);
     }
 
-    public function test_state_match_ignores_case_and_works_with_the_code(): void
+    public function test_state_match_ignores_case(): void
     {
-        $this->assertNotNull($this->pratica('DECLINATA')->fresh()->rejected_at);
-
-        PraticaStato::query()->where('codice', 'declinata')->update(['name' => 'Altro nome']);
-        $this->assertNotNull($this->pratica('DECLINATA')->fresh()->rejected_at);
+        $this->assertNotNull($this->pratica('declinata')->fresh()->rejected_at);
     }
 
-    public function test_non_rejected_or_unknown_states_leave_rejected_at_empty(): void
+    public function test_non_rejected_or_blank_states_leave_rejected_at_empty(): void
     {
         $this->assertNull($this->pratica('INSERITA')->fresh()->rejected_at);
         $this->assertNull($this->pratica('NOTIFICA')->fresh()->rejected_at);
@@ -76,7 +74,6 @@ class PraticaRejectedAtTest extends TestCase
     public function test_saving_without_changing_the_state_does_not_set_rejected_at(): void
     {
         $pratica = $this->pratica('INSERITA');
-        PraticaStato::query()->where('codice', 'inserita')->update(['is_rejected' => true]);
 
         $pratica->update(['codice_pratica' => 'ZZ-ALTRO']);
 
