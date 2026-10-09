@@ -438,6 +438,122 @@ class YousignSignatureProviderTest extends TestCase
         $this->assertSame('ignored', $event->type);
     }
 
+    public function test_post_500_is_sent_exactly_once_and_maps_to_unavailable(): void
+    {
+        $this->useFake(['*' => Http::response('', 500)]);
+
+        try {
+            $this->provider()->createEnvelope($this->makeEnvelope());
+            $this->fail('Attesa ProviderUnavailableException');
+        } catch (ProviderUnavailableException) {
+            Http::assertSentCount(1);
+        }
+    }
+
+    public function test_post_connection_error_is_not_retried(): void
+    {
+        $calls = 0;
+        $this->useFake(['*' => function () use (&$calls) {
+            $calls++;
+            throw new ConnectionException('timeout');
+        }]);
+
+        try {
+            $this->provider()->cancelEnvelope('sr-1');
+            $this->fail('Attesa ProviderUnavailableException');
+        } catch (ProviderUnavailableException) {
+            $this->assertSame(1, $calls);
+        }
+    }
+
+    public function test_422_message_never_contains_personal_data_but_keeps_field_names(): void
+    {
+        $this->useFake(['*' => Http::response([
+            'detail' => 'Il firmatario Mario Rossi mario@example.test +393381234567 non e valido',
+            'invalid_params' => [
+                ['name' => 'info.phone_number', 'reason' => 'Mario Rossi'],
+                ['name' => 'Mario Rossi <script>', 'reason' => 'x'],
+            ],
+        ], 422)]);
+
+        try {
+            $this->provider()->envelopeStatus('sr-1');
+            $this->fail('Attesa InvalidEnvelopeException');
+        } catch (InvalidEnvelopeException $e) {
+            $this->assertSame('Dati rifiutati dal provider (codice 422): info.phone_number', $e->getMessage());
+            foreach (['Mario', 'Rossi', 'example.test', '3381234567'] as $needle) {
+                $this->assertStringNotContainsString($needle, $e->getMessage());
+            }
+        }
+    }
+
+    public function test_other_4xx_map_to_invalid_envelope(): void
+    {
+        $this->useFake(['*' => Http::response([], 409)]);
+
+        try {
+            $this->provider()->cancelEnvelope('sr-1');
+            $this->fail('Attesa InvalidEnvelopeException');
+        } catch (InvalidEnvelopeException $e) {
+            $this->assertSame('Dati rifiutati dal provider (codice 409)', $e->getMessage());
+        }
+    }
+
+    public function test_missing_request_id_throws_invalid_envelope_without_cleanup(): void
+    {
+        $this->useFake(['*' => Http::response(['id' => ''], 201)]);
+
+        try {
+            $this->provider()->createEnvelope($this->makeEnvelope());
+            $this->fail('Attesa InvalidEnvelopeException');
+        } catch (InvalidEnvelopeException) {
+            Http::assertSentCount(1);
+            Http::assertNotSent(fn (HttpRequest $r) => $r->method() === 'DELETE');
+        }
+    }
+
+    public function test_missing_signer_id_throws_and_cleans_up(): void
+    {
+        $this->useFake([
+            '*/signature_requests/sr-1/signers' => Http::response(['status' => 'ok'], 201),
+            '*/signature_requests/sr-1/documents' => Http::response(['id' => 'doc-1'], 201),
+            '*/signature_requests/sr-1' => Http::response('', 204),
+            '*/signature_requests' => Http::response(['id' => 'sr-1'], 201),
+        ]);
+
+        $this->expectException(InvalidEnvelopeException::class);
+        try {
+            $this->provider()->createEnvelope($this->makeEnvelope());
+        } finally {
+            Http::assertSent(fn (HttpRequest $r) => $r->method() === 'DELETE' && str_ends_with($r->url(), '/signature_requests/sr-1'));
+        }
+    }
+
+    public function test_activate_is_sent_without_json_body(): void
+    {
+        $this->fakeHappyPath();
+
+        $this->provider()->createEnvelope($this->makeEnvelope());
+
+        Http::assertSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/activate') && $r->body() === '');
+    }
+
+    public function test_download_sends_pdf_zip_accept_header(): void
+    {
+        $this->useFake(['*' => Http::response('%PDF', 200, ['Content-Type' => 'application/pdf'])]);
+
+        $this->provider()->downloadSigned('sr-1');
+
+        Http::assertSent(fn (HttpRequest $r) => $r->hasHeader('Accept', 'application/pdf, application/zip'));
+    }
+
+    public function test_webhook_valid_signature_without_request_id_is_ignored(): void
+    {
+        $event = $this->provider()->parseWebhook($this->webhook(['event_id' => 'ev-1', 'event_name' => 'signature_request.done', 'data' => []]));
+
+        $this->assertSame('ignored', $event->type);
+    }
+
     public function test_manager_builds_yousign_from_config(): void
     {
         $this->assertInstanceOf(YousignSignatureProvider::class, app(SignatureProviderManager::class)->provider('yousign'));

@@ -20,7 +20,6 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Throwable;
 use ZipArchive;
 
@@ -28,8 +27,10 @@ use ZipArchive;
  * Adattatore Yousign v3 basato solo sul client HTTP di Laravel.
  *
  * Le ipotesi non confermate dalla documentazione sono marcate "(*) da verificare sul sandbox"
- * e isolate nelle costanti, in createEnvelope() (scadenza, ordine firmatari) e nei metodi
- * mapEnvelopeStatus(), mapSignerStatus(), signedAt(), cancelPayload(), webhookEventTypes().
+ * e si trovano nelle costanti PATH_CANCEL e PATH_DOWNLOAD, in createEnvelope() (scadenza, ordine
+ * firmatari, activate senza corpo), downloadSigned() (header Accept), mapEnvelopeStatus(),
+ * signedAt(), cancelPayload(), parseWebhook() e webhookEventTypes().
+ * Solo GET e DELETE vengono ritentati: i POST non sono idempotenti e partono una sola volta.
  */
 class YousignSignatureProvider implements SignatureProvider
 {
@@ -88,13 +89,13 @@ class YousignSignatureProvider implements SignatureProvider
             // (*) da verificare sul sandbox: campo e formato della scadenza
             'expiration_date' => $envelope->expiresAt?->format('Y-m-d'),
         ]);
-        $requestId = (string) $created->json('id');
+        $requestId = $this->requireId($created, 'richiesta');
 
         try {
             $document = $this->send('POST', sprintf(self::PATH_DOCUMENTS, $requestId), [
                 'nature' => 'signable_document',
             ], attachment: [$envelope->pdf, $envelope->fileName]);
-            $documentId = (string) $document->json('id');
+            $documentId = $this->requireId($document, 'documento');
 
             $signers = collect($envelope->signers)->sortBy('position')->values();
             $signerRefs = [];
@@ -102,10 +103,11 @@ class YousignSignatureProvider implements SignatureProvider
             // (*) da verificare sul sandbox: con ordered_signers l'ordine di firma e' l'ordine di creazione
             foreach ($signers as $signer) {
                 $response = $this->send('POST', sprintf(self::PATH_SIGNERS, $requestId), $this->signerPayload($signer, $documentId));
-                $signerRefs[$signer->slot] = (string) $response->json('id');
+                $signerRefs[$signer->slot] = $this->requireId($response, 'firmatario');
             }
 
-            $this->send('POST', sprintf(self::PATH_ACTIVATE, $requestId));
+            // (*) da verificare sul sandbox: activate senza corpo JSON
+            $this->send('POST', sprintf(self::PATH_ACTIVATE, $requestId), null);
         } catch (Throwable $e) {
             $this->discard($requestId);
 
@@ -135,7 +137,8 @@ class YousignSignatureProvider implements SignatureProvider
 
     public function downloadSigned(string $providerRef): string
     {
-        $response = $this->send('GET', sprintf(self::PATH_DOWNLOAD, $providerRef));
+        // (*) da verificare sul sandbox: header Accept per lo scarico
+        $response = $this->send('GET', sprintf(self::PATH_DOWNLOAD, $providerRef), accept: 'application/pdf, application/zip');
         $contentType = strtolower((string) $response->header('Content-Type'));
 
         if (str_contains($contentType, 'application/pdf')) {
@@ -179,7 +182,7 @@ class YousignSignatureProvider implements SignatureProvider
         $ref = (string) ($payload['data']['signature_request']['id'] ?? '');
         $eventId = (string) ($payload['event_id'] ?? '');
 
-        $type = in_array($eventName, $this->webhookEventTypes(), true) ? $eventName : 'ignored';
+        $type = in_array($eventName, $this->webhookEventTypes(), true) && $ref !== '' ? $eventName : 'ignored';
 
         return new SignatureEvent($ref, $type, $eventId);
     }
@@ -323,15 +326,23 @@ class YousignSignatureProvider implements SignatureProvider
      * @param  array<string, mixed>|null  $data
      * @param  array{0: string, 1: string}|null  $attachment  contenuto e nome file (multipart)
      */
-    private function send(string $method, string $path, ?array $data = null, ?array $attachment = null): Response
+    private function send(string $method, string $path, ?array $data = null, ?array $attachment = null, ?string $accept = null): Response
     {
-        $client = $this->client()->retry(
-            2,
-            (int) ($this->config['retry_delay_ms'] ?? 500),
-            fn (Throwable $e) => $e instanceof ConnectionException
-                || ($e instanceof RequestException && $e->response->serverError()),
-            throw: false,
-        );
+        $client = $this->client();
+
+        if ($accept !== null) {
+            $client = $client->withHeaders(['Accept' => $accept]);
+        }
+
+        if ($method !== 'POST') {
+            $client = $client->retry(
+                2,
+                (int) ($this->config['retry_delay_ms'] ?? 500),
+                fn (Throwable $e) => $e instanceof ConnectionException
+                    || ($e instanceof RequestException && $e->response->serverError()),
+                throw: false,
+            );
+        }
 
         try {
             if ($attachment !== null) {
@@ -340,7 +351,7 @@ class YousignSignatureProvider implements SignatureProvider
 
             $response = match ($method) {
                 'GET' => $client->get($path),
-                'POST' => $client->post($path, $data ?? []),
+                'POST' => $data === null && $attachment === null ? $client->send('POST', $path) : $client->post($path, $data ?? []),
                 'DELETE' => $client->delete($path),
             };
         } catch (ConnectionException) {
@@ -361,23 +372,37 @@ class YousignSignatureProvider implements SignatureProvider
         throw match (true) {
             $status === 401, $status === 403 => new ProviderUnavailableException('Chiave API Yousign non valida'),
             $status === 404 => new EnvelopeNotFoundException('Richiesta Yousign non trovata'),
-            $status === 400, $status === 422 => new InvalidEnvelopeException($this->safeDetail($response)),
             $status === 429 => new ProviderUnavailableException('Yousign: troppe richieste, riprovare piu\' tardi'),
+            $status >= 400 && $status < 500 => new InvalidEnvelopeException($this->rejectionMessage($response)),
             default => new ProviderUnavailableException("Yousign non disponibile (HTTP {$status})"),
         };
     }
 
-    private function safeDetail(Response $response): string
+    /**
+     * Messaggio generico: il testo libero del provider non viene mai riportato (puo' contenere dati personali).
+     * Si aggiungono solo i nomi dei campi non validi, se hanno un formato innocuo.
+     */
+    private function rejectionMessage(Response $response): string
     {
-        $detail = $response->json('detail');
+        $message = "Dati rifiutati dal provider (codice {$response->status()})";
 
-        if (! is_string($detail) || trim($detail) === '') {
-            return 'Richiesta rifiutata da Yousign';
+        $names = collect($response->json('invalid_params') ?? [])
+            ->map(fn ($param) => is_array($param) ? ($param['name'] ?? null) : null)
+            ->filter(fn ($name) => is_string($name) && preg_match('/^[a-z0-9_.\[\]-]{1,60}$/i', $name) === 1)
+            ->take(10)
+            ->all();
+
+        return $names === [] ? $message : $message.': '.implode(', ', $names);
+    }
+
+    private function requireId(Response $response, string $what): string
+    {
+        $id = $response->json('id');
+
+        if (! is_string($id) || $id === '') {
+            throw new InvalidEnvelopeException("Risposta Yousign priva dell'identificativo ({$what})");
         }
 
-        $detail = preg_replace('/[^\s@]+@[^\s@]+/', '[email]', $detail);
-        $detail = preg_replace('/\+?\d[\d\s\-().]{5,}\d/', '[numero]', (string) $detail);
-
-        return Str::limit(trim((string) $detail), 200, '');
+        return $id;
     }
 }
