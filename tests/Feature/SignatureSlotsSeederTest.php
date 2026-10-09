@@ -19,7 +19,7 @@ class SignatureSlotsSeederTest extends TestCase
         $this->seed(SignatureSlotsSeeder::class);
 
         $this->assertCount(1, $person->refresh()->signature_slots);
-        $this->assertEquals(['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 26], $person->signature_slots[0]);
+        $this->assertEquals(['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 40], $person->signature_slots[0]);
         $this->assertCount(2, $company->refresh()->signature_slots);
         $this->assertSame('collaborator', $company->signature_slots[1]['role']);
         $this->assertSame(6, $company->signature_slots[1]['page']);

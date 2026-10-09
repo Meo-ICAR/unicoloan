@@ -128,8 +128,8 @@ class PdfModuleResourceTest extends TestCase
     {
         $module = PdfModule::factory()->create();
         $slots = [
-            ['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 26],
-            ['slot' => 'signer2', 'role' => 'collaborator', 'page' => 6, 'x' => 40, 'y' => 655, 'width' => 142, 'height' => 26],
+            ['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 40],
+            ['slot' => 'signer2', 'role' => 'collaborator', 'page' => 6, 'x' => 40, 'y' => 655, 'width' => 142, 'height' => 40],
         ];
 
         Livewire::test(EditPdfModule::class, ['record' => $module->getKey()])
@@ -149,7 +149,7 @@ class PdfModuleResourceTest extends TestCase
 
         Livewire::test(EditPdfModule::class, ['record' => $module->getKey()])
             ->fillForm(['signature_slots' => [
-                ['slot' => 'signer1', 'role' => 'client', 'page' => null, 'x' => 1, 'y' => 1, 'width' => 142, 'height' => 26],
+                ['slot' => 'signer1', 'role' => 'client', 'page' => null, 'x' => 1, 'y' => 1, 'width' => 142, 'height' => 40],
             ]])
             ->call('save')
             ->assertHasFormErrors(['signature_slots.0.page' => 'required']);

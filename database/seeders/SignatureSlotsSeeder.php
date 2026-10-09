@@ -16,11 +16,11 @@ class SignatureSlotsSeeder extends Seeder
      */
     private const SLOTS = [
         'QAV Persona fisica' => [
-            ['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 26],
+            ['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 40],
         ],
         'QAV Persona giuridica' => [
-            ['slot' => 'signer1', 'role' => 'client', 'page' => 6, 'x' => 330, 'y' => 345, 'width' => 142, 'height' => 26],
-            ['slot' => 'signer2', 'role' => 'collaborator', 'page' => 6, 'x' => 40, 'y' => 655, 'width' => 142, 'height' => 26],
+            ['slot' => 'signer1', 'role' => 'client', 'page' => 6, 'x' => 330, 'y' => 345, 'width' => 142, 'height' => 40],
+            ['slot' => 'signer2', 'role' => 'collaborator', 'page' => 6, 'x' => 40, 'y' => 655, 'width' => 142, 'height' => 40],
         ],
     ];
 
