@@ -20,6 +20,12 @@ class ClientsTable
 {
     public static function configure(Table $table): Table
     {
+        // Mappa letta una sola volta per richiesta (configure() gira a ogni richiesta Livewire).
+        $kycCoverage = null;
+        $kycCoverageMap = function () use (&$kycCoverage) {
+            return $kycCoverage ??= KycQuestionnaire::coverageByClient();
+        };
+
         return $table
             ->columns([
                 // Identificazione Rapida
@@ -77,7 +83,7 @@ class ClientsTable
                 TextColumn::make('kyc')
                     ->label('KYC')
                     ->badge()
-                    ->state(fn (Client $record): KycCoverage => $record->kycCoverage())
+                    ->state(fn (Client $record): KycCoverage => $kycCoverageMap()->get($record->getKey(), KycCoverage::Missing))
                     ->formatStateUsing(fn (KycCoverage $state): string => $state->getLabel())
                     ->color(fn (KycCoverage $state): string => $state->getColor()),
                 // Dati Finanziari
@@ -115,14 +121,14 @@ class ClientsTable
                 SelectFilter::make('kyc')
                     ->label('KYC')
                     ->options(KycCoverage::class)
-                    ->query(function (Builder $query, array $data): Builder {
+                    ->query(function (Builder $query, array $data) use ($kycCoverageMap): Builder {
                         $value = $data['value'] ?? null;
 
                         if (blank($value)) {
                             return $query;
                         }
 
-                        $coverage = KycQuestionnaire::coverageByClient();
+                        $coverage = $kycCoverageMap();
 
                         if ($value === KycCoverage::Missing->value) {
                             return $query->whereNotIn('id', $coverage->keys()->all());
@@ -136,10 +142,10 @@ class ClientsTable
                 // Filtro Rischio
                 Filter::make('high_risk')
                     ->label('Alto Rischio (AML)')
-                    ->query(fn (Builder $query) => $query
+                    ->query(fn (Builder $query) => $query->where(fn (Builder $group) => $group
                         ->where('is_pep', true)
                         ->orWhere('is_sanctioned', true)
-                        ->orWhere('is_remote_interaction', true)),
+                        ->orWhere('is_remote_interaction', true))),
             ])
             ->recordActions([
 

@@ -22,9 +22,13 @@ class EditPratica extends EditRecord
 
     public function getSubheading(): string|Htmlable|null
     {
-        $client = app(ModuleDataResolver::class)->findClient($this->getRecord());
+        $coverage = once(function (): ?KycCoverage {
+            $client = app(ModuleDataResolver::class)->findClient($this->getRecord());
 
-        return match ($client?->kycCoverage()) {
+            return $client?->kycCoverage();
+        });
+
+        return match ($coverage) {
             KycCoverage::Missing => 'Attenzione: KYC mancante per il cliente',
             KycCoverage::Expired => 'Attenzione: KYC scaduto per il cliente',
             default => null,

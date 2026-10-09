@@ -90,6 +90,22 @@ class KycClientsTableTest extends TestCase
             ->assertCanNotSeeTableRecords([$this->missing, $this->expired]);
     }
 
+    public function test_kyc_and_high_risk_filters_combine_without_leaking_or_conditions(): void
+    {
+        $riskyMissing = $this->makeClient('ZkycRiskyMissing');
+        $riskyMissing->update(['is_pep' => true]);
+        $riskyComplete = $this->makeClient('ZkycRiskyComplete');
+        $riskyComplete->update(['is_sanctioned' => true]);
+        $this->approve($riskyComplete, today()->addYear());
+
+        Livewire::test(ListClients::class)
+            ->searchTable('Zkyc')
+            ->filterTable('kyc', 'missing')
+            ->filterTable('high_risk', true)
+            ->assertCanSeeTableRecords([$riskyMissing])
+            ->assertCanNotSeeTableRecords([$this->missing, $this->expired, $this->complete, $riskyComplete]);
+    }
+
     public function test_kyc_column_renders_each_coverage_label(): void
     {
         Livewire::test(ListClients::class)
