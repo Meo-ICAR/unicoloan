@@ -15,7 +15,7 @@ class SignatureProviderManager
 
         return $this->resolved[$name] ??= match ($name) {
             'fake' => new FakeSignatureProvider,
-            'yousign' => app(YousignSignatureProvider::class),
+            'yousign' => new YousignSignatureProvider((array) config('signature.yousign')),
             default => throw new InvalidArgumentException("Provider di firma [{$name}] non supportato."),
         };
     }
