@@ -123,4 +123,35 @@ class PdfModuleResourceTest extends TestCase
             ->callAction('diagnostica')
             ->assertNotified('Compilazione non disponibile');
     }
+
+    public function test_edit_form_saves_the_signature_slots(): void
+    {
+        $module = PdfModule::factory()->create();
+        $slots = [
+            ['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 26],
+            ['slot' => 'signer2', 'role' => 'collaborator', 'page' => 6, 'x' => 40, 'y' => 655, 'width' => 142, 'height' => 26],
+        ];
+
+        Livewire::test(EditPdfModule::class, ['record' => $module->getKey()])
+            ->fillForm(['signature_slots' => $slots])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $saved = array_map(fn (array $slot): array => array_map('floatval', array_diff_key($slot, ['slot' => 1, 'role' => 1])) + array_intersect_key($slot, ['slot' => 1, 'role' => 1]), $module->refresh()->signature_slots);
+        $expected = array_map(fn (array $slot): array => array_map('floatval', array_diff_key($slot, ['slot' => 1, 'role' => 1])) + array_intersect_key($slot, ['slot' => 1, 'role' => 1]), $slots);
+
+        $this->assertEquals($expected, $saved);
+    }
+
+    public function test_signature_slot_without_page_fails_validation(): void
+    {
+        $module = PdfModule::factory()->create();
+
+        Livewire::test(EditPdfModule::class, ['record' => $module->getKey()])
+            ->fillForm(['signature_slots' => [
+                ['slot' => 'signer1', 'role' => 'client', 'page' => null, 'x' => 1, 'y' => 1, 'width' => 142, 'height' => 26],
+            ]])
+            ->call('save')
+            ->assertHasFormErrors(['signature_slots.0.page' => 'required']);
+    }
 }

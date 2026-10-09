@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PdfModules\Schemas;
 
 use App\Enums\PdfModuleClientScope;
 use App\Models\Tipoprodotto;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
@@ -49,6 +50,30 @@ class PdfModuleForm
                             ->default(true),
                     ])
                     ->columns(2),
+                Section::make('Firma elettronica')
+                    ->description('Riquadri di firma sul PDF (pagina, posizione e dimensione in punti, origine in alto a sinistra). Senza riquadri il modulo non e\' inviabile per la firma.')
+                    ->schema([
+                        Repeater::make('signature_slots')
+                            ->label('Riquadri di firma')
+                            ->schema([
+                                Select::make('slot')
+                                    ->label('Firmatario')
+                                    ->options(['signer1' => 'Firmatario 1', 'signer2' => 'Firmatario 2'])
+                                    ->required(),
+                                Select::make('role')
+                                    ->label('Ruolo')
+                                    ->options(['client' => 'Cliente', 'collaborator' => 'Collaboratore'])
+                                    ->required(),
+                                TextInput::make('page')->label('Pagina')->numeric()->integer()->minValue(1)->required(),
+                                TextInput::make('x')->label('X')->numeric()->minValue(0)->required(),
+                                TextInput::make('y')->label('Y')->numeric()->minValue(0)->required(),
+                                TextInput::make('width')->label('Larghezza')->numeric()->minValue(1)->required(),
+                                TextInput::make('height')->label('Altezza')->numeric()->minValue(1)->required(),
+                            ])
+                            ->columns(4)
+                            ->defaultItems(0)
+                            ->addActionLabel('Aggiungi riquadro'),
+                    ]),
             ]);
     }
 }
