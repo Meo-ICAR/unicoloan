@@ -15,10 +15,12 @@ use App\Services\BlacklistChecker;
 use BackedEnum;
 use Closure;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -73,10 +75,37 @@ class PraticaAgenteResource extends Resource
         return $schema->components([
             Section::make('Cliente')
                 ->columns(2)
+                ->visibleOn('create')
                 ->schema([
-                    TextInput::make('nome_cliente')->label('Nome')->required()->maxLength(191),
-                    TextInput::make('cognome_cliente')->label('Cognome')->required()->maxLength(191),
-                    TextInput::make('codice_fiscale')->label('Codice fiscale')->required()->maxLength(16),
+                    Radio::make('client_type')
+                        ->label('Tipo cliente')
+                        ->options(['person' => 'Persona fisica', 'company' => 'Persona giuridica'])
+                        ->default('person')
+                        ->inline()
+                        ->live()
+                        ->dehydrated(true)
+                        ->columnSpanFull(),
+                    TextInput::make('nome_cliente')->label('Nome')->required()->maxLength(191)
+                        ->visible(fn (Get $get): bool => $get('client_type') !== 'company'),
+                    TextInput::make('cognome_cliente')
+                        ->label(fn (Get $get): string => $get('client_type') === 'company' ? 'Ragione sociale' : 'Cognome')
+                        ->required()
+                        ->maxLength(191),
+                    TextInput::make('codice_fiscale')
+                        ->label(fn (Get $get): string => $get('client_type') === 'company' ? 'Partita IVA' : 'Codice fiscale')
+                        ->required()
+                        ->rule(fn (Get $get): string => $get('client_type') === 'company' ? 'regex:/^\d{11}$/' : 'regex:/^[A-Za-z0-9]{16}$/')
+                        ->validationMessages(['regex' => 'Formato non valido.']),
+                    TextInput::make('client_email')->label('Email del cliente')->email()->required()->maxLength(191),
+                    TextInput::make('client_phone')->label('Cellulare del cliente (per l\'OTP)')->tel()->required()->maxLength(32),
+                ]),
+            Section::make('Cliente')
+                ->columns(2)
+                ->visibleOn('view')
+                ->schema([
+                    TextInput::make('cognome_cliente')->label('Cognome / Ragione sociale'),
+                    TextInput::make('nome_cliente')->label('Nome'),
+                    TextInput::make('codice_fiscale')->label('Codice fiscale / P.IVA'),
                 ]),
             Section::make('Finanziamento')
                 ->columns(2)

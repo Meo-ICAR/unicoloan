@@ -12,16 +12,25 @@ use App\Enums\KycIncomeBand;
 use App\Enums\KycLegalNature;
 use App\Enums\KycPepStatus;
 use App\Enums\KycPersonPurpose;
+use App\Enums\KycRiskLevel;
 use App\Enums\KycStatus;
 use App\Enums\KycWealthBand;
+use App\Enums\SignerRole;
+use App\Filament\Actions\SendForSignatureAction;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
 use App\Models\KycQuestionnaire;
 use App\Models\PROFORMA\Pratica;
+use App\Services\Kyc\KycQavGenerator;
+use App\Services\PdfFormException;
+use App\Services\Signature\Exceptions\SignatureRequestException;
+use App\Services\Signature\SignatureRequestService;
+use App\Services\Signature\SignerInput;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -30,10 +39,12 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 /**
- * Adeguata verifica compilata dal produttore: resta in bozza finche' non la invia all'istruttoria.
- * Livello di rischio, esecutore e titolari effettivi, approvazione e QAV restano all'istruttoria (pannello admin).
+ * Adeguata verifica compilata dal produttore e sottoscritta dal cliente con firma OTP: il QAV si genera all'invio
+ * e il questionario diventa approvato quando il cliente firma. Esecutore e titolari effettivi (persona giuridica o
+ * terzi) restano all'istruttoria (pannello admin).
  */
 class AdeguataVerificaRelationManager extends RelationManager
 {
@@ -75,6 +86,10 @@ class AdeguataVerificaRelationManager extends RelationManager
                         ->label('Scopo del finanziamento')
                         ->options(fn (): array => $this->purposeOptions())
                         ->required(),
+                    Select::make('risk_level')
+                        ->label('Livello di rischio')
+                        ->options(KycRiskLevel::class)
+                        ->required(),
                     Select::make('pep_status')
                         ->label('Condizione PEP')
                         ->options(KycPepStatus::class)
@@ -115,6 +130,11 @@ class AdeguataVerificaRelationManager extends RelationManager
                 : null)
             ->columns([
                 TextColumn::make('compiled_at')->label('Compilato il')->dateTime('d/m/Y'),
+                TextColumn::make('signature')
+                    ->label('Firma del cliente')
+                    ->state(fn (KycQuestionnaire $record): ?string => $record->document?->is_signed
+                        ? 'Firmato'
+                        : $record->document?->latestSignatureRequest()?->status->getLabel()),
                 TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
@@ -145,24 +165,44 @@ class AdeguataVerificaRelationManager extends RelationManager
                 EditAction::make()
                     ->label('Modifica')
                     ->visible(fn (KycQuestionnaire $record): bool => $record->status === KycStatus::Draft),
-                Action::make('submit')
-                    ->label('Invia all\'istruttoria')
-                    ->icon('heroicon-o-paper-airplane')
+                Action::make('sendForSignature')
+                    ->label('Invia al cliente per firma OTP')
+                    ->icon('heroicon-o-pencil-square')
                     ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (KycQuestionnaire $record): bool => $record->status === KycStatus::Draft)
+                    ->modalHeading('Invia al cliente per la firma OTP')
+                    ->modalDescription('Il cliente riceve un\'email con il link e un SMS con il codice OTP per firmare l\'adeguata verifica.')
+                    ->modalSubmitActionLabel('Invia')
+                    ->visible(fn (KycQuestionnaire $record): bool => $this->isPerson()
+                        && in_array($record->status, [KycStatus::Draft, KycStatus::Complete], true)
+                        && ($record->document === null || SendForSignatureAction::isSignable($record->document)))
+                    ->fillForm(fn (): array => $this->signerDefaults())
+                    ->schema([
+                        TextInput::make('first_name')->label('Nome')->required()->maxLength(100),
+                        TextInput::make('last_name')->label('Cognome')->required()->maxLength(100),
+                        TextInput::make('email')->label('Email')->email()->required(),
+                        TextInput::make('phone')->label('Cellulare (OTP)')->tel()->required(),
+                    ])
+                    ->action(fn (array $data, KycQuestionnaire $record) => $this->sendForSignature($record, $data)),
+                Action::make('refreshSignature')
+                    ->label('Aggiorna stato firma')
+                    ->icon('heroicon-o-arrow-path')
+                    ->visible(fn (KycQuestionnaire $record): bool => $record->document?->latestSignatureRequest()?->isOpen() ?? false)
                     ->action(function (KycQuestionnaire $record): void {
-                        $missing = $this->missingForProducer($record);
+                        $request = $record->document?->latestSignatureRequest();
 
-                        if ($missing !== []) {
-                            Notification::make()->danger()->title('Compilazione incompleta')->body('Mancano: '.implode(', ', $missing).'.')->send();
+                        if ($request === null) {
+                            return;
+                        }
+
+                        try {
+                            $request = app(SignatureRequestService::class)->reconcile($request);
+                        } catch (SignatureRequestException $e) {
+                            Notification::make()->danger()->title('Aggiornamento non riuscito')->body($e->getMessage())->send();
 
                             return;
                         }
 
-                        $record->update(['status' => KycStatus::Complete, 'compiled_at' => now()]);
-
-                        Notification::make()->success()->title('Inviata all\'istruttoria')->send();
+                        Notification::make()->info()->title('Stato firma: '.$request->status->getLabel())->send();
                     }),
             ]);
     }
@@ -179,15 +219,74 @@ class AdeguataVerificaRelationManager extends RelationManager
     }
 
     /**
-     * Requisiti per l'invio: quelli dell'approvazione, tranne il livello di rischio che assegna l'istruttoria.
-     *
-     * @return array<int, string>
+     * @return array<string, mixed>
      */
-    private function missingForProducer(KycQuestionnaire $record): array
+    private function signerDefaults(): array
     {
-        $record = $record->fresh(['client', 'beneficialOwners']);
+        /** @var Pratica $pratica */
+        $pratica = $this->getOwnerRecord();
+        $client = $pratica->clienteAnagrafica();
 
-        return array_values(array_diff($record->missingRequirements(), [KycQuestionnaire::FIELD_LABELS['risk_level']]));
+        return [
+            'first_name' => $client?->first_name,
+            'last_name' => $client?->name,
+            'email' => $client?->email,
+            'phone' => $client?->phone,
+        ];
+    }
+
+    /**
+     * Genera il QAV (una sola volta) e lo invia in firma OTP al cliente. Se l'invio fallisce il QAV resta pronto per un nuovo tentativo.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function sendForSignature(KycQuestionnaire $record, array $data): void
+    {
+        $missing = $record->fresh(['client', 'beneficialOwners'])->missingRequirements();
+
+        if ($missing !== []) {
+            Notification::make()->danger()->title('Compilazione incompleta')->body('Mancano: '.implode(', ', $missing).'.')->send();
+
+            return;
+        }
+
+        $user = Auth::user();
+        $record = $record->fresh(['client', 'beneficialOwners', 'document']);
+
+        try {
+            $document = $record->document ?? app(KycQavGenerator::class)->generate($record, $user);
+        } catch (\DomainException|PdfFormException $e) {
+            Notification::make()->danger()->title('QAV non disponibile')->body($e->getMessage())->send();
+
+            return;
+        }
+
+        $record->update(['document_id' => $document->getKey(), 'status' => KycStatus::Complete, 'compiled_at' => now()]);
+
+        $slot = collect($document->documentType?->pdfModule?->signature_slots ?? [])->firstWhere('role', SignerRole::Client->value);
+        $client = $record->client;
+
+        $signer = new SignerInput(
+            (string) ($slot['slot'] ?? 'signer1'),
+            SignerRole::Client,
+            trim((string) $data['first_name']),
+            trim((string) $data['last_name']),
+            trim((string) $data['email']),
+            trim((string) $data['phone']),
+            $client?->tax_code,
+            'manual',
+            null,
+        );
+
+        try {
+            app(SignatureRequestService::class)->send($document, [$signer], $user);
+        } catch (SignatureRequestException $e) {
+            Notification::make()->danger()->title('Invio per la firma non riuscito')->body($e->getMessage())->send();
+
+            return;
+        }
+
+        Notification::make()->success()->title('Richiesta di firma inviata al cliente')->send();
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Services\Signature;
 
+use App\Enums\KycStatus;
 use App\Enums\SignatureRequestStatus;
 use App\Enums\SignerStatus;
 use App\Models\Document;
@@ -17,6 +18,7 @@ use App\Services\Signature\Dto\SignatureEvent;
 use App\Services\Signature\Dto\SignaturePlacement;
 use App\Services\Signature\Exceptions\SignatureException;
 use App\Services\Signature\Exceptions\SignatureRequestException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -367,7 +369,7 @@ class SignatureRequestService
         $original->forceFill(['renewed_by_id' => $signed->getKey()])->save();
         $original->delete();
 
-        KycQuestionnaire::query()->where('document_id', $original->getKey())->update(['document_id' => $signed->getKey()]);
+        $this->approveSignedKyc($request, $original, $signed, $signedAt);
 
         activity('firma')
             ->performedOn($request)
@@ -383,6 +385,29 @@ class SignatureRequestService
         $signed->addMediaFromString($pdf)
             ->usingFileName((Str::slug((string) $original->name) ?: 'documento').'-firmato.pdf')
             ->toMediaCollection('documents');
+    }
+
+    /**
+     * Il QAV compilato dal produttore (stato Completo) diventa approvato quando il cliente lo firma;
+     * i questionari gia' approvati dall'istruttoria restano come sono. In ogni caso puntano al documento firmato.
+     */
+    private function approveSignedKyc(SignatureRequest $request, Document $original, Document $signed, Carbon $signedAt): void
+    {
+        $questionnaires = KycQuestionnaire::query()->where('document_id', $original->getKey())->get();
+
+        foreach ($questionnaires as $questionnaire) {
+            $changes = ['document_id' => $signed->getKey()];
+
+            if ($questionnaire->status === KycStatus::Complete) {
+                $changes += [
+                    'status' => KycStatus::Approved,
+                    'verified_at' => $signedAt,
+                    'verified_by' => (string) (User::query()->whereKey($request->requested_by)->value('name') ?? 'Firma del cliente'),
+                ];
+            }
+
+            $questionnaire->update($changes);
+        }
     }
 
     private function assertNoOpenRequest(Document $document): void
