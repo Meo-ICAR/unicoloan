@@ -49,42 +49,51 @@ class KycQavGenerator
     }
 
     /**
-     * Il PDF viene compilato prima della transazione: se fallisce non resta nulla.
+     * Compila il PDF e lo archivia: il rendering avviene prima della transazione.
      *
      * @throws \DomainException
      * @throws PdfFormException
      */
     public function generate(KycQuestionnaire $questionnaire, ?User $user): Document
     {
+        $content = $this->render($questionnaire);
+
+        return DB::connection('mysql')->transaction(fn (): Document => $this->store($questionnaire, $content, $user));
+    }
+
+    /**
+     * Salva Document, media e activity per un PDF gia' compilato. Da chiamare dentro una transazione.
+     *
+     * @throws \DomainException
+     */
+    public function store(KycQuestionnaire $questionnaire, string $content, ?User $user): Document
+    {
         $client = $questionnaire->client;
         $module = $this->requireModule($client);
-        $content = $this->renderWith($questionnaire, $module);
 
-        return DB::connection('mysql')->transaction(function () use ($questionnaire, $client, $module, $content, $user): Document {
-            /** @var Document $document */
-            $document = $client->documents()->create([
-                'document_type_id' => $module->document_type_id,
-                'name' => $module->name.' - '.trim(($client->name ?? '').' '.($client->first_name ?? '')),
-                'status' => DocumentStatus::UPLOADED->value,
-                'spatie_collection' => 'documents',
-                'emitted_at' => today(),
-                'uploaded_by' => $user?->getKey(),
-                'created_by' => $user?->getKey(),
-            ]);
+        /** @var Document $document */
+        $document = $client->documents()->create([
+            'document_type_id' => $module->document_type_id,
+            'name' => $module->name.' - '.trim(($client->name ?? '').' '.($client->first_name ?? '')),
+            'status' => DocumentStatus::UPLOADED->value,
+            'spatie_collection' => 'documents',
+            'emitted_at' => today(),
+            'uploaded_by' => $user?->getKey(),
+            'created_by' => $user?->getKey(),
+        ]);
 
-            $document->addMediaFromString($content)
-                ->usingFileName(Str::slug($module->name.' '.$client->tax_code).'.pdf')
-                ->toMediaCollection('documents');
+        $document->addMediaFromString($content)
+            ->usingFileName(Str::slug($module->name.' '.$client->tax_code).'.pdf')
+            ->toMediaCollection('documents');
 
-            activity('kyc_qav')
-                ->performedOn($client)
-                ->causedBy($user)
-                ->event('qav_generato')
-                ->withProperties(['questionnaire_id' => $questionnaire->getKey(), 'document_id' => $document->getKey()])
-                ->log('QAV generato per il cliente');
+        activity('kyc_qav')
+            ->performedOn($client)
+            ->causedBy($user)
+            ->event('qav_generato')
+            ->withProperties(['questionnaire_id' => $questionnaire->getKey(), 'document_id' => $document->getKey()])
+            ->log('QAV generato per il cliente');
 
-            return $document;
-        });
+        return $document;
     }
 
     private function requireModule(Client $client): PdfModule

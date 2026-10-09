@@ -30,6 +30,7 @@ use App\Services\Kyc\KycQavGenerator;
 use App\Services\PdfFormException;
 use App\Services\PdfFormFiller;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
@@ -219,5 +220,23 @@ class KycApprovalTest extends TestCase
             $this->assertSame(KycStatus::Draft, $questionnaire->fresh()->status);
             $this->assertSame(0, Activity::query()->where('log_name', 'kyc_qav')->count());
         }
+    }
+
+    public function test_pdf_is_rendered_outside_the_approval_transaction(): void
+    {
+        $this->qavModule();
+        $questionnaire = $this->completePerson();
+        $baseline = DB::connection('mysql')->transactionLevel();
+        $levels = [];
+
+        $this->mock(PdfFormFiller::class)->shouldReceive('fill')->andReturnUsing(function () use (&$levels): string {
+            $levels[] = DB::connection('mysql')->transactionLevel();
+
+            return '%PDF-1.4 finto';
+        });
+
+        app(KycApprover::class)->approve($questionnaire, User::factory()->create());
+
+        $this->assertSame([$baseline], $levels);
     }
 }

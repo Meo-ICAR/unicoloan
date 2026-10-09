@@ -29,8 +29,11 @@ class KycApprover
             throw new \DomainException('Requisiti mancanti: '.implode(', ', $missing).'.');
         }
 
-        return DB::connection('mysql')->transaction(function () use ($questionnaire, $user): Document {
-            $document = $this->generator->generate($questionnaire, $user);
+        // Il PDF si compila prima di aprire la transazione (processo esterno pdftk).
+        $content = $this->generator->render($questionnaire);
+
+        return DB::connection('mysql')->transaction(function () use ($questionnaire, $user, $content): Document {
+            $document = $this->generator->store($questionnaire, $content, $user);
 
             $questionnaire->update([
                 'status' => KycStatus::Approved,
