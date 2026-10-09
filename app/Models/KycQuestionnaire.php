@@ -148,6 +148,14 @@ class KycQuestionnaire extends Model
         return $query->where('status', KycStatus::Approved);
     }
 
+    /**
+     * Solo questionari con QAV archiviato (documento esistente e non eliminato).
+     */
+    public function scopeWithDocument(Builder $query): Builder
+    {
+        return $query->whereNotNull('document_id')->whereHas('document');
+    }
+
     public function scopeLatestFirst(Builder $query): Builder
     {
         return $query->orderByDesc('verified_at')->orderByDesc('id');
@@ -165,7 +173,7 @@ class KycQuestionnaire extends Model
      */
     public static function coverageByClient(): Collection
     {
-        return static::approved()->with('document')->latestFirst()->get()
+        return static::approved()->withDocument()->with('document')->latestFirst()->get()
             ->unique('client_id')
             ->mapWithKeys(fn (self $q) => [$q->client_id => $q->coverage()]);
     }

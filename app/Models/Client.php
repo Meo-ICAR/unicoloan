@@ -262,7 +262,7 @@ class Client extends Model
 
     public function currentKyc(): ?KycQuestionnaire
     {
-        return $this->kycQuestionnaires()->approved()->latestFirst()->first();
+        return $this->kycQuestionnaires()->approved()->withDocument()->latestFirst()->first();
     }
 
     public function kycCoverage(): KycCoverage

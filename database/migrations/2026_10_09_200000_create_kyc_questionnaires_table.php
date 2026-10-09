@@ -16,7 +16,7 @@ return new class extends Migration
             $table->comment('Questionari di adeguata verifica (QAV): un record per compilazione.');
             $table->id();
             $table->unsignedBigInteger('client_id')->index()->comment('mysql_proforma.clients.id');
-            $table->foreignId('client_mandate_id')->nullable()->constrained('client_mandates')->nullOnDelete();
+            $table->unsignedBigInteger('client_mandate_id')->nullable()->index()->comment('mysql_proforma.client_mandates.id');
             $table->string('pratica_id', 64)->nullable()->comment('mysql_proforma.pratiches.id');
             $table->char('document_id', 36)->nullable()->index()->comment('documents.id: QAV generato');
             $table->string('pep_status')->nullable();

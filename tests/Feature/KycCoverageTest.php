@@ -36,11 +36,9 @@ class KycCoverageTest extends TestCase
             'verified_at' => Carbon::parse($verifiedAt),
         ]);
 
-        if ($expires !== null) {
-            $doc = $client->documents()->create(['name' => 'QAV', 'status' => 'caricato', 'spatie_collection' => 'documents']);
-            $doc->forceFill(['expires_at' => $expires])->saveQuietly();
-            $questionnaire->update(['document_id' => $doc->id]);
-        }
+        $doc = $client->documents()->create(['name' => 'QAV', 'status' => 'caricato', 'spatie_collection' => 'documents']);
+        $doc->forceFill(['expires_at' => $expires])->saveQuietly();
+        $questionnaire->update(['document_id' => $doc->id]);
 
         return $questionnaire;
     }
@@ -58,12 +56,48 @@ class KycCoverageTest extends TestCase
         $this->assertSame(KycCoverage::Missing, $client->kycCoverage());
     }
 
-    public function test_approved_without_document_is_complete(): void
+    public function test_approved_without_document_is_missing(): void
+    {
+        $client = $this->makeClient();
+        KycQuestionnaire::factory()->approved()->create(['client_id' => $client->id]);
+
+        $this->assertNull($client->currentKyc());
+        $this->assertSame(KycCoverage::Missing, $client->kycCoverage());
+        $this->assertFalse(KycQuestionnaire::coverageByClient()->has($client->id));
+    }
+
+    public function test_approved_with_trashed_document_is_missing(): void
+    {
+        $client = $this->makeClient();
+        $questionnaire = $this->approvedWithExpiry($client, today()->addYear());
+        $questionnaire->document->delete();
+
+        $this->assertSame(KycCoverage::Missing, $client->kycCoverage());
+        $this->assertFalse(KycQuestionnaire::coverageByClient()->has($client->id));
+    }
+
+    public function test_document_without_expiry_never_expires(): void
     {
         $client = $this->makeClient();
         $this->approvedWithExpiry($client, null);
 
         $this->assertSame(KycCoverage::Complete, $client->kycCoverage());
+    }
+
+    public function test_document_expiring_today_is_complete(): void
+    {
+        $client = $this->makeClient();
+        $this->approvedWithExpiry($client, today());
+
+        $this->assertSame(KycCoverage::Complete, $client->kycCoverage());
+    }
+
+    public function test_document_expired_yesterday_is_expired(): void
+    {
+        $client = $this->makeClient();
+        $this->approvedWithExpiry($client, today()->subDay());
+
+        $this->assertSame(KycCoverage::Expired, $client->kycCoverage());
     }
 
     public function test_approved_with_past_document_expiry_is_expired(): void
