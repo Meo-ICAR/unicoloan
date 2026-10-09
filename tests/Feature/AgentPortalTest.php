@@ -2,13 +2,25 @@
 
 namespace Tests\Feature;
 
+use App\Enums\KycActivityLocation;
+use App\Enums\KycActivitySector;
+use App\Enums\KycEconomicActivity;
+use App\Enums\KycFinancingNature;
+use App\Enums\KycIncomeBand;
+use App\Enums\KycPepStatus;
+use App\Enums\KycPersonPurpose;
+use App\Enums\KycStatus;
+use App\Enums\KycWealthBand;
 use App\Enums\UserRole;
 use App\Filament\Agenti\Resources\Pratiche\Pages\CreatePraticaAgente;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ListPraticheAgente;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
+use App\Filament\Agenti\Resources\Pratiche\RelationManagers\AdeguataVerificaRelationManager;
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiFirmabiliRelationManager;
+use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;
+use App\Models\KycQuestionnaire;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
 use App\Models\PROFORMA\Pratica;
@@ -19,6 +31,7 @@ use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -214,5 +227,79 @@ class AgentPortalTest extends TestCase
             ]);
 
         $this->assertSame(0, Document::query()->where('documentable_id', $pratica->getKey())->count());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function personKycData(): array
+    {
+        return [
+            'financing_purpose' => KycPersonPurpose::cases()[0]->value,
+            'pep_status' => KycPepStatus::cases()[0]->value,
+            'economic_activity' => KycEconomicActivity::cases()[0]->value,
+            'activity_sector' => KycActivitySector::cases()[0]->value,
+            'activity_location' => KycActivityLocation::cases()[0]->value,
+            'financing_nature' => KycFinancingNature::cases()[0]->value,
+            'income_band' => KycIncomeBand::cases()[0]->value,
+            'wealth_band' => KycWealthBand::cases()[0]->value,
+        ];
+    }
+
+    private function kycManager(Pratica $pratica): Testable
+    {
+        return Livewire::test(AdeguataVerificaRelationManager::class, ['ownerRecord' => $pratica, 'pageClass' => ViewPraticaAgente::class]);
+    }
+
+    public function test_kyc_cannot_start_without_the_client_in_the_registry(): void
+    {
+        $pratica = $this->pratica(['codice_fiscale' => 'ZZNOCLIENT80A01H501X']);
+
+        $this->kycManager($pratica)->assertActionHidden(TestAction::make('create')->table());
+    }
+
+    public function test_producer_fills_the_kyc_as_draft_and_submits_it_to_the_istruttoria(): void
+    {
+        $client = Client::create(['name' => 'ZZ ROSSI', 'is_person' => true, 'tax_code' => 'ZZTKYC80A01H501A']);
+        $pratica = $this->pratica(['codice_fiscale' => $client->tax_code]);
+
+        $manager = $this->kycManager($pratica);
+        $manager->callAction(TestAction::make('create')->table(), $this->personKycData())->assertHasNoFormErrors();
+
+        $questionnaire = KycQuestionnaire::query()->where('pratica_id', $pratica->getKey())->sole();
+        $this->assertSame($client->getKey(), $questionnaire->client_id);
+        $this->assertSame(KycStatus::Draft, $questionnaire->status);
+        $this->assertNull($questionnaire->risk_level);
+
+        $manager->assertActionHidden(TestAction::make('create')->table());
+
+        $manager->callAction(TestAction::make('submit')->table($questionnaire))->assertNotified('Inviata all\'istruttoria');
+        $this->assertSame(KycStatus::Complete, $questionnaire->fresh()->status);
+        $manager->assertActionHidden(TestAction::make('submit')->table($questionnaire))
+            ->assertActionHidden(TestAction::make('edit')->table($questionnaire));
+    }
+
+    public function test_incomplete_kyc_is_not_submitted(): void
+    {
+        $client = Client::create(['name' => 'ZZ ROSSI', 'is_person' => true, 'tax_code' => 'ZZTKYC80A01H501B']);
+        $pratica = $this->pratica(['codice_fiscale' => $client->tax_code]);
+        $questionnaire = KycQuestionnaire::factory()->create(['client_id' => $client->id, 'pratica_id' => $pratica->getKey()]);
+
+        $this->kycManager($pratica)
+            ->callAction(TestAction::make('submit')->table($questionnaire))
+            ->assertNotified('Compilazione incompleta');
+
+        $this->assertSame(KycStatus::Draft, $questionnaire->fresh()->status);
+    }
+
+    public function test_approved_kyc_is_read_only_for_the_producer(): void
+    {
+        $client = Client::create(['name' => 'ZZ ROSSI', 'is_person' => true, 'tax_code' => 'ZZTKYC80A01H501C']);
+        $pratica = $this->pratica(['codice_fiscale' => $client->tax_code]);
+        $approved = KycQuestionnaire::factory()->approved()->create(['client_id' => $client->id, 'pratica_id' => $pratica->getKey()]);
+
+        $this->kycManager($pratica)
+            ->assertActionHidden(TestAction::make('edit')->table($approved))
+            ->assertActionHidden(TestAction::make('submit')->table($approved));
     }
 }

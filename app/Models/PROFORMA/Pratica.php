@@ -2,7 +2,9 @@
 
 namespace App\Models\PROFORMA;
 
+use App\Models\Client;
 use App\Models\Document;
+use App\Models\KycQuestionnaire;
 use App\Models\OamCode;
 use App\Models\PraticaRequisitoOperativo;
 use App\Models\PraticaStato;
@@ -172,6 +174,28 @@ class Pratica extends Model
     public function statusHistory(): HasMany
     {
         return $this->hasMany(PraticaStatusHistory::class, 'pratica_id')->orderBy('changed_at', 'desc');
+    }
+
+    /**
+     * Cliente in anagrafica collegato per codice fiscale o partita IVA, se esiste.
+     */
+    public function clienteAnagrafica(): ?Client
+    {
+        $code = Str::upper(trim((string) $this->codice_fiscale));
+
+        if ($code === '') {
+            return null;
+        }
+
+        return Client::query()->where('tax_code', $code)->orWhere('vat_number', $code)->first();
+    }
+
+    /**
+     * Compilazioni KYC (adeguata verifica) avviate da questa pratica.
+     */
+    public function kycQuestionnaires(): HasMany
+    {
+        return $this->hasMany(KycQuestionnaire::class, 'pratica_id');
     }
 
     public function documents(): MorphMany

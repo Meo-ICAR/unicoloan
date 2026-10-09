@@ -5,6 +5,7 @@ namespace App\Filament\Agenti\Resources\Pratiche;
 use App\Filament\Agenti\Resources\Pratiche\Pages\CreatePraticaAgente;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ListPraticheAgente;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
+use App\Filament\Agenti\Resources\Pratiche\RelationManagers\AdeguataVerificaRelationManager;
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiFirmabiliRelationManager;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
@@ -133,6 +134,7 @@ class PraticaAgenteResource extends Resource
     public static function getRelations(): array
     {
         return [
+            AdeguataVerificaRelationManager::class,
             DocumentiFirmabiliRelationManager::class,
         ];
     }
