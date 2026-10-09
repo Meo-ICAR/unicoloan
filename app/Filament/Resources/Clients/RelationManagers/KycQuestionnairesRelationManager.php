@@ -200,7 +200,9 @@ class KycQuestionnairesRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                EditAction::make()->label('Modifica'),
+                EditAction::make()
+                    ->label('Modifica')
+                    ->hidden(fn (KycQuestionnaire $record): bool => $record->status === KycStatus::Approved),
                 Action::make('approve')
                     ->label('Approva')
                     ->icon('heroicon-o-check-badge')

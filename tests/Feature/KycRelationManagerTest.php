@@ -139,6 +139,17 @@ class KycRelationManagerTest extends TestCase
             ->assertActionVisible(TestAction::make('delete')->table($draft));
     }
 
+    public function test_edit_is_hidden_for_approved_questionnaires(): void
+    {
+        $client = $this->person();
+        $approved = $this->completeFor($client, ['status' => KycStatus::Approved]);
+        $draft = $this->completeFor($client);
+
+        $this->relationManager($client)
+            ->assertActionHidden(TestAction::make('edit')->table($approved))
+            ->assertActionVisible(TestAction::make('edit')->table($draft));
+    }
+
     public function test_new_compilation_keeps_the_previous_approved_one(): void
     {
         $client = $this->person();
