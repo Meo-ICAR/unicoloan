@@ -71,6 +71,7 @@ class Document extends Model implements HasMedia
         'internal_notes',
         'rejection_note',
         'user_id',
+        'renewed_by_id',
         'uploaded_by',
         'verified_by',
         'verified_at',
@@ -162,6 +163,14 @@ class Document extends Model implements HasMedia
     public function signatureRequests(): HasMany
     {
         return $this->hasMany(SignatureRequest::class);
+    }
+
+    /**
+     * Documento che ha sostituito questo (es. la versione firmata).
+     */
+    public function replacement(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'renewed_by_id');
     }
 
     public function latestSignatureRequest(): ?SignatureRequest

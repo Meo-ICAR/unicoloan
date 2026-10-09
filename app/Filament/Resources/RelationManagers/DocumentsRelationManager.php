@@ -314,9 +314,9 @@ class DocumentsRelationManager extends RelationManager
                 Action::make('downloadSigned')
                     ->label('Scarica firmato')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->visible(fn (Document $record): bool => $record->is_signed && $record->getFirstMedia('signed') !== null)
+                    ->visible(fn (Document $record): bool => $record->is_signed && $record->getFirstMedia('documents') !== null)
                     ->action(function (Document $record) {
-                        $media = $record->getFirstMedia('signed');
+                        $media = $record->getFirstMedia('documents');
 
                         return $media === null ? null : response()->download($media->getPath(), $media->file_name);
                     }),

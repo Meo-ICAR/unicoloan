@@ -100,7 +100,7 @@ class SignatureSyncCommandTest extends TestCase
         $this->artisan('signature:sync')->assertSuccessful();
 
         $this->assertSame(SignatureRequestStatus::Signed, $request->fresh()->status);
-        $this->assertTrue((bool) Document::query()->find($request->document_id)->is_signed);
+        $this->assertTrue((bool) Document::query()->find($request->fresh()->document_id)->is_signed);
     }
 
     public function test_stale_minutes_option_overrides_config(): void

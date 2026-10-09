@@ -8,6 +8,7 @@ use App\Enums\SignerStatus;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;
+use App\Models\KycQuestionnaire;
 use App\Models\PdfModule;
 use App\Models\SignatureRequest;
 use App\Models\User;
@@ -109,6 +110,13 @@ class SignatureReconcileTest extends TestCase
         return $this->service()->send($document ?? $this->documentWithModule(), $this->signers(), User::factory()->create())->fresh();
     }
 
+    private function signedDocument(Document $document): Document
+    {
+        $renewedById = Document::withTrashed()->findOrFail($document->getKey())->renewed_by_id;
+
+        return Document::query()->findOrFail($renewedById);
+    }
+
     private function slotRef(SignatureRequest $request, string $slot): string
     {
         return (string) $request->signers()->where('slot', $slot)->value('provider_signer_ref');
@@ -132,20 +140,41 @@ class SignatureReconcileTest extends TestCase
         $this->fake()->completeAll($request->provider_ref);
         $request = $this->service()->reconcile($request);
 
-        $document = $document->fresh();
+        $original = Document::withTrashed()->findOrFail($document->getKey());
+        $document = $this->signedDocument($document);
         $this->assertSame(SignatureRequestStatus::Signed, $request->status);
         $this->assertNotNull($request->signed_at);
         $this->assertTrue((bool) $document->is_signed);
         $this->assertNotNull($document->signed_at);
-        $this->assertCount(1, $document->getMedia('signed'));
-        $this->assertSame('qav-rossi-firmato.pdf', $document->getFirstMedia('signed')->file_name);
+        $this->assertSame($document->getKey(), $request->document_id);
         $this->assertCount(1, $document->getMedia('documents'));
-        $this->assertSame('qav.pdf', $document->getFirstMedia('documents')->file_name);
+        $this->assertSame('qav-rossi-firmato.pdf', $document->getFirstMedia('documents')->file_name);
+        $this->assertTrue($original->trashed());
+        $this->assertSame($document->getKey(), $original->renewed_by_id);
+        $this->assertSame('qav.pdf', $original->getFirstMedia('documents')->file_name);
+        $this->assertFalse((bool) $original->is_signed);
 
         $activity = Activity::query()->where('event', 'firma_completata')->sole();
         $this->assertSame($request->id, (int) $activity->subject_id);
-        $this->assertEqualsCanonicalizing(['signature_request_id', 'provider', 'document_id'], array_keys($activity->properties->all()));
+        $this->assertEqualsCanonicalizing(['signature_request_id', 'provider', 'document_id', 'replaced_document_id'], array_keys($activity->properties->all()));
         $this->assertTrue($request->signers->every(fn ($s) => $s->status === SignerStatus::Signed));
+    }
+
+    public function test_signed_document_replaces_the_original_for_the_kyc_questionnaire(): void
+    {
+        $document = $this->documentWithModule();
+        $questionnaire = KycQuestionnaire::factory()->approved()->create(['client_id' => $document->documentable_id, 'document_id' => $document->getKey()]);
+        $request = $this->sentRequest($document);
+        $this->fake()->completeAll($request->provider_ref);
+
+        $this->service()->reconcile($request);
+
+        $signed = $this->signedDocument($document);
+        $this->assertSame($signed->getKey(), $questionnaire->fresh()->document_id);
+        $this->assertNotNull($questionnaire->fresh()->document);
+        $this->assertSame($document->name, $signed->name);
+        $this->assertSame($document->document_type_id, $signed->document_type_id);
+        $this->assertSame($document->getKey(), Document::withTrashed()->where('renewed_by_id', $signed->getKey())->value('id'));
     }
 
     public function test_reconcile_is_idempotent(): void
@@ -158,7 +187,7 @@ class SignatureReconcileTest extends TestCase
         $this->service()->reconcile($request->fresh());
         $this->service()->reconcile(SignatureRequest::query()->find($request->id));
 
-        $this->assertCount(1, $document->fresh()->getMedia('signed'));
+        $this->assertCount(1, $this->signedDocument($document)->getMedia('documents'));
         $this->assertSame(1, Activity::query()->where('event', 'firma_completata')->count());
     }
 
@@ -172,7 +201,7 @@ class SignatureReconcileTest extends TestCase
         $this->service()->reconcile($request);
         $this->service()->reconcile($stale);
 
-        $this->assertCount(1, $document->fresh()->getMedia('signed'));
+        $this->assertCount(1, $this->signedDocument($document)->getMedia('documents'));
         $this->assertSame(1, Activity::query()->where('event', 'firma_completata')->count());
     }
 
@@ -378,7 +407,7 @@ class SignatureReconcileTest extends TestCase
         $request = $this->service()->reconcile($request);
 
         $this->assertSame(SignatureRequestStatus::Signed, $request->status);
-        $this->assertTrue((bool) $document->fresh()->is_signed);
+        $this->assertTrue((bool) $this->signedDocument($document)->is_signed);
     }
 
     public function test_expire_overdue_reconciles_a_completed_envelope_instead_of_expiring_it(): void
@@ -391,8 +420,8 @@ class SignatureReconcileTest extends TestCase
         $this->service()->expireOverdue();
 
         $this->assertSame(SignatureRequestStatus::Signed, $request->fresh()->status);
-        $this->assertTrue((bool) $document->fresh()->is_signed);
-        $this->assertCount(1, $document->fresh()->getMedia('signed'));
+        $this->assertTrue((bool) $this->signedDocument($document)->is_signed);
+        $this->assertCount(1, $this->signedDocument($document)->getMedia('documents'));
     }
 
     public function test_expire_overdue_skips_requests_whose_reconcile_fails(): void

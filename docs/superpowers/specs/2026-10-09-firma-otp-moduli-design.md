@@ -99,3 +99,6 @@ Confermato dalla prova end-to-end (invio, firma con OTP SMS, webhook, riconcilia
 - In sandbox il destinatario deve avere un'email del dominio dell'organizzazione Yousign.
 - `YOUSIGN_SIGNATURE_LEVEL` ammette `electronic_signature` (non `standard`).
 Non ancora verificati: firma a due firmatari (QAV persona giuridica), rifiuto, annullo, scadenza.
+
+## Sostituzione dell'originale (decisione del 2026-10-09)
+Al completamento della firma il PDF firmato diventa un **nuovo `Document`** (copia dei dati dell'originale, `is_signed`, `signed_at`, file nella collection `documents`). L'originale compilato resta in archivio: `renewed_by_id` (nuova colonna uuid su `documents`) punta al nuovo documento e l'originale viene eliminato con soft delete. La `SignatureRequest` e il `document_id` del questionario KYC vengono riallineati al documento firmato. La collection `signed` non e' piu' scritta.

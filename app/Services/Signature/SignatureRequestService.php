@@ -5,6 +5,7 @@ namespace App\Services\Signature;
 use App\Enums\SignatureRequestStatus;
 use App\Enums\SignerStatus;
 use App\Models\Document;
+use App\Models\KycQuestionnaire;
 use App\Models\SignatureRequest;
 use App\Models\User;
 use App\Services\PdfFormException;
@@ -350,13 +351,23 @@ class SignatureRequestService
         }
     }
 
+    /**
+     * Il PDF firmato diventa un nuovo documento che sostituisce l'originale: il vecchio resta in archivio
+     * (soft delete) con `renewed_by_id` che punta al nuovo.
+     */
     private function completeRequest(SignatureRequest $request, string $pdf): void
     {
-        $document = Document::query()->whereKey($request->document_id)->firstOrFail();
+        $original = Document::query()->whereKey($request->document_id)->firstOrFail();
         $signedAt = now();
 
-        $request->forceFill(['status' => SignatureRequestStatus::Signed, 'signed_at' => $signedAt, 'failure_reason' => null])->save();
-        $document->forceFill(['is_signed' => true, 'signed_at' => $signedAt])->save();
+        $signed = $original->replicate(['renewed_by_id', 'deleted_at', 'deleted_by', 'file_hash', 'last_sent_at', 'reminders_count']);
+        $signed->forceFill(['is_signed' => true, 'signed_at' => $signedAt])->save();
+
+        $request->forceFill(['status' => SignatureRequestStatus::Signed, 'signed_at' => $signedAt, 'failure_reason' => null, 'document_id' => $signed->getKey()])->save();
+        $original->forceFill(['renewed_by_id' => $signed->getKey()])->save();
+        $original->delete();
+
+        KycQuestionnaire::query()->where('document_id', $original->getKey())->update(['document_id' => $signed->getKey()]);
 
         activity('firma')
             ->performedOn($request)
@@ -364,13 +375,14 @@ class SignatureRequestService
             ->withProperties([
                 'signature_request_id' => $request->id,
                 'provider' => $request->provider,
-                'document_id' => $document->getKey(),
+                'document_id' => $signed->getKey(),
+                'replaced_document_id' => $original->getKey(),
             ])
             ->log('Documento firmato');
 
-        $document->addMediaFromString($pdf)
-            ->usingFileName((Str::slug((string) $document->name) ?: 'documento').'-firmato.pdf')
-            ->toMediaCollection('signed');
+        $signed->addMediaFromString($pdf)
+            ->usingFileName((Str::slug((string) $original->name) ?: 'documento').'-firmato.pdf')
+            ->toMediaCollection('documents');
     }
 
     private function assertNoOpenRequest(Document $document): void

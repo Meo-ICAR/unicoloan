@@ -241,7 +241,7 @@ class SignatureActionsTest extends TestCase
             ->callAction(TestAction::make('refreshSignature')->table($document))
             ->assertNotified('Documento firmato');
 
-        $this->assertTrue($document->fresh()->is_signed);
+        $this->assertTrue(Document::query()->findOrFail($request->fresh()->document_id)->is_signed);
         $this->assertSame(SignatureRequestStatus::Signed, $request->fresh()->status);
     }
 
@@ -287,13 +287,15 @@ class SignatureActionsTest extends TestCase
         $this->manager()->assertActionHidden(TestAction::make('downloadSigned')->table($document));
 
         $document->forceFill(['is_signed' => true])->save();
-        $this->manager()->assertActionHidden(TestAction::make('downloadSigned')->table($document));
-
-        $document->addMediaFromString('%PDF-signed')->usingFileName('firmato.pdf')->toMediaCollection('signed');
         $this->manager()
             ->assertActionVisible(TestAction::make('downloadSigned')->table($document))
             ->callAction(TestAction::make('downloadSigned')->table($document))
-            ->assertFileDownloaded('firmato.pdf');
+            ->assertFileDownloaded($document->getFirstMedia('documents')->file_name);
+
+        $withoutFile = $this->document();
+        $withoutFile->clearMediaCollection('documents');
+        $withoutFile->forceFill(['is_signed' => true])->save();
+        $this->manager()->assertActionHidden(TestAction::make('downloadSigned')->table($withoutFile));
     }
 
     public function test_signature_state_column_shows_each_state(): void
