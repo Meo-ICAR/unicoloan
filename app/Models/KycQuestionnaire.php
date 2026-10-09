@@ -33,6 +33,42 @@ class KycQuestionnaire extends Model
 {
     use HasFactory;
 
+    /**
+     * @var array<string, string>
+     */
+    public const FIELD_LABELS = [
+        'pep_status' => 'Condizione PEP',
+        'economic_activity' => 'Attività economica',
+        'activity_sector' => 'Settore di attività',
+        'activity_location' => 'Luogo di svolgimento dell\'attività',
+        'financing_nature' => 'Natura del finanziamento',
+        'financing_purpose' => 'Scopo del finanziamento',
+        'income_band' => 'Reddito annuo lordo',
+        'wealth_band' => 'Patrimonio',
+        'risk_level' => 'Livello di rischio',
+        'legal_nature' => 'Natura giuridica',
+        'geographic_area' => 'Area geografica',
+        'executor_client_id' => 'Esecutore',
+        'executor_link' => 'Legame con l\'esecutore',
+        'executor_pep_status' => 'Condizione PEP dell\'esecutore',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    public const PERSON_REQUIRED = [
+        'pep_status', 'economic_activity', 'activity_sector', 'activity_location',
+        'financing_nature', 'financing_purpose', 'income_band', 'wealth_band', 'risk_level',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    public const COMPANY_REQUIRED = [
+        'legal_nature', 'geographic_area', 'financing_purpose', 'executor_client_id',
+        'executor_link', 'executor_pep_status', 'risk_level',
+    ];
+
     protected $connection = 'mysql';
 
     protected $fillable = [
@@ -132,5 +168,49 @@ class KycQuestionnaire extends Model
         return static::approved()->with('document')->latestFirst()->get()
             ->unique('client_id')
             ->mapWithKeys(fn (self $q) => [$q->client_id => $q->coverage()]);
+    }
+
+    /**
+     * Requisiti ancora mancanti per approvare il QAV (vuoto = approvabile).
+     *
+     * @return array<int, string>
+     */
+    public function missingRequirements(): array
+    {
+        $isPerson = (bool) $this->client?->is_person;
+        $required = $isPerson ? self::PERSON_REQUIRED : self::COMPANY_REQUIRED;
+
+        $missing = collect($required)
+            ->filter(fn (string $field) => blank($this->{$field}))
+            ->map(fn (string $field) => self::FIELD_LABELS[$field])
+            ->values()
+            ->all();
+
+        $owners = $this->beneficialOwners;
+
+        if (! $isPerson || $this->acts_for_third_party) {
+            if ($owners->isEmpty()) {
+                $missing[] = 'Almeno un titolare effettivo';
+            } else {
+                if ($owners->contains(fn (KycBeneficialOwner $o) => blank($o->control_criterion) || blank($o->pep_status))) {
+                    $missing[] = 'Criterio e PEP di ogni titolare effettivo';
+                }
+                if ($owners->contains(fn (KycBeneficialOwner $o) => ! $o->is_verified)) {
+                    $missing[] = 'Verifica di tutti i titolari effettivi';
+                }
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function warnings(): array
+    {
+        return $this->beneficialOwners->count() > 3
+            ? ['Il QAV stampa al massimo 3 titolari effettivi: gli altri vanno allegati a parte (più di 3 dichiarati).']
+            : [];
     }
 }
