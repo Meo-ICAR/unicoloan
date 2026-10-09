@@ -199,7 +199,7 @@ class SignatureReconcileTest extends TestCase
         $this->assertSame(SignatureRequestStatus::Sent, $request->fresh()->status);
         $this->assertFalse((bool) $document->fresh()->is_signed);
         $this->assertCount(0, $document->fresh()->getMedia('signed'));
-        $this->assertNull($request->fresh()->last_synced_at);
+        $this->assertNotNull($request->fresh()->last_synced_at);
         $this->assertSame(0, Activity::query()->where('event', 'firma_completata')->count());
         $this->assertNotSame(SignerStatus::Signed, $request->signers()->where('slot', 'cliente')->first()->status);
     }
@@ -323,6 +323,7 @@ class SignatureReconcileTest extends TestCase
         $overdue = $this->sentRequest();
         $overdue->update(['expires_at' => now()->subHour()]);
         $provider = Mockery::mock(SignatureProvider::class);
+        $provider->shouldReceive('envelopeStatus')->andReturn(new EnvelopeStatus(SignatureRequestStatus::Sent, []));
         $provider->shouldReceive('cancelEnvelope')->andThrow(new ProviderUnavailableException('mario@example.test'));
         $manager = Mockery::mock(SignatureProviderManager::class);
         $manager->shouldReceive('provider')->andReturn($provider);
@@ -350,12 +351,62 @@ class SignatureReconcileTest extends TestCase
     {
         $request = $this->sentRequest();
 
-        $this->assertNull($this->service()->applyWebhook(new SignatureEvent('sconosciuto', 'done', 'e1')));
+        $this->assertNull($this->service()->applyWebhook('fake', new SignatureEvent('sconosciuto', 'done', 'e1')));
 
-        $found = $this->service()->applyWebhook(new SignatureEvent($request->provider_ref, 'done', 'e2'));
+        $found = $this->service()->applyWebhook('fake', new SignatureEvent($request->provider_ref, 'done', 'e2'));
 
         $this->assertSame($request->id, $found->id);
         $this->assertNotNull($request->fresh()->last_event_at);
+        $this->assertSame(SignatureRequestStatus::Sent, $request->fresh()->status);
+    }
+
+    public function test_apply_webhook_is_scoped_by_provider(): void
+    {
+        $request = $this->sentRequest();
+
+        $this->assertNull($this->service()->applyWebhook('yousign', new SignatureEvent($request->provider_ref, 'done', 'e3')));
+        $this->assertNull($request->fresh()->last_event_at);
+    }
+
+    public function test_reconcile_uses_the_provider_stored_on_the_request(): void
+    {
+        $document = $this->documentWithModule();
+        $request = $this->sentRequest($document);
+        $this->fake()->completeAll($request->provider_ref);
+        config(['signature.driver' => 'yousign']);
+
+        $request = $this->service()->reconcile($request);
+
+        $this->assertSame(SignatureRequestStatus::Signed, $request->status);
+        $this->assertTrue((bool) $document->fresh()->is_signed);
+    }
+
+    public function test_expire_overdue_reconciles_a_completed_envelope_instead_of_expiring_it(): void
+    {
+        $document = $this->documentWithModule();
+        $request = $this->sentRequest($document);
+        $this->fake()->completeAll($request->provider_ref);
+        $request->update(['expires_at' => now()->subMinute()]);
+
+        $this->service()->expireOverdue();
+
+        $this->assertSame(SignatureRequestStatus::Signed, $request->fresh()->status);
+        $this->assertTrue((bool) $document->fresh()->is_signed);
+        $this->assertCount(1, $document->fresh()->getMedia('signed'));
+    }
+
+    public function test_expire_overdue_skips_requests_whose_reconcile_fails(): void
+    {
+        $request = $this->sentRequest();
+        $request->update(['expires_at' => now()->subMinute()]);
+        $provider = Mockery::mock(SignatureProvider::class);
+        $provider->shouldReceive('envelopeStatus')->andThrow(new ProviderUnavailableException('giu'));
+        $provider->shouldNotReceive('cancelEnvelope');
+        $manager = Mockery::mock(SignatureProviderManager::class);
+        $manager->shouldReceive('provider')->andReturn($provider);
+        $this->app->instance(SignatureProviderManager::class, $manager);
+
+        $this->assertSame(0, $this->service()->expireOverdue());
         $this->assertSame(SignatureRequestStatus::Sent, $request->fresh()->status);
     }
 }

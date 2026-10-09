@@ -170,7 +170,7 @@ class SignatureRequestService
             return $request;
         }
 
-        $provider = $this->providers->provider();
+        $provider = $this->providers->provider($request->provider);
         $pdf = null;
 
         try {
@@ -180,6 +180,8 @@ class SignatureRequestService
                 $pdf = $provider->downloadSigned($request->provider_ref);
             }
         } catch (\Throwable $e) {
+            SignatureRequest::query()->whereKey($request->getKey())->update(['last_synced_at' => now()]);
+
             throw new SignatureRequestException('Impossibile aggiornare lo stato della firma, riprovare più tardi.', 0, $e);
         }
 
@@ -218,7 +220,7 @@ class SignatureRequestService
 
         if (filled($request->provider_ref)) {
             try {
-                $this->providers->provider()->cancelEnvelope($request->provider_ref);
+                $this->providers->provider($request->provider)->cancelEnvelope($request->provider_ref);
             } catch (\Throwable $e) {
                 throw new SignatureRequestException('Annullamento non riuscito, riprovare più tardi.', 0, $e);
             }
@@ -258,9 +260,23 @@ class SignatureRequestService
             ->get();
 
         foreach ($overdue as $request) {
+            try {
+                $request = $this->reconcile($request);
+            } catch (\Throwable) {
+                Log::warning("Riconciliazione non riuscita per la richiesta di firma {$request->id}");
+
+                continue;
+            }
+
+            if ($request->status !== SignatureRequestStatus::Sent) {
+                $changed++;
+
+                continue;
+            }
+
             if (filled($request->provider_ref)) {
                 try {
-                    $this->providers->provider()->cancelEnvelope($request->provider_ref);
+                    $this->providers->provider($request->provider)->cancelEnvelope($request->provider_ref);
                 } catch (\Throwable) {
                     Log::warning("Annullamento busta non riuscito per la richiesta di firma {$request->id}");
                 }
@@ -284,10 +300,10 @@ class SignatureRequestService
     /**
      * Registra l'arrivo di un evento; non cambia lo stato (lo fa reconcile).
      */
-    public function applyWebhook(SignatureEvent $event): ?SignatureRequest
+    public function applyWebhook(string $provider, SignatureEvent $event): ?SignatureRequest
     {
         $request = SignatureRequest::query()
-            ->where('provider', $this->providers->provider()->name())
+            ->where('provider', $provider)
             ->where('provider_ref', $event->providerRef)
             ->first();
 
