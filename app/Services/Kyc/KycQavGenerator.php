@@ -82,16 +82,17 @@ class KycQavGenerator
             'created_by' => $user?->getKey(),
         ]);
 
-        $document->addMediaFromString($content)
-            ->usingFileName(Str::slug($module->name.' '.$client->tax_code).'.pdf')
-            ->toMediaCollection('documents');
-
         activity('kyc_qav')
             ->performedOn($client)
             ->causedBy($user)
             ->event('qav_generato')
             ->withProperties(['questionnaire_id' => $questionnaire->getKey(), 'document_id' => $document->getKey()])
             ->log('QAV generato per il cliente');
+
+        // Il file va allegato per ultimo: un errore precedente non deve lasciare file orfani sul disco.
+        $document->addMediaFromString($content)
+            ->usingFileName(Str::slug($module->name.' '.$client->tax_code).'.pdf')
+            ->toMediaCollection('documents');
 
         return $document;
     }
