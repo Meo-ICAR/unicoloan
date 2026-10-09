@@ -33,6 +33,20 @@ final class ResolvedModuleData
     }
 
     /**
+     * Confronto di stringa con il valore risolto (enum -> valore, null -> '').
+     */
+    public function equals(ModuleSourceKey $key, string $value): bool
+    {
+        $actual = $this->get($key);
+
+        if ($actual instanceof \BackedEnum) {
+            $actual = $actual->value;
+        }
+
+        return (string) $actual === $value;
+    }
+
+    /**
      * @param  iterable<ModuleSourceKey>  $keys
      * @return array<int, ModuleSourceKey>
      */

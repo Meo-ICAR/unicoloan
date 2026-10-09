@@ -95,15 +95,20 @@ class PdfFormFiller
 
     /**
      * Esito della casella: true/false se configurata, null se non c'e' nulla da fare.
-     * `checkbox_when` (con `!` iniziale per negare) ha la precedenza su `source_key`.
+     * `checkbox_when` (`[!]chiave[=valore]`, `!` nega) ha la precedenza su `source_key`.
      */
     private function isCheckboxChecked(PdfModuleField $field, ResolvedModuleData $data): ?bool
     {
         if (filled($field->checkbox_when)) {
-            $negate = str_starts_with($field->checkbox_when, '!');
-            $key = ModuleSourceKey::tryFrom(ltrim($field->checkbox_when, '!'));
+            ['negate' => $negate, 'key' => $key, 'value' => $value] = $field->parseCheckboxWhen();
 
-            return $key === null ? null : ($data->isTruthy($key) !== $negate);
+            if ($key === null) {
+                return null;
+            }
+
+            $matches = $value === null ? $data->isTruthy($key) : $data->equals($key, $value);
+
+            return $matches !== $negate;
         }
 
         return $field->source_key instanceof ModuleSourceKey ? $data->isTruthy($field->source_key) : null;

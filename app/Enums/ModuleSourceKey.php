@@ -3,6 +3,7 @@
 namespace App\Enums;
 
 use Filament\Support\Contracts\HasLabel;
+use Illuminate\Support\Str;
 
 /**
  * Whitelist delle chiavi dati utilizzabili per compilare i campi dei moduli PDF.
@@ -66,6 +67,89 @@ enum ModuleSourceKey: string implements HasLabel
     case DocumentoRilasciatoIl = 'document.identity.emitted_at';
     case DocumentoScadenza = 'document.identity.expires_at';
 
+    case KycPepStatus = 'kyc.pep_status';
+    case KycFinancingPurpose = 'kyc.financing_purpose';
+    case KycEconomicActivity = 'kyc.economic_activity';
+    case KycActivitySector = 'kyc.activity_sector';
+    case KycActivityLocation = 'kyc.activity_location';
+    case KycFinancingNature = 'kyc.financing_nature';
+    case KycIncomeBand = 'kyc.income_band';
+    case KycWealthBand = 'kyc.wealth_band';
+    case KycLegalNature = 'kyc.legal_nature';
+    case KycGeographicArea = 'kyc.geographic_area';
+    case KycExecutorLink = 'kyc.executor_link';
+    case KycExecutorName = 'kyc.executor.name';
+    case KycExecutorFirstName = 'kyc.executor.first_name';
+    case KycExecutorTaxCode = 'kyc.executor.tax_code';
+    case KycExecutorBirthPlace = 'kyc.executor.birth_place';
+    case KycExecutorBirthDate = 'kyc.executor.birth_date';
+    case KycExecutorCitizenship = 'kyc.executor.citizenship';
+    case KycExecutorSex = 'kyc.executor.sex';
+    case KycExecutorCity = 'kyc.executor.city';
+    case KycExecutorProvince = 'kyc.executor.province';
+    case KycExecutorAddress = 'kyc.executor.address';
+    case KycExecutorZip = 'kyc.executor.zip';
+    case KycExecutorDocType = 'kyc.executor.doc_type';
+    case KycExecutorDocNumber = 'kyc.executor.doc_number';
+    case KycExecutorDocIssuer = 'kyc.executor.doc_issuer';
+    case KycExecutorDocIssuedAt = 'kyc.executor.doc_issued_at';
+    case KycExecutorDocExpiresAt = 'kyc.executor.doc_expires_at';
+    case KycExecutorPepStatus = 'kyc.executor.pep_status';
+    case KycOwner1Name = 'kyc.owner1.name';
+    case KycOwner1FirstName = 'kyc.owner1.first_name';
+    case KycOwner1TaxCode = 'kyc.owner1.tax_code';
+    case KycOwner1BirthPlace = 'kyc.owner1.birth_place';
+    case KycOwner1BirthDate = 'kyc.owner1.birth_date';
+    case KycOwner1Citizenship = 'kyc.owner1.citizenship';
+    case KycOwner1Sex = 'kyc.owner1.sex';
+    case KycOwner1City = 'kyc.owner1.city';
+    case KycOwner1Province = 'kyc.owner1.province';
+    case KycOwner1Address = 'kyc.owner1.address';
+    case KycOwner1Zip = 'kyc.owner1.zip';
+    case KycOwner1DocType = 'kyc.owner1.doc_type';
+    case KycOwner1DocNumber = 'kyc.owner1.doc_number';
+    case KycOwner1DocIssuer = 'kyc.owner1.doc_issuer';
+    case KycOwner1DocIssuedAt = 'kyc.owner1.doc_issued_at';
+    case KycOwner1DocExpiresAt = 'kyc.owner1.doc_expires_at';
+    case KycOwner1Criterion = 'kyc.owner1.criterion';
+    case KycOwner1PepStatus = 'kyc.owner1.pep_status';
+    case KycOwner2Name = 'kyc.owner2.name';
+    case KycOwner2FirstName = 'kyc.owner2.first_name';
+    case KycOwner2TaxCode = 'kyc.owner2.tax_code';
+    case KycOwner2BirthPlace = 'kyc.owner2.birth_place';
+    case KycOwner2BirthDate = 'kyc.owner2.birth_date';
+    case KycOwner2Citizenship = 'kyc.owner2.citizenship';
+    case KycOwner2Sex = 'kyc.owner2.sex';
+    case KycOwner2City = 'kyc.owner2.city';
+    case KycOwner2Province = 'kyc.owner2.province';
+    case KycOwner2Address = 'kyc.owner2.address';
+    case KycOwner2Zip = 'kyc.owner2.zip';
+    case KycOwner2DocType = 'kyc.owner2.doc_type';
+    case KycOwner2DocNumber = 'kyc.owner2.doc_number';
+    case KycOwner2DocIssuer = 'kyc.owner2.doc_issuer';
+    case KycOwner2DocIssuedAt = 'kyc.owner2.doc_issued_at';
+    case KycOwner2DocExpiresAt = 'kyc.owner2.doc_expires_at';
+    case KycOwner2Criterion = 'kyc.owner2.criterion';
+    case KycOwner2PepStatus = 'kyc.owner2.pep_status';
+    case KycOwner3Name = 'kyc.owner3.name';
+    case KycOwner3FirstName = 'kyc.owner3.first_name';
+    case KycOwner3TaxCode = 'kyc.owner3.tax_code';
+    case KycOwner3BirthPlace = 'kyc.owner3.birth_place';
+    case KycOwner3BirthDate = 'kyc.owner3.birth_date';
+    case KycOwner3Citizenship = 'kyc.owner3.citizenship';
+    case KycOwner3Sex = 'kyc.owner3.sex';
+    case KycOwner3City = 'kyc.owner3.city';
+    case KycOwner3Province = 'kyc.owner3.province';
+    case KycOwner3Address = 'kyc.owner3.address';
+    case KycOwner3Zip = 'kyc.owner3.zip';
+    case KycOwner3DocType = 'kyc.owner3.doc_type';
+    case KycOwner3DocNumber = 'kyc.owner3.doc_number';
+    case KycOwner3DocIssuer = 'kyc.owner3.doc_issuer';
+    case KycOwner3DocIssuedAt = 'kyc.owner3.doc_issued_at';
+    case KycOwner3DocExpiresAt = 'kyc.owner3.doc_expires_at';
+    case KycOwner3Criterion = 'kyc.owner3.criterion';
+    case KycOwner3PepStatus = 'kyc.owner3.pep_status';
+
     public function getLabel(): ?string
     {
         return match ($this) {
@@ -119,6 +203,7 @@ enum ModuleSourceKey: string implements HasLabel
             self::DocumentoRilasciatoDa => 'Documento identità: rilasciato da',
             self::DocumentoRilasciatoIl => 'Documento identità: data rilascio',
             self::DocumentoScadenza => 'Documento identità: scadenza',
+            default => (string) Str::of($this->value)->after('kyc.')->replace(['.', '_'], ' ')->prepend('KYC: '),
         };
     }
 }
