@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class Pratica extends Model
 {
@@ -96,6 +97,32 @@ class Pratica extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $pratica): void {
+            if ($pratica->rejected_at === null && $pratica->isDirty('stato_pratica') && $pratica->isRejectedState()) {
+                $pratica->rejected_at = now();
+            }
+        });
+    }
+
+    /**
+     * Lo stato corrente e' un esito di rifiuto secondo il catalogo degli stati (confronto per nome o codice, senza maiuscole).
+     */
+    public function isRejectedState(): bool
+    {
+        $stato = trim((string) $this->stato_pratica);
+
+        if ($stato === '') {
+            return false;
+        }
+
+        return PraticaStato::query()
+            ->where('is_rejected', true)
+            ->where(fn ($query) => $query->whereRaw('LOWER(name) = ?', [mb_strtolower($stato)])->orWhere('codice', Str::slug($stato, '_')))
+            ->exists();
+    }
 
     /**
      * Get the agent (fornitore) associated with the pratica.

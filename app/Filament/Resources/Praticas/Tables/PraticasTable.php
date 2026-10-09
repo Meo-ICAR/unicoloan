@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Praticas\Tables;
 
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\PraticaStati;
+use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Pratica;
 use App\Models\Tipoprodotto;
 use Filament\Actions\ViewAction;
@@ -63,25 +64,37 @@ class PraticasTable
                     ->date()
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('rejected_at')
+                    ->label('Data Rifiuto')
+                    ->date()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('codice_pratica')
                     ->label('Codice Pratica')
                     ->searchable(),
             ])
             ->filters([
-                SelectFilter::make('denominazione_banca')
-                    ->label('Banca')
-                    ->options(function () {
-                        return Pratica::query()
-                            ->whereNotNull('denominazione_banca')
-                            ->where('denominazione_banca', '!=', '')
-                            ->distinct()
-                            ->pluck('denominazione_banca', 'denominazione_banca')
-                            ->toArray();
-                    })
-                    ->searchable() // Opzionale: aggiunge la barra di ricerca nel menu a tendina
-                    ->multiple(),  // Opzionale: se vuoi permettere la selezione di più banche
+                Filter::make('not_rejected')
+                    ->label('Non respinte')
+                    ->default(true)
+                    ->query(fn (Builder $query): Builder => $query->whereNull('rejected_at')),
+                Filter::make('not_erogated')
+                    ->label('Non erogate')
+                    ->default(true)
+                    ->query(fn (Builder $query): Builder => $query->whereNull('erogated_at')),
+                SelectFilter::make('istituto_erogazione')
+                    ->label('Istituto di erogazione')
+                    ->options(fn (): array => Clienti::query()
+                        ->where('principal_type', 'banca')
+                        ->whereNotNull('name')
+                        ->orderBy('name')
+                        ->pluck('name', 'name')
+                        ->all())
+                    ->attribute('denominazione_banca')
+                    ->searchable()
+                    ->multiple(),
                 SelectFilter::make('denominazione_agente')
-                    ->label('Banca')
+                    ->label('Produttore')
                     ->options(function () {
                         return Pratica::query()
                             ->whereNotNull('denominazione_agente')
@@ -95,8 +108,7 @@ class PraticasTable
                 SelectFilter::make('stato_pratica')
                     ->options(PraticaStati::pluck('stato_pratica', 'stato_pratica'))
                     ->multiple()
-                    ->label('Escludere)')
-                    ->default(['SOSPESA', 'PERFEZIONATA', 'IN AMMORTAMENTO', 'DECLINATA', 'RINUNCIA CLIENTE', 'PRATICA RESPINTA', 'CHIUSA'])
+                    ->label('Escludere')
                     ->query(function (Builder $query, array $data): Builder {
                         // Verifica se ci sono valori selezionati nel filtro
                         if (! empty($data['values'])) {
