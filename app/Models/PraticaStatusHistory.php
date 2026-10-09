@@ -20,11 +20,17 @@ class PraticaStatusHistory extends Model
         'changed_at',
         'source',
         'notes',
+        'user_id',
     ];
 
     protected $casts = [
         'changed_at' => 'datetime',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function pratica(): BelongsTo
     {

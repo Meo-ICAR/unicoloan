@@ -35,6 +35,28 @@ class EditPratica extends EditRecord
         };
     }
 
+    /**
+     * L'annotazione non e' una colonna: viaggia sul modello fino al log del cambio di stato.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $this->getRecord()->pendingStatusNote = $data['status_note'] ?? null;
+        unset($data['status_note']);
+
+        return $data;
+    }
+
+    /**
+     * Il riquadro dello storico deve mostrare subito la voce appena registrata.
+     */
+    protected function afterSave(): void
+    {
+        $this->getRecord()->unsetRelation('statusHistory');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

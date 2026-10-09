@@ -45,7 +45,9 @@ class StatusHistoryRelationManager extends RelationManager
                     ->required(),
                 TextInput::make('source')
                     ->label('Origine')
-                    ->maxLength(255),
+                    ->default('manuale')
+                    ->required()
+                    ->maxLength(50),
                 Textarea::make('notes')
                     ->label('Note')
                     ->columnSpanFull(),
@@ -68,6 +70,9 @@ class StatusHistoryRelationManager extends RelationManager
                     ->label('Data Cambio')
                     ->dateTime()
                     ->sortable(),
+                TextColumn::make('user.name')
+                    ->label('Utente')
+                    ->placeholder('Sistema'),
                 TextColumn::make('source')
                     ->label('Origine'),
                 TextColumn::make('notes')
@@ -75,7 +80,8 @@ class StatusHistoryRelationManager extends RelationManager
                     ->limit(50),
             ])
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()
+                    ->mutateDataUsing(fn (array $data): array => $data + ['user_id' => auth()->id()]),
             ])
             ->recordActions([
                 EditAction::make(),

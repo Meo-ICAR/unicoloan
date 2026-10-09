@@ -2,6 +2,7 @@
 
 namespace App\Models\PROFORMA;
 
+use App\Enums\UserRole;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\KycQuestionnaire;
@@ -100,13 +101,64 @@ class Pratica extends Model
         'updated_at' => 'datetime',
     ];
 
+    /**
+     * Annotazione dell'istruttore da allegare al prossimo cambio di stato (o da registrare da sola).
+     */
+    public ?string $pendingStatusNote = null;
+
+    /**
+     * Stato di partenza e tipo di salvataggio, rilevati prima che Eloquent li riallinei.
+     *
+     * @var array{creating: bool, from: ?string, dirty: bool}
+     */
+    private array $statusLogContext = ['creating' => false, 'from' => null, 'dirty' => false];
+
     protected static function booted(): void
     {
         static::saving(function (self $pratica): void {
+            $pratica->statusLogContext = [
+                'creating' => ! $pratica->exists,
+                'from' => $pratica->getOriginal('stato_pratica'),
+                'dirty' => $pratica->isDirty('stato_pratica'),
+            ];
+
             if ($pratica->rejected_at === null && $pratica->isDirty('stato_pratica') && $pratica->isRejectedState()) {
                 $pratica->rejected_at = now();
             }
         });
+
+        static::saved(function (self $pratica): void {
+            $pratica->logStatusChange();
+        });
+    }
+
+    /**
+     * Registra nello storico il cambio di stato (o la sola annotazione) con data e utente.
+     */
+    private function logStatusChange(): void
+    {
+        $note = filled($this->pendingStatusNote) ? trim($this->pendingStatusNote) : null;
+        $this->pendingStatusNote = null;
+
+        $current = trim((string) $this->stato_pratica);
+        $previous = $this->statusLogContext['creating'] ? null : $this->statusLogContext['from'];
+        $changed = $current !== '' && ($this->statusLogContext['creating'] || $this->statusLogContext['dirty']);
+
+        if (! $changed && $note === null) {
+            return;
+        }
+
+        $user = auth()->user();
+
+        PraticaStatusHistory::query()->create([
+            'pratica_id' => $this->getKey(),
+            'status_from' => $changed ? $previous : $current,
+            'status_to' => $current !== '' ? $current : '-',
+            'changed_at' => now(),
+            'source' => $user === null ? 'sistema' : ($user->role === UserRole::AGENT->value ? 'portale' : 'manuale'),
+            'notes' => $note,
+            'user_id' => $user?->getKey(),
+        ]);
     }
 
     /**

@@ -8,8 +8,11 @@ use App\Models\TipoprodottoSub;
 use App\Services\BlacklistChecker;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -40,6 +43,14 @@ class PraticaForm
                             ->searchable()
                             ->required()
                             ->columnSpan(['sm' => 1, 'md' => 2]), // Dà il doppio dello spazio per evitare che il testo vada a capo
+
+                        Textarea::make('status_note')
+                            ->label('Annotazione sul cambio stato')
+                            ->helperText('Viene registrata nello storico con data e utente.')
+                            ->rows(2)
+                            ->visibleOn('edit')
+                            ->dehydrated()
+                            ->columnSpanFull(),
 
                     ]),
 
@@ -153,6 +164,29 @@ class PraticaForm
                         DatePicker::make('rejected_at')
                             ->label('Rifiuto'),
                     ])->columnSpan('full'),
+
+                // 6. STORICO STATI E ANNOTAZIONI
+                Section::make('Storico stati e annotazioni')
+                    ->description('Cambi di stato e annotazioni degli istruttori')
+                    ->collapsible()
+                    ->collapsed()
+                    ->visibleOn('edit')
+                    ->columnSpan('full')
+                    ->schema([
+                        RepeatableEntry::make('statusHistory')
+                            ->hiddenLabel()
+                            ->placeholder('Nessun cambio di stato registrato.')
+                            ->columns(4)
+                            ->schema([
+                                TextEntry::make('changed_at')->label('Data')->dateTime('d/m/Y H:i'),
+                                TextEntry::make('status_to')
+                                    ->label('Stato')
+                                    ->badge()
+                                    ->formatStateUsing(fn (string $state, $record): string => $record->status_from !== null && $record->status_from !== $state ? $record->status_from.' → '.$state : $state),
+                                TextEntry::make('user.name')->label('Utente')->placeholder('Sistema'),
+                                TextEntry::make('notes')->label('Annotazioni')->placeholder('—'),
+                            ]),
+                    ]),
             ]);
     }
 }
