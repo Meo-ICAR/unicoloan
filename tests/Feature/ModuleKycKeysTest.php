@@ -109,4 +109,28 @@ class ModuleKycKeysTest extends TestCase
         $this->assertSame('PR-1', $data->get(ModuleSourceKey::PraticaCodice));
         $this->assertSame(KycPepStatus::None->value, $data->get(ModuleSourceKey::KycPepStatus));
     }
+
+    public function test_every_kyc_key_has_an_italian_label(): void
+    {
+        $english = ['tax code', 'first name', 'birth place', 'birth date', 'doc type', 'doc number', 'doc issuer', 'issued at', 'expires at', 'owner1', 'owner2', 'owner3', 'executor', 'pep status', 'financing purpose', 'zip', 'criterion'];
+
+        foreach (ModuleSourceKey::cases() as $case) {
+            if (! str_starts_with($case->value, 'kyc.')) {
+                continue;
+            }
+
+            $label = (string) $case->getLabel();
+
+            $this->assertNotSame('', $label);
+            $this->assertStringContainsString('KYC', $label, $case->value);
+
+            foreach ($english as $token) {
+                $this->assertStringNotContainsString($token, strtolower($label), $case->value.' => '.$label);
+            }
+        }
+
+        $this->assertSame('KYC Titolare effettivo 1: codice fiscale', ModuleSourceKey::KycOwner1TaxCode->getLabel());
+        $this->assertSame('KYC Esecutore: data di scadenza', ModuleSourceKey::KycExecutorDocExpiresAt->getLabel());
+        $this->assertSame('KYC: finalità del finanziamento', ModuleSourceKey::KycFinancingPurpose->getLabel());
+    }
 }

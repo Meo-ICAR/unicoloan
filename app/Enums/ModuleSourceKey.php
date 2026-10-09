@@ -203,7 +203,65 @@ enum ModuleSourceKey: string implements HasLabel
             self::DocumentoRilasciatoDa => 'Documento identità: rilasciato da',
             self::DocumentoRilasciatoIl => 'Documento identità: data rilascio',
             self::DocumentoScadenza => 'Documento identità: scadenza',
-            default => (string) Str::of($this->value)->after('kyc.')->replace(['.', '_'], ' ')->prepend('KYC: '),
+            default => $this->kycLabel(),
         };
+    }
+
+    /**
+     * Etichetta italiana per le chiavi `kyc.*`.
+     */
+    private function kycLabel(): string
+    {
+        $scalars = [
+            'pep_status' => 'condizione PEP',
+            'financing_purpose' => 'finalità del finanziamento',
+            'economic_activity' => 'attività economica',
+            'activity_sector' => 'settore di attività',
+            'activity_location' => 'localizzazione dell\'attività',
+            'financing_nature' => 'natura del finanziamento',
+            'income_band' => 'reddito annuo lordo',
+            'wealth_band' => 'patrimonio',
+            'legal_nature' => 'natura giuridica',
+            'geographic_area' => 'area geografica',
+            'executor_link' => 'legame cliente/esecutore',
+        ];
+
+        $subjects = [
+            'executor' => 'Esecutore',
+            'owner1' => 'Titolare effettivo 1',
+            'owner2' => 'Titolare effettivo 2',
+            'owner3' => 'Titolare effettivo 3',
+        ];
+
+        $fields = [
+            'name' => 'cognome',
+            'first_name' => 'nome',
+            'tax_code' => 'codice fiscale',
+            'birth_place' => 'luogo di nascita',
+            'birth_date' => 'data di nascita',
+            'citizenship' => 'cittadinanza',
+            'sex' => 'sesso',
+            'city' => 'città di residenza',
+            'province' => 'provincia',
+            'address' => 'indirizzo',
+            'zip' => 'CAP',
+            'doc_type' => 'tipo documento',
+            'doc_number' => 'numero documento',
+            'doc_issuer' => 'ente di rilascio',
+            'doc_issued_at' => 'data di rilascio',
+            'doc_expires_at' => 'data di scadenza',
+            'criterion' => 'criterio di individuazione',
+            'pep_status' => 'condizione PEP',
+        ];
+
+        $key = Str::after($this->value, 'kyc.');
+
+        if (isset($scalars[$key])) {
+            return 'KYC: '.$scalars[$key];
+        }
+
+        [$subject, $field] = explode('.', $key, 2) + [1 => ''];
+
+        return 'KYC '.($subjects[$subject] ?? $subject).': '.($fields[$field] ?? $field);
     }
 }
