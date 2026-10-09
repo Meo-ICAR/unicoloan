@@ -12,7 +12,7 @@ Il documento viene prodotto dall'app, **inviato per la firma** al destinatario t
 - Lo stato si aggiorna **soprattutto da webhook** del provider; un comando pianificato `signature:sync` fa da **riconciliazione lenta** (Yousign sconsiglia il polling e applica rate limit): ogni ora, solo per le richieste `sent` senza eventi da oltre 30 minuti, massimo 20 richieste per esecuzione. Ogni elaborazione è **idempotente**. Il webhook deve essere raggiungibile da internet (in sviluppo serve un tunnel).
 - Più firmatari (cliente, poi collaboratore, come nel QAV giuridico) sono **in sequenza** (`position`); la richiesta è completata quando l'ultimo ha firmato.
 - Nessun blocco del flusso se manca la firma (solo informativo, come il KYC).
-- Chi notifica il destinatario (Intesi oppure l'app con un link) dipende dal provider: se la busta restituisce un `signing_url` e il provider non notifica da sé, l'app invia il link con i modelli email già esistenti (`EmailTemplate`/`MailAccount`). Questa parte la fissa il piano del provider Intesi.
+- Chi notifica il destinatario (il provider oppure l'app con un link) dipende dal provider: se la busta restituisce un `signing_url` e il provider non notifica da sé, l'app invia il link con i modelli email già esistenti (`EmailTemplate`/`MailAccount`). Questa parte la fissa il piano del provider Intesi.
 
 ## Dati (connessione `mysql`)
 `signature_requests` (una busta per documento):
@@ -66,7 +66,7 @@ interface SignatureProvider
 
 ## Sicurezza e privacy
 - Nessun OTP/PIN nell'app. Webhook con verifica di firma (o segreto condiviso) definita dal provider; activity log solo con id; `failure_reason` senza dati personali.
-- Il PDF contiene dati personali (e per il QAV dati AML) e **esce verso Intesi**: serve la nomina di Intesi a responsabile del trattamento e la verifica della residenza dei dati (decisione dell'azienda, non tecnica).
+- Il PDF contiene dati personali (e per il QAV dati AML) e **esce verso il provider di firma** (Yousign): serve la nomina del provider a responsabile del trattamento e la verifica della residenza dei dati (decisione dell'azienda, non tecnica).
 - I PDF firmati restano sul disco `public` come gli altri `Document`: stesso pattern esistente, da rivedere insieme alla privacy dei QAV.
 
 ## Provider reali
@@ -88,4 +88,4 @@ La documentazione letta (PkBox SDK e CSC API v1) descrive un flusso guidato dall
 Con `FakeSignatureProvider`: invio (validazioni, duplicati, errore del provider senza effetti, `createEnvelope` fuori transazione), riconciliazione idempotente (stesso evento due volte), completamento (media `signed`, originale intatto, `is_signed`/`signed_at` solo a firme complete, activity log senza segreti), firma in sequenza a due firmatari, rifiuto, scadenza (`signature:sync` annulla la busta), annullamento, webhook non valido senza effetti, download fallito che lascia la richiesta `sent` riprovabile; test di contratto riusabile per ogni provider; adattatore Yousign con `Http::fake()` (creazione richiesta/documenti/firmatari/attivazione, firma HMAC valida e non valida, retry duplicato, errori 4xx/5xx, mappatura dei livelli e dell'OTP); Filament: azione visibile/nascosta, modale e controlli, azioni di stato; seeder `signature_slots` dei QAV; comando `signature:sync`.
 
 ## Fuori ambito (fase 1)
-Pagina pubblica di firma ospitata dall'app (solo se Intesi non ospita la firma: rientra nel piano del provider), firma di più documenti con un solo OTP, verifica delle firme esistenti, firma qualificata con riconoscimento, test contro il sandbox Yousign reale (si fanno a mano, non nella suite automatica); provider Intesi.
+Pagina pubblica di firma ospitata dall'app (solo se il provider non ospita la firma), firma di più documenti con un solo OTP, verifica delle firme esistenti, firma qualificata con riconoscimento, test contro il sandbox Yousign reale (si fanno a mano, non nella suite automatica); provider Intesi.
