@@ -24,6 +24,31 @@ class PdfFormFiller
     }
 
     /**
+     * Rende statici i campi del PDF: i valori compilati restano visibili anche dopo la firma.
+     *
+     * @throws PdfFormException
+     */
+    public function flattenContent(string $content): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'flat');
+
+        try {
+            file_put_contents($path, $content);
+
+            $pdf = $this->open($path)->flatten();
+            $flattened = $pdf->toString();
+
+            if ($flattened === false) {
+                throw PdfFormException::pdftkFailed($pdf->getError());
+            }
+
+            return $flattened;
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    /**
      * @return array<string, string> nome campo PDF => valore da scrivere
      */
     public function buildFieldValues(PdfModule $module, ResolvedModuleData $data): array

@@ -27,11 +27,13 @@ use Illuminate\Support\Str;
 use Mockery;
 use Mockery\MockInterface;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Concerns\ReadsPdfFields;
 use Tests\TestCase;
 
 class SignatureSendTest extends TestCase
 {
     use LazilyRefreshDatabase;
+    use ReadsPdfFields;
 
     /**
      * @var array<int, string>
@@ -249,6 +251,30 @@ class SignatureSendTest extends TestCase
 
         $this->assertSame('ref-1', $request->fresh()->provider_ref);
         $this->assertSame(['s1', 's2'], $request->signers->pluck('provider_signer_ref')->all());
+    }
+
+    public function test_pdf_given_to_the_provider_has_no_form_fields(): void
+    {
+        $this->skipUnlessPdftk();
+        $original = file_get_contents(base_path('tests/Fixtures/pdf/modulo-prova.pdf'));
+        $this->assertNotEmpty($this->readPdfFields($original));
+
+        $document = $this->documentWithModule();
+        $sent = null;
+        $provider = $this->mockProvider();
+        $provider->shouldReceive('createEnvelope')
+            ->once()
+            ->with(Mockery::on(function (EnvelopeData $data) use (&$sent): bool {
+                $sent = $data->pdf;
+
+                return true;
+            }))
+            ->andReturn(new EnvelopeRef('ref-1', ['cliente' => 's1', 'collaboratore' => 's2']));
+
+        $this->service()->send($document, $this->signers(), User::factory()->create());
+
+        $this->assertStringStartsWith('%PDF', $sent);
+        $this->assertSame([], $this->readPdfFields($sent));
     }
 
     public function test_provider_failure_marks_the_request_failed_and_allows_a_retry(): void

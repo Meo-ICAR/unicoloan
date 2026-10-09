@@ -7,6 +7,8 @@ use App\Enums\SignerStatus;
 use App\Models\Document;
 use App\Models\SignatureRequest;
 use App\Models\User;
+use App\Services\PdfFormException;
+use App\Services\PdfFormFiller;
 use App\Services\Signature\Dto\EnvelopeData;
 use App\Services\Signature\Dto\EnvelopeSigner;
 use App\Services\Signature\Dto\EnvelopeStatus;
@@ -20,7 +22,10 @@ use Illuminate\Support\Str;
 
 class SignatureRequestService
 {
-    public function __construct(private SignatureProviderManager $providers) {}
+    public function __construct(
+        private SignatureProviderManager $providers,
+        private PdfFormFiller $pdfFiller,
+    ) {}
 
     /**
      * Invia il documento per la firma.
@@ -63,7 +68,11 @@ class SignatureRequestService
         $provider = $this->providers->provider();
         $envelopeSigners = $this->buildEnvelopeSigners($slots, $bySlot, $provider->requiredContactFields());
 
-        $pdf = (string) stream_get_contents($media->stream());
+        try {
+            $pdf = $this->pdfFiller->flattenContent((string) stream_get_contents($media->stream()));
+        } catch (PdfFormException) {
+            throw new SignatureRequestException('Preparazione del PDF per la firma non riuscita.');
+        }
 
         $request = DB::connection('mysql')->transaction(function () use ($document, $envelopeSigners, $provider, $user): SignatureRequest {
             Document::query()->whereKey($document->getKey())->lockForUpdate()->first();
