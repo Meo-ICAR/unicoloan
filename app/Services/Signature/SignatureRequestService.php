@@ -107,35 +107,51 @@ class SignatureRequestService
         try {
             $ref = $provider->createEnvelope($envelope);
         } catch (SignatureException $e) {
-            $request->update([
-                'status' => SignatureRequestStatus::Failed,
-                'failure_reason' => $this->safeReason($e->getMessage()),
-            ]);
+            $reason = $this->safeReason($e->getMessage());
+            $request->update(['status' => SignatureRequestStatus::Failed, 'failure_reason' => $reason]);
 
-            throw new SignatureRequestException('Invio per la firma non riuscito: '.$this->safeReason($e->getMessage()), 0, $e);
+            throw new SignatureRequestException('Invio per la firma non riuscito: '.$reason, 0, $e);
+        } catch (\Throwable $e) {
+            $reason = 'Errore imprevisto del provider';
+            $request->update(['status' => SignatureRequestStatus::Failed, 'failure_reason' => $reason]);
+
+            throw new SignatureRequestException('Invio per la firma non riuscito: '.$reason, 0, $e);
         }
 
-        DB::connection('mysql')->transaction(function () use ($request, $ref, $user): void {
-            $request->update([
-                'provider_ref' => $ref->providerRef,
-                'status' => SignatureRequestStatus::Sent,
-                'sent_at' => now(),
-            ]);
-
-            foreach ($request->signers as $signer) {
-                $signer->update([
-                    'provider_signer_ref' => $ref->signerRefs[$signer->slot] ?? null,
-                    'status' => SignerStatus::Notified,
+        try {
+            DB::connection('mysql')->transaction(function () use ($request, $ref, $user): void {
+                $request->update([
+                    'provider_ref' => $ref->providerRef,
+                    'status' => SignatureRequestStatus::Sent,
+                    'sent_at' => now(),
                 ]);
+
+                foreach ($request->signers as $signer) {
+                    $signer->update([
+                        'provider_signer_ref' => $ref->signerRefs[$signer->slot] ?? null,
+                        'status' => SignerStatus::Notified,
+                    ]);
+                }
+
+                activity('firma')
+                    ->performedOn($request)
+                    ->causedBy($user)
+                    ->event('firma_inviata')
+                    ->withProperties(['signature_request_id' => $request->id, 'provider' => $request->provider])
+                    ->log('Documento inviato per la firma');
+            });
+        } catch (\Throwable $e) {
+            $reason = 'Errore nel salvataggio della richiesta di firma';
+            $request->forceFill(['status' => SignatureRequestStatus::Failed, 'failure_reason' => $reason, 'provider_ref' => null])->save();
+
+            try {
+                $provider->cancelEnvelope($ref->providerRef);
+            } catch (\Throwable) {
+                // Annullamento best effort: la richiesta locale e' gia' marcata non riuscita.
             }
 
-            activity('firma')
-                ->performedOn($request)
-                ->causedBy($user)
-                ->event('firma_inviata')
-                ->withProperties(['signature_request_id' => $request->id, 'provider' => $request->provider])
-                ->log('Documento inviato per la firma');
-        });
+            throw new SignatureRequestException('Invio per la firma non riuscito: '.$reason, 0, $e);
+        }
 
         return $request->refresh();
     }

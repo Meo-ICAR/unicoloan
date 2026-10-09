@@ -280,6 +280,49 @@ class SignatureSendTest extends TestCase
         $this->assertSame(SignatureRequestStatus::Sent, $retry->fresh()->status);
     }
 
+    public function test_unexpected_provider_error_marks_the_request_failed_with_a_generic_reason(): void
+    {
+        $document = $this->documentWithModule();
+        $provider = $this->mockProvider();
+        $provider->shouldReceive('createEnvelope')->once()->andThrow(new \RuntimeException('boom mario@example.test'));
+
+        try {
+            $this->service()->send($document, $this->signers(), User::factory()->create());
+            $this->fail('Attesa SignatureRequestException');
+        } catch (SignatureRequestException) {
+        }
+
+        $request = SignatureRequest::query()->sole();
+        $this->assertSame(SignatureRequestStatus::Failed, $request->status);
+        $this->assertNull($request->provider_ref);
+        $this->assertSame('Errore imprevisto del provider', $request->failure_reason);
+
+        $provider->shouldReceive('createEnvelope')->once()->andReturn(new EnvelopeRef('ref-4', ['cliente' => 's1', 'collaboratore' => 's2']));
+        $retry = $this->service()->send($document, $this->signers(), User::factory()->create());
+        $this->assertSame(SignatureRequestStatus::Sent, $retry->fresh()->status);
+    }
+
+    public function test_failure_saving_after_success_marks_failed_and_cancels_the_envelope(): void
+    {
+        $document = $this->documentWithModule();
+        $provider = $this->mockProvider();
+        $tooLong = str_repeat('x', 300);
+        $provider->shouldReceive('createEnvelope')->once()->andReturn(new EnvelopeRef($tooLong, ['cliente' => 's1', 'collaboratore' => 's2']));
+        $provider->shouldReceive('cancelEnvelope')->once()->with($tooLong);
+
+        try {
+            $this->service()->send($document, $this->signers(), User::factory()->create());
+            $this->fail('Attesa SignatureRequestException');
+        } catch (SignatureRequestException) {
+        }
+
+        $request = SignatureRequest::query()->sole();
+        $this->assertSame(SignatureRequestStatus::Failed, $request->status);
+        $this->assertSame('Errore nel salvataggio della richiesta di firma', $request->failure_reason);
+        $this->assertNull($request->provider_ref);
+        $this->assertFalse($request->isOpen());
+    }
+
     public function test_create_envelope_is_called_outside_any_transaction(): void
     {
         $document = $this->documentWithModule();
