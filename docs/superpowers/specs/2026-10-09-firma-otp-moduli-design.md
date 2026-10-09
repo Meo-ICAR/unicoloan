@@ -89,3 +89,13 @@ Con `FakeSignatureProvider`: invio (validazioni, duplicati, errore del provider 
 
 ## Fuori ambito (fase 1)
 Pagina pubblica di firma ospitata dall'app (solo se il provider non ospita la firma), firma di più documenti con un solo OTP, verifica delle firme esistenti, firma qualificata con riconoscimento, test contro il sandbox Yousign reale (si fanno a mano, non nella suite automatica); provider Intesi.
+
+## Conferme dal sandbox Yousign (prova del 2026-10-09, un firmatario)
+Confermato dalla prova end-to-end (invio, firma con OTP SMS, webhook, riconciliazione in coda):
+- Flusso `createEnvelope` (richiesta, documento, firmatario, `activate`), `ordered_signers`, `signature_authentication_mode: otp_sms`, `signature_level: electronic_signature`, `locale it` e `expiration_date` in formato `Y-m-d`: accettati.
+- Webhook con firma HMAC valida: accettato e riconciliato; la richiesta passa a `signed`, il documento diventa firmato e il PDF finale e' nella collection `signed` (originale intatto).
+- Riquadri: coordinate in punti, origine in alto a sinistra, come poppler; il riquadro cade sopra "Firma del Cliente". **Altezza minima 37** (il valore 26 e' rifiutato): usati 40.
+- Il testo del segnaposto `{{Sig…}}` non e' visibile nel PDF firmato (resta nel testo estraibile).
+- In sandbox il destinatario deve avere un'email del dominio dell'organizzazione Yousign.
+- `YOUSIGN_SIGNATURE_LEVEL` ammette `electronic_signature` (non `standard`).
+Non ancora verificati: firma a due firmatari (QAV persona giuridica), rifiuto, annullo, scadenza.
