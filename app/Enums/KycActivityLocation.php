@@ -18,7 +18,7 @@ enum KycActivityLocation: string implements HasLabel
             self::Region => 'Nella regione di residenza',
             self::ItalyMulti => 'In più regioni italiane',
             self::Eu => 'In paesi dell\'Unione Europea',
-            self::NonEu => 'In paesi extra Unione Europea',
+            self::NonEu => 'In Stati extracomunitari, esclusi i paesi ad alto rischio',
             self::HighRisk => 'In paesi ad alto rischio',
         };
     }

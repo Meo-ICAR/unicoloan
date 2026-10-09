@@ -31,7 +31,7 @@ enum KycActivitySector: string implements HasLabel
             self::Waste => 'Raccolta e smaltimento rifiuti',
             self::Renewables => 'Energie rinnovabili',
             self::OtherRisk => 'Altre attività a rischio',
-            self::None => 'Nessuna delle precedenti condizioni',
+            self::None => 'Nessuna condizione (studente, casalinga, disoccupato)',
         };
     }
 }
