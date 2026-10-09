@@ -9,10 +9,13 @@ use App\Models\SignatureRequest;
 use App\Models\User;
 use App\Services\Signature\Dto\EnvelopeData;
 use App\Services\Signature\Dto\EnvelopeSigner;
+use App\Services\Signature\Dto\EnvelopeStatus;
+use App\Services\Signature\Dto\SignatureEvent;
 use App\Services\Signature\Dto\SignaturePlacement;
 use App\Services\Signature\Exceptions\SignatureException;
 use App\Services\Signature\Exceptions\SignatureRequestException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class SignatureRequestService
@@ -154,6 +157,181 @@ class SignatureRequestService
         }
 
         return $request->refresh();
+    }
+
+    /**
+     * Allinea la richiesta allo stato della busta presso il provider (idempotente).
+     *
+     * @throws SignatureRequestException
+     */
+    public function reconcile(SignatureRequest $request): SignatureRequest
+    {
+        if ($request->status !== SignatureRequestStatus::Sent || blank($request->provider_ref)) {
+            return $request;
+        }
+
+        $provider = $this->providers->provider();
+        $pdf = null;
+
+        try {
+            $envelope = $provider->envelopeStatus($request->provider_ref);
+
+            if ($envelope->status === SignatureRequestStatus::Signed) {
+                $pdf = $provider->downloadSigned($request->provider_ref);
+            }
+        } catch (\Throwable $e) {
+            throw new SignatureRequestException('Impossibile aggiornare lo stato della firma, riprovare più tardi.', 0, $e);
+        }
+
+        DB::connection('mysql')->transaction(function () use ($request, $envelope, $pdf): void {
+            $locked = SignatureRequest::query()->whereKey($request->getKey())->lockForUpdate()->first();
+
+            if ($locked === null || $locked->status !== SignatureRequestStatus::Sent) {
+                return;
+            }
+
+            $this->applySignerStates($locked, $envelope);
+            $locked->last_synced_at = now();
+
+            match ($envelope->status) {
+                SignatureRequestStatus::Signed => $this->completeRequest($locked, (string) $pdf),
+                SignatureRequestStatus::Declined,
+                SignatureRequestStatus::Expired,
+                SignatureRequestStatus::Cancelled => $locked->forceFill(['status' => $envelope->status, 'failure_reason' => null])->save(),
+                default => $locked->save(),
+            };
+        });
+
+        return $request->refresh();
+    }
+
+    /**
+     * Annulla una richiesta aperta.
+     *
+     * @throws SignatureRequestException
+     */
+    public function cancel(SignatureRequest $request, User $user): SignatureRequest
+    {
+        if (! $request->refresh()->isOpen()) {
+            throw new SignatureRequestException('La richiesta di firma non è più aperta.');
+        }
+
+        if (filled($request->provider_ref)) {
+            try {
+                $this->providers->provider()->cancelEnvelope($request->provider_ref);
+            } catch (\Throwable $e) {
+                throw new SignatureRequestException('Annullamento non riuscito, riprovare più tardi.', 0, $e);
+            }
+        }
+
+        DB::connection('mysql')->transaction(function () use ($request, $user): void {
+            $locked = SignatureRequest::query()->whereKey($request->getKey())->lockForUpdate()->first();
+
+            if ($locked === null || ! $locked->isOpen()) {
+                return;
+            }
+
+            $locked->forceFill(['status' => SignatureRequestStatus::Cancelled])->save();
+
+            activity('firma')
+                ->performedOn($locked)
+                ->causedBy($user)
+                ->event('firma_annullata')
+                ->withProperties(['signature_request_id' => $locked->id, 'provider' => $locked->provider])
+                ->log('Richiesta di firma annullata');
+        });
+
+        return $request->refresh();
+    }
+
+    /**
+     * Chiude le richieste scadute o rimaste in preparazione; ritorna quante ne ha modificate.
+     */
+    public function expireOverdue(int $limit = 20): int
+    {
+        $changed = 0;
+
+        $overdue = SignatureRequest::query()
+            ->where('status', SignatureRequestStatus::Sent)
+            ->where('expires_at', '<', now())
+            ->limit($limit)
+            ->get();
+
+        foreach ($overdue as $request) {
+            if (filled($request->provider_ref)) {
+                try {
+                    $this->providers->provider()->cancelEnvelope($request->provider_ref);
+                } catch (\Throwable) {
+                    Log::warning("Annullamento busta non riuscito per la richiesta di firma {$request->id}");
+                }
+            }
+
+            $changed += SignatureRequest::query()
+                ->whereKey($request->getKey())
+                ->where('status', SignatureRequestStatus::Sent)
+                ->update(['status' => SignatureRequestStatus::Expired]);
+        }
+
+        $changed += SignatureRequest::query()
+            ->where('status', SignatureRequestStatus::Pending)
+            ->whereNull('provider_ref')
+            ->where('created_at', '<', now()->subMinutes(15))
+            ->update(['status' => SignatureRequestStatus::Failed, 'failure_reason' => 'Richiesta non completata']);
+
+        return $changed;
+    }
+
+    /**
+     * Registra l'arrivo di un evento; non cambia lo stato (lo fa reconcile).
+     */
+    public function applyWebhook(SignatureEvent $event): ?SignatureRequest
+    {
+        $request = SignatureRequest::query()
+            ->where('provider', $this->providers->provider()->name())
+            ->where('provider_ref', $event->providerRef)
+            ->first();
+
+        $request?->forceFill(['last_event_at' => now()])->save();
+
+        return $request;
+    }
+
+    private function applySignerStates(SignatureRequest $request, EnvelopeStatus $envelope): void
+    {
+        $states = collect($envelope->signers)->keyBy('providerSignerRef');
+
+        foreach ($request->signers as $signer) {
+            $state = $states->get($signer->provider_signer_ref);
+
+            if ($state === null) {
+                continue;
+            }
+
+            $signer->forceFill(['status' => $state->status, 'signed_at' => $state->signedAt])->save();
+        }
+    }
+
+    private function completeRequest(SignatureRequest $request, string $pdf): void
+    {
+        $document = Document::query()->whereKey($request->document_id)->firstOrFail();
+        $signedAt = now();
+
+        $request->forceFill(['status' => SignatureRequestStatus::Signed, 'signed_at' => $signedAt, 'failure_reason' => null])->save();
+        $document->forceFill(['is_signed' => true, 'signed_at' => $signedAt])->save();
+
+        activity('firma')
+            ->performedOn($request)
+            ->event('firma_completata')
+            ->withProperties([
+                'signature_request_id' => $request->id,
+                'provider' => $request->provider,
+                'document_id' => $document->getKey(),
+            ])
+            ->log('Documento firmato');
+
+        $document->addMediaFromString($pdf)
+            ->usingFileName((Str::slug((string) $document->name) ?: 'documento').'-firmato.pdf')
+            ->toMediaCollection('signed');
     }
 
     private function assertNoOpenRequest(Document $document): void
