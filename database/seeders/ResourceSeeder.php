@@ -21,6 +21,7 @@ class ResourceSeeder extends Seeder
             ['key' => 'remediations', 'name' => 'Piani di Rimedio', 'group' => 'Compliance'],
             ['key' => 'oam-semestrales', 'name' => 'Semestrale OAM', 'group' => 'Compliance'],
             ['key' => 'documents', 'name' => 'Documenti', 'group' => 'Anagrafiche'],
+            ['key' => 'firma', 'name' => 'Firma documenti', 'group' => 'Anagrafiche'],
             ['key' => 'document-schedules', 'name' => 'Scadenzario Documenti', 'group' => 'Anagrafiche'],
             ['key' => 'employees', 'name' => 'Dipendenti', 'group' => 'Anagrafiche'],
             ['key' => 'companies', 'name' => 'Aziende', 'group' => 'Anagrafiche'],

@@ -3,10 +3,15 @@
 namespace App\Filament\Resources\RelationManagers;
 
 use App\Enums\DocumentStatus;
+use App\Enums\SignatureRequestStatus;
+use App\Filament\Actions\SendForSignatureAction;
 use App\Filament\Exports\DynamicGroupExport;
 use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\Document;
 use App\Models\DocumentType;
+use App\Models\SignatureRequest;
+use App\Services\Signature\Exceptions\SignatureRequestException;
+use App\Services\Signature\SignatureRequestService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -144,7 +149,7 @@ class DocumentsRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]))
+            ])->with('signatureRequests'))
             ->defaultSort('expires_at', 'desc')
             ->recordTitleAttribute('name')
             ->columns([
@@ -196,7 +201,16 @@ class DocumentsRelationManager extends RelationManager
                         default => 'gray',
                     })
                     ->toggleable(),
-
+                TextColumn::make('signature_state')
+                    ->label('Firma')
+                    ->badge()
+                    ->state(fn (Document $record): string => self::signatureState($record))
+                    ->color(fn (string $state): string => match ($state) {
+                        'In attesa di firma' => 'info',
+                        'Firmato' => 'success',
+                        'Rifiutata', 'Scaduta' => 'warning',
+                        default => 'gray',
+                    }),
             ])
             ->filters([
                 SelectFilter::make('document_type_id')
@@ -246,6 +260,66 @@ class DocumentsRelationManager extends RelationManager
             ])
             ->recordActions([
                 EditAction::make(),
+                SendForSignatureAction::make(),
+                Action::make('refreshSignature')
+                    ->label('Aggiorna stato')
+                    ->icon('heroicon-o-arrow-path')
+                    ->visible(fn (Document $record): bool => self::openSignatureRequest($record) !== null)
+                    ->action(function (Document $record): void {
+                        $request = self::openSignatureRequest($record);
+
+                        if ($request === null) {
+                            return;
+                        }
+
+                        try {
+                            $request = app(SignatureRequestService::class)->reconcile($request);
+                        } catch (SignatureRequestException $e) {
+                            Notification::make()->danger()->title('Aggiornamento non riuscito')->body($e->getMessage())->send();
+
+                            return;
+                        }
+
+                        if ($request->status === SignatureRequestStatus::Signed) {
+                            Notification::make()->success()->title('Documento firmato')->send();
+                        } elseif ($request->status->isOpen()) {
+                            Notification::make()->info()->title('Ancora in attesa di firma')->send();
+                        } else {
+                            Notification::make()->warning()->title('Richiesta di firma: '.mb_strtolower($request->status->getLabel()))->send();
+                        }
+                    }),
+                Action::make('cancelSignature')
+                    ->label('Annulla richiesta di firma')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (Document $record): bool => self::openSignatureRequest($record) !== null)
+                    ->action(function (Document $record): void {
+                        $request = self::openSignatureRequest($record);
+
+                        if ($request === null) {
+                            return;
+                        }
+
+                        try {
+                            app(SignatureRequestService::class)->cancel($request, auth()->user());
+                        } catch (SignatureRequestException $e) {
+                            Notification::make()->danger()->title('Annullamento non riuscito')->body($e->getMessage())->send();
+
+                            return;
+                        }
+
+                        Notification::make()->success()->title('Richiesta di firma annullata')->send();
+                    }),
+                Action::make('downloadSigned')
+                    ->label('Scarica firmato')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn (Document $record): bool => $record->is_signed && $record->getFirstMedia('signed') !== null)
+                    ->action(function (Document $record) {
+                        $media = $record->getFirstMedia('signed');
+
+                        return $media === null ? null : response()->download($media->getPath(), $media->file_name);
+                    }),
                 /*
                 Action::make('renew')
                     ->label('Aggiorna')
@@ -320,5 +394,38 @@ class DocumentsRelationManager extends RelationManager
                 ]),
             ]);
 
+    }
+
+    /**
+     * Usa la relazione gia' caricata dalla query della tabella (niente N+1).
+     */
+    private static function latestSignatureRequest(Document $document): ?SignatureRequest
+    {
+        return $document->signatureRequests->sortByDesc('id')->first();
+    }
+
+    private static function openSignatureRequest(Document $document): ?SignatureRequest
+    {
+        $request = self::latestSignatureRequest($document);
+
+        return $request?->isOpen() ? $request : null;
+    }
+
+    private static function signatureState(Document $document): string
+    {
+        if ($document->is_signed) {
+            return 'Firmato';
+        }
+
+        $request = self::latestSignatureRequest($document);
+
+        return match ($request?->status) {
+            SignatureRequestStatus::Pending, SignatureRequestStatus::Sent => 'In attesa di firma',
+            SignatureRequestStatus::Declined => 'Rifiutata',
+            SignatureRequestStatus::Expired => 'Scaduta',
+            SignatureRequestStatus::Cancelled => 'Annullata',
+            SignatureRequestStatus::Failed => 'Non riuscita',
+            default => 'Non firmato',
+        };
     }
 }

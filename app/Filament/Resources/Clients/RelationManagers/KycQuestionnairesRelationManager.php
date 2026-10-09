@@ -17,6 +17,7 @@ use App\Enums\KycPersonPurpose;
 use App\Enums\KycRiskLevel;
 use App\Enums\KycStatus;
 use App\Enums\KycWealthBand;
+use App\Filament\Actions\SendForSignatureAction;
 use App\Models\KycQuestionnaire;
 use App\Services\Kyc\BeneficialOwnerSuggester;
 use App\Services\Kyc\KycApprover;
@@ -249,6 +250,11 @@ class KycQuestionnairesRelationManager extends RelationManager
 
                         return response()->streamDownload(fn () => print ($pdf), 'QAV.pdf');
                     }),
+                SendForSignatureAction::make()
+                    ->visible(fn (Action $action, KycQuestionnaire $record): bool => $record->status === KycStatus::Approved
+                        && $record->document !== null
+                        && \checkPiano('firma', $action->getLivewire()::class)
+                        && SendForSignatureAction::isSignable($record->document)),
                 DeleteAction::make()
                     ->label('Elimina')
                     ->hidden(fn (KycQuestionnaire $record): bool => $record->status === KycStatus::Approved),
