@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ModelFieldsApiController;
 use App\Http\Controllers\Api\ModelFieldValueApiController;
 use App\Http\Controllers\Api\PraticaApiController;
+use App\Http\Controllers\Api\SignatureWebhookController;
 use App\Http\Controllers\Api\UserLookupApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,3 +20,8 @@ Route::patch('/models/{model}/{id}', [ModelFieldValueApiController::class, 'upda
 
 // Consumato da UnicoBPM per verificare se l'utente loggato ha un account anche qui.
 Route::get('/users/lookup', [UserLookupApiController::class, 'show'])->name('api.users.lookup');
+
+// Webhook dei provider di firma: autenticato dalla verifica della firma del provider, risponde subito e accoda la riconciliazione.
+Route::post('/signature/webhook/{provider}', SignatureWebhookController::class)
+    ->middleware('throttle:120,1')
+    ->name('api.signature.webhook');

@@ -10,6 +10,9 @@ Artisan::command('inspire', function () {
 
 Schedule::command('documents:send-reminders')->dailyAt('08:00');
 
+// Riconcilia le richieste di firma senza aggiornamenti e chiude quelle scadute.
+Schedule::command('signature:sync')->hourly()->withoutOverlapping();
+
 // Rinfresca i dati di lavoro del semestrale OAM. L'import e' idempotente sul
 // periodo corrente ed e' protetto da lock: ricostruisce solo company + periodo.
 Schedule::command('oam:import-pratiche')

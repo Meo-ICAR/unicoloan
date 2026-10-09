@@ -256,6 +256,8 @@ class SignatureRequestService
         $overdue = SignatureRequest::query()
             ->where('status', SignatureRequestStatus::Sent)
             ->where('expires_at', '<', now())
+            ->orderByRaw('last_synced_at IS NOT NULL, last_synced_at ASC')
+            ->orderBy('id')
             ->limit($limit)
             ->get();
 
