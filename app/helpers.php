@@ -51,6 +51,12 @@ if (! function_exists('resolvePianoAccess')) {
             if ($userRole === UserRole::ADMIN || $userRole === UserRole::SUPER_ADMIN) {
                 return true;
             }
+
+            // L'agente usa solo il portale /agenti, che non passa da queste funzionalita':
+            // senza questo blocco l'assenza di un profilo Employee lo lascerebbe passare (fail open).
+            if ($userRole === UserRole::AGENT) {
+                return false;
+            }
         }
 
         // STEP 1: Piano / licenza.

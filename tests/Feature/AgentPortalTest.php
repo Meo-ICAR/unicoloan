@@ -122,6 +122,16 @@ class AgentPortalTest extends TestCase
         $this->get('/admin/praticas')->assertForbidden();
     }
 
+    public function test_agents_are_denied_every_plan_feature_and_cannot_download_documents(): void
+    {
+        $this->assertFalse(checkPiano('documents'));
+        $this->assertFalse(checkPiano('firma'));
+
+        $document = $this->fornitore->documents()->create(['name' => 'ZZ doc', 'status' => 'caricato', 'spatie_collection' => 'documents']);
+
+        $this->get(route('documents.download', $document))->assertForbidden();
+    }
+
     public function test_list_shows_only_own_open_pratiche(): void
     {
         $own = $this->pratica();
@@ -197,6 +207,7 @@ class AgentPortalTest extends TestCase
         Clienti::create(['name' => 'ZZ BANCA', 'principal_type' => 'banca']);
         $product = Tipoprodotto::query()->whereNotNull('tipo_prodotto')->first();
         $existing = Client::create(['name' => 'ZZ Rossi', 'is_person' => true, 'tax_code' => 'ZZZMRA80A01H501A', 'email' => 'originale@example.test']);
+        $this->pratica(['codice_fiscale' => 'ZZZMRA80A01H501A']);
 
         Livewire::test(CreatePraticaAgente::class)
             ->fillForm([
@@ -209,6 +220,50 @@ class AgentPortalTest extends TestCase
 
         $this->assertSame(1, Client::query()->where('tax_code', 'ZZZMRA80A01H501A')->count());
         $this->assertSame('originale@example.test', $existing->fresh()->email);
+    }
+
+    public function test_creating_a_pratica_for_a_client_of_another_agent_is_blocked(): void
+    {
+        Clienti::create(['name' => 'ZZ BANCA', 'principal_type' => 'banca']);
+        $product = Tipoprodotto::query()->whereNotNull('tipo_prodotto')->first();
+        [, $other] = $this->agent('ZZ AGENTE DUE', '99900000002');
+        $foreign = Client::create(['name' => 'ZZ Altrui', 'is_person' => true, 'tax_code' => 'ZZZALT80A01H501A']);
+        $this->pratica(['codice_fiscale' => 'ZZZALT80A01H501A', 'partita_iva_agente' => $other->piva]);
+        $orphan = Client::create(['name' => 'ZZ Senza pratiche', 'is_person' => true, 'tax_code' => 'ZZZORF80A01H501A']);
+
+        foreach (['ZZZALT80A01H501A', 'ZZZORF80A01H501A'] as $code) {
+            Livewire::test(CreatePraticaAgente::class)
+                ->fillForm([
+                    'nome_cliente' => 'Mario', 'cognome_cliente' => 'ZZ Altrui', 'codice_fiscale' => $code,
+                    'client_email' => 'x@example.test', 'client_phone' => '+393331234567',
+                    'tipo_prodotto' => $product->name, 'denominazione_banca' => 'ZZ BANCA', 'amount' => 1000,
+                ])
+                ->call('create')
+                ->assertHasFormErrors(['codice_fiscale']);
+        }
+
+        $this->assertSame(0, Pratica::query()->where('cognome_cliente', 'ZZ Altrui')->count());
+        $this->assertNotNull($foreign->fresh());
+        $this->assertNotNull($orphan->fresh());
+    }
+
+    public function test_kyc_cannot_start_on_a_client_shared_with_other_agents(): void
+    {
+        [, $other] = $this->agent('ZZ AGENTE DUE', '99900000002');
+        $client = Client::create(['name' => 'ZZ Condiviso', 'is_person' => true, 'tax_code' => 'ZZZCON80A01H501A']);
+        $own = $this->pratica(['codice_fiscale' => $client->tax_code]);
+        $this->pratica(['codice_fiscale' => $client->tax_code, 'partita_iva_agente' => $other->piva]);
+
+        $this->kycManager($own)->assertActionHidden(TestAction::make('create')->table());
+    }
+
+    public function test_an_agent_without_vat_number_sees_no_pratiche(): void
+    {
+        $this->fornitore->forceFill(['piva' => null])->save();
+        $this->pratica(['partita_iva_agente' => '']);
+        $this->pratica(['partita_iva_agente' => null]);
+
+        Livewire::test(ListPraticheAgente::class)->assertCountTableRecords(0);
     }
 
     public function test_creating_a_company_pratica_stores_the_vat_number(): void

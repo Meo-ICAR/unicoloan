@@ -20,6 +20,7 @@ use App\Filament\Actions\SendForSignatureAction;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
 use App\Models\KycQuestionnaire;
 use App\Models\PROFORMA\Pratica;
+use App\Services\Agenti\ClientForPraticaCreator;
 use App\Services\Kyc\KycQavGenerator;
 use App\Services\PdfFormException;
 use App\Services\Signature\Exceptions\SignatureRequestException;
@@ -215,7 +216,9 @@ class AdeguataVerificaRelationManager extends RelationManager
         /** @var Pratica $pratica */
         $pratica = $this->getOwnerRecord();
 
-        return $pratica->clienteAnagrafica() !== null && ! $pratica->kycQuestionnaires()->exists();
+        return $pratica->clienteAnagrafica() !== null
+            && app(ClientForPraticaCreator::class)->isUsableByAgent((string) $pratica->codice_fiscale, $pratica->partita_iva_agente)
+            && ! $pratica->kycQuestionnaires()->exists();
     }
 
     /**

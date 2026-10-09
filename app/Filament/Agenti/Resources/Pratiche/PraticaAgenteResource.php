@@ -11,6 +11,7 @@ use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
 use App\Models\PROFORMA\Pratica;
 use App\Models\Tipoprodotto;
+use App\Services\Agenti\ClientForPraticaCreator;
 use App\Services\BlacklistChecker;
 use BackedEnum;
 use Closure;
@@ -63,11 +64,10 @@ class PraticaAgenteResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $pivas = static::fornitore()?->visibleAgentPivas() ?? [];
+        $query = parent::getEloquentQuery()->where('is_notowned', false)->whereNull('rejected_at');
 
-        return parent::getEloquentQuery()
-            ->where('is_notowned', false)
-            ->whereNull('rejected_at')
-            ->whereIn('partita_iva_agente', $pivas === [] ? [''] : $pivas);
+        // Senza partita IVA l'agente non vede nulla (mai le pratiche con P.IVA vuota).
+        return $pivas === [] ? $query->whereRaw('1 = 0') : $query->whereIn('partita_iva_agente', $pivas);
     }
 
     public static function form(Schema $schema): Schema
@@ -95,6 +95,13 @@ class PraticaAgenteResource extends Resource
                         ->label(fn (Get $get): string => $get('client_type') === 'company' ? 'Partita IVA' : 'Codice fiscale')
                         ->required()
                         ->rule(fn (Get $get): string => $get('client_type') === 'company' ? 'regex:/^\d{11}$/' : 'regex:/^[A-Za-z0-9]{16}$/')
+                        ->rules([
+                            fn (): Closure => function (string $attribute, $value, Closure $fail): void {
+                                if (! app(ClientForPraticaCreator::class)->isUsableByAgent((string) $value, static::fornitore()?->piva)) {
+                                    $fail('Cliente gia\' presente in anagrafica: contatta l\'istruttoria per collegare la pratica.');
+                                }
+                            },
+                        ])
                         ->validationMessages(['regex' => 'Formato non valido.']),
                     TextInput::make('client_email')->label('Email del cliente')->email()->required()->maxLength(191),
                     TextInput::make('client_phone')->label('Cellulare del cliente (per l\'OTP)')->tel()->required()->maxLength(32),
