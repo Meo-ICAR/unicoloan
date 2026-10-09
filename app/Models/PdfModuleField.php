@@ -61,7 +61,7 @@ class PdfModuleField extends Model
         }
 
         if (filled($this->checkbox_when)) {
-            $when = ModuleSourceKey::tryFrom(ltrim($this->checkbox_when, '!'));
+            $when = $this->parseCheckboxWhen()['key'];
 
             if ($when !== null) {
                 $keys[] = $when;
@@ -69,5 +69,19 @@ class PdfModuleField extends Model
         }
 
         return $keys;
+    }
+
+    /**
+     * Interpreta `checkbox_when` nel formato `[!]chiave[=valore]`.
+     *
+     * @return array{negate: bool, key: ModuleSourceKey|null, value: string|null}
+     */
+    public function parseCheckboxWhen(): array
+    {
+        $when = (string) $this->checkbox_when;
+        $negate = str_starts_with($when, '!');
+        [$name, $value] = array_pad(explode('=', ltrim($when, '!'), 2), 2, null);
+
+        return ['negate' => $negate, 'key' => ModuleSourceKey::tryFrom($name), 'value' => $value];
     }
 }

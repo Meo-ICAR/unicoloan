@@ -2,20 +2,38 @@
 
 namespace App\Filament\Resources\Praticas\Pages;
 
+use App\Enums\KycCoverage;
 use App\Filament\Actions\GeneraModuliPraticaAction;
 use App\Filament\Resources\Praticas\PraticaResource;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Pratica;
+use App\Services\ModuleDataResolver;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\DB;
 
 class EditPratica extends EditRecord
 {
     protected static string $resource = PraticaResource::class;
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        $coverage = once(function (): ?KycCoverage {
+            $client = app(ModuleDataResolver::class)->findClient($this->getRecord());
+
+            return $client?->kycCoverage();
+        });
+
+        return match ($coverage) {
+            KycCoverage::Missing => 'Attenzione: KYC mancante per il cliente',
+            KycCoverage::Expired => 'Attenzione: KYC scaduto per il cliente',
+            default => null,
+        };
+    }
 
     protected function getHeaderActions(): array
     {

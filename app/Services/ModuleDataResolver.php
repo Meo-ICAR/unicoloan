@@ -6,7 +6,9 @@ use App\Enums\ModuleSourceKey as Key;
 use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Document;
+use App\Models\KycQuestionnaire;
 use App\Models\PROFORMA\Pratica;
+use App\Services\Kyc\KycModuleValues;
 
 /**
  * Costruisce i dati con cui compilare i moduli PDF a partire da una Pratica e dal suo Client.
@@ -45,26 +47,36 @@ class ModuleDataResolver
 
     public function resolve(Pratica $pratica, Client $client): ResolvedModuleData
     {
-        $pratica->loadMissing('agente');
+        return $this->resolveForClient($client, null, $pratica);
+    }
+
+    /**
+     * Dati del modulo per un cliente; senza pratica le chiavi `pratica.*` e `agent.*` restano nulle.
+     * Il QAV di default e' quello approvato corrente, altrimenti l'ultimo creato.
+     */
+    public function resolveForClient(Client $client, ?KycQuestionnaire $kyc = null, ?Pratica $pratica = null): ResolvedModuleData
+    {
+        $pratica?->loadMissing('agente');
+        $kyc ??= $client->currentKyc() ?? $client->kycQuestionnaires()->latest('id')->first();
         $client->loadMissing(['branches', 'documents.documentType', 'employer.branches', 'legalRepresentative', 'thirdPartyFinancings']);
 
         $branch = $this->mainBranch($client);
         $employer = $client->employer;
         $employerBranch = $employer ? $this->mainBranch($employer) : null;
         $identity = $this->identityDocument($client);
-        $agent = $pratica->agente;
+        $agent = $pratica?->agente;
         $representative = $client->legalRepresentative;
         $thirdParty = $client->thirdPartyFinancings->first();
 
-        return new ResolvedModuleData([
-            Key::PraticaCodice->value => $pratica->codice_pratica,
-            Key::PraticaImporto->value => $pratica->amount,
-            Key::PraticaRata->value => $pratica->rata,
-            Key::PraticaNumeroRate->value => $pratica->nrate,
-            Key::PraticaBanca->value => $pratica->denominazione_banca,
-            Key::PraticaAbi->value => $pratica->abi,
-            Key::PraticaProdotto->value => $pratica->denominazione_prodotto,
-            Key::PraticaDataInserimento->value => $pratica->data_inserimento_pratica,
+        return new ResolvedModuleData(array_merge([
+            Key::PraticaCodice->value => $pratica?->codice_pratica,
+            Key::PraticaImporto->value => $pratica?->amount,
+            Key::PraticaRata->value => $pratica?->rata,
+            Key::PraticaNumeroRate->value => $pratica?->nrate,
+            Key::PraticaBanca->value => $pratica?->denominazione_banca,
+            Key::PraticaAbi->value => $pratica?->abi,
+            Key::PraticaProdotto->value => $pratica?->denominazione_prodotto,
+            Key::PraticaDataInserimento->value => $pratica?->data_inserimento_pratica,
             Key::PraticaOggi->value => now(),
 
             Key::ClienteCognome->value => $client->name,
@@ -115,7 +127,82 @@ class ModuleDataResolver
             Key::DocumentoRilasciatoDa->value => $identity?->emitted_by,
             Key::DocumentoRilasciatoIl->value => $identity?->emitted_at,
             Key::DocumentoScadenza->value => $identity?->expires_at,
-        ]);
+        ], $this->kycValues($client, $kyc)));
+    }
+
+    /**
+     * Valori `kyc.*` (enum come stringa `->value`). La costruzione sta qui, e non in KycModuleValues,
+     * per riusare gli helper privati sede principale / indirizzo / documento d'identita'.
+     *
+     * @return array<string, mixed>
+     */
+    private function kycValues(Client $client, ?KycQuestionnaire $kyc): array
+    {
+        $map = [];
+
+        foreach ([
+            'pep_status', 'financing_purpose', 'economic_activity', 'activity_sector', 'activity_location',
+            'financing_nature', 'income_band', 'wealth_band', 'legal_nature', 'geographic_area', 'executor_link',
+        ] as $field) {
+            $value = $kyc?->{$field};
+            $map["kyc.{$field}"] = $value instanceof \BackedEnum ? $value->value : $value;
+        }
+
+        $owners = $kyc?->beneficialOwners ?? collect();
+
+        $map = array_merge($map, $this->personBlock('executor', $kyc?->executor));
+        $map['kyc.executor.pep_status'] = $kyc?->executor_pep_status?->value;
+
+        foreach ([1, 2, 3] as $position) {
+            $owner = $owners->firstWhere('position', $position);
+
+            $map = array_merge($map, $this->personBlock("owner{$position}", $owner?->person));
+            $map["kyc.owner{$position}.criterion"] = $owner?->control_criterion?->value;
+            $map["kyc.owner{$position}.pep_status"] = $owner?->pep_status?->value;
+        }
+
+        return $map;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function personBlock(string $subject, ?Client $person): array
+    {
+        $values = array_fill_keys(KycModuleValues::PERSON_FIELDS, null);
+
+        if ($person !== null) {
+            $person->loadMissing(['branches', 'documents.documentType']);
+            $branch = $this->mainBranch($person);
+            $identity = $this->identityDocument($person);
+
+            $values = [
+                'name' => $person->name,
+                'first_name' => $person->first_name,
+                'tax_code' => $person->tax_code,
+                'birth_place' => $person->birth_place,
+                'birth_date' => $person->birth_date,
+                'citizenship' => $person->citizenship,
+                'sex' => $person->sex,
+                'city' => $branch?->city,
+                'province' => $branch?->province,
+                'address' => $branch ? trim(($branch->address ?? '').' '.($branch->street_number ?? '')) : null,
+                'zip' => $branch?->zip_code,
+                'doc_type' => $identity?->documentType?->name,
+                'doc_number' => $identity?->docnumber,
+                'doc_issuer' => $identity?->emitted_by,
+                'doc_issued_at' => $identity?->emitted_at,
+                'doc_expires_at' => $identity?->expires_at,
+            ];
+        }
+
+        $block = [];
+
+        foreach (KycModuleValues::PERSON_FIELDS as $field) {
+            $block["kyc.{$subject}.{$field}"] = $values[$field];
+        }
+
+        return $block;
     }
 
     private function nominativo(Client $client): string

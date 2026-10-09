@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Clients\Schemas;
 
+use App\Enums\KycCoverage;
+use App\Models\Client;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -12,6 +14,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -145,6 +148,22 @@ class ClientForm
                                             ->readOnly(),
                                     ])
                                     ->columns(3),
+                                Section::make('KYC / Adeguata verifica')
+                                    ->description('Ultimo questionario di adeguata verifica approvato')
+                                    ->visible(fn (?Client $record): bool => $record !== null)
+                                    ->schema([
+                                        Text::make(function (?Client $record): string {
+                                            $kyc = $record?->currentKyc();
+
+                                            if ($kyc === null) {
+                                                return KycCoverage::Missing->getLabel().': nessun questionario approvato';
+                                            }
+
+                                            return $kyc->coverage()->getLabel()
+                                                .' - verificato il '.($kyc->verified_at?->format('d/m/Y') ?? 'n.d.')
+                                                .' da '.($kyc->verified_by ?: 'n.d.');
+                                        }),
+                                    ]),
                                 Section::make('Consensi Privacy')
                                     ->schema([
                                         DateTimePicker::make('general_consent_at')->label('Consenso Base'),

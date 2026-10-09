@@ -8,6 +8,7 @@ use App\Filament\Resources\Clients\Pages\ListClients;
 use App\Filament\Resources\Clients\RelationManagers\ClientMandatesRelationManager;
 use App\Filament\Resources\Clients\RelationManagers\ClientRelationsRelationManager;
 use App\Filament\Resources\Clients\RelationManagers\ImpegniTerziRelationManager;
+use App\Filament\Resources\Clients\RelationManagers\KycQuestionnairesRelationManager;
 use App\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Filament\Resources\Clients\Tables\ClientsTable;
 use App\Filament\Resources\RelationManagers\BranchesRelationManager;
@@ -57,7 +58,7 @@ class ClientResource extends Resource
             ImpegniTerziRelationManager::class,
             WebsitesRelationManager::class,
             BranchesRelationManager::class,
-            //   ChecklistsRelationManager::class,
+            KycQuestionnairesRelationManager::class,
 
         ];
     }
