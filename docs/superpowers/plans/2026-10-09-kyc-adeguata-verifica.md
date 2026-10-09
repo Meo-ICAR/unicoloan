@@ -1,68 +1,73 @@
-# KYC Adeguata Verifica Implementation Plan
+# KYC Adeguata Verifica (QAV) Implementation Plan — rev. 2
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Questionario KYC versionato per cliente (con titolari effettivi per le società), mostrato in scheda cliente, lista clienti e pratica come indicatore informativo.
+**Goal:** Questionario KYC versionato per cliente che ricalca i QAV ufficiali (persona fisica / giuridica con titolari effettivi), stampabile sui due QAV via `PdfModule`, con scadenza e promemoria gestiti da `DocumentType`.
 
-**Architecture:** Due nuove tabelle sulla connessione di default (`mysql`), modelli Eloquent + enum, un service puro che suggerisce i titolari effettivi dalle cariche sociali, un RelationManager Filament sul cliente. `Client` (connessione `mysql_proforma`) espone `kycCoverage()`. Nessun blocco delle pratiche.
+**Architecture:** Tabelle `kyc_questionnaires` / `kyc_beneficial_owners` su `mysql`; enum con le opzioni dei QAV; chiavi `kyc.*` nella whitelist dei moduli PDF e `checkbox_when` con uguaglianza (`chiave=valore`); `KycApprover` genera il QAV compilato come `Document` del cliente (tipo QAV del catalogo) e da lì derivano scadenza e copertura; RelationManager Filament sul cliente.
 
-**Tech Stack:** Laravel 13, Filament v5, Livewire v4, PHPUnit 12, MySQL (test su `unicooam_test`).
+**Tech Stack:** Laravel 13, Filament v5, Livewire v4, PHPUnit 12, `mikehaertl/php-pdftk` + `pdftk-java` (già presenti).
 
 **Spec:** `docs/superpowers/specs/2026-10-09-kyc-adeguata-verifica-design.md`
 
 ## Global Constraints
 
-- Soglia titolare effettivo: **quota strettamente > 25%** (art. 20 D.Lgs. 231/2007, "25% più uno"). Ha la precedenza sul "≥ 25%" della spec: Task 1 corregge la spec.
-- `Client` e `Pratica` sono su `mysql_proforma`: niente FK native verso `clients`/`pratiches`, niente subquery cross-connection (usare `pluck()` + `whereIn`).
-- `client_id` = `unsignedBigInteger` (clients.id è bigint unsigned); `pratica_id` = `string(64)` (id pratica è uuid varchar); `client_mandate_id` = `foreignId` verso `client_mandates` (stessa connessione, bigint unsigned).
-- Enum: `string` backed, `implements HasLabel`, stile di `app/Enums/AmlReportStatus.php`.
-- Test: PHPUnit, `LazilyRefreshDatabase`, `protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];` (vedi `tests/Feature/ClientEmployerIbanTest.php`).
-- Dopo ogni modifica PHP: `vendor/bin/pint --dirty --format agent`.
-- Nessuna nuova dipendenza. Solo `php artisan make:*` con `--no-interaction`.
-- Testi UI in italiano.
+- Soglia titolare effettivo: quota **strettamente > 25%**; il QAV stampa **al massimo 3** titolari (`position` 1–3).
+- `Client` e `Pratica` sono su `mysql_proforma`: `client_id`/`executor_client_id` = `unsignedBigInteger`, `pratica_id` = `string(64)`, niente FK native e niente subquery cross-connection (`pluck()` + `whereIn`). Tabelle nuove su `mysql`.
+- Enum: `string` backed, `implements HasLabel`, stile `app/Enums/AmlReportStatus.php`; **l'ordine dei case = ordine delle opzioni nel QAV**, così la lettera della casella = indice (a, b, c…; per il settore `a–i, l, m`).
+- Mappatura caselle (verificata sul PDF): `1a` = prima opzione della domanda 1, ecc. Valore "spuntata" = stati del PDF (`si`, oppure `No` per le PEP dei titolari 7/9/11 del QAV giuridico) già letto da `modules:sync-fields` in `checkbox_on_value`.
+- Test: PHPUnit, `LazilyRefreshDatabase`, `protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];`. Dove serve un PDF compilato senza fixture reale: `$this->mock(PdfFormFiller::class)->shouldReceive('fill')->andReturn('%PDF-1.4 finto')`.
+- `pdftk` è ora installato: i test esistenti del sistema moduli devono restare verdi (37 test: `PdfFormFillerTest`, `PraticaModuleGeneratorTest`, `PdfFieldSynchronizerTest`, `PdfModuleDocumentTypeTest`, `PdfModuleSeederTest`, `CheckPrintableModulesCommandTest`).
+- Dopo ogni modifica PHP: `vendor/bin/pint --dirty --format agent`. Nessuna nuova dipendenza. Solo `php artisan make:*` con `--no-interaction`. Testi UI in italiano. Commit con trailer `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- Solo informativo: nessun blocco delle pratiche.
 
 ## Review Focus
 
-- Cliente con più questionari approvati: conta l'ultimo; uno bozza più recente non annulla l'approvato precedente (Task 2).
-- `next_review_at` nullo su approvato = non scade (Task 2).
-- Società senza nessuna quota > 25% e senza rappresentante legale: suggerimento vuoto, non errore (Task 3).
-- Carica sociale con `data_fine_ruolo` passata: ignorata nel suggerimento (Task 3).
-- Quota esattamente 25.00: NON titolare (Task 3).
-- Approvazione di una società con titolare non verificato o senza titolari: rifiutata con elenco dei requisiti mancanti (Task 4).
-- Persona fisica: nessun requisito sui titolari (Task 4).
+- Cliente con più questionari approvati: conta l'ultimo; una bozza più recente non annulla l'approvato (Task 2).
+- Approvato senza documento o con documento senza scadenza: non scade (Task 2).
+- Quota esattamente 25.00 non è titolare; carica terminata ignorata; nessuno sopra soglia → residuale col rappresentante legale; senza rappresentante → lista vuota (Task 3).
+- Società con >3 titolari: l'approvazione avvisa ma non stampa il quarto (Task 4/6).
+- Società senza titolari o con titolari non verificati: approvazione rifiutata con elenco dei requisiti (Task 4).
+- Tipo QAV non collegato al modulo PDF: approvazione fallisce con messaggio chiaro e **senza** lasciare stato `approvato` né documenti parziali (Task 6).
+- `checkbox_when` senza `=`, con `!`, e con `=` retro-compatibili (Task 5).
 
 ---
 
 ### Task 1: Enum, migrazioni, modelli, factory
 
 **Files:**
-- Create: `app/Enums/KycRiskLevel.php`, `app/Enums/KycStatus.php`, `app/Enums/KycControlType.php`, `app/Enums/KycCoverage.php`
-- Create (via artisan): `app/Models/KycQuestionnaire.php`, `app/Models/KycBeneficialOwner.php`, migrazioni, factory
-- Modify: `docs/superpowers/specs/2026-10-09-kyc-adeguata-verifica-design.md` (soglia)
+- Create: `app/Enums/Kyc/` non esiste come cartella nuova di base: usare direttamente `app/Enums/` con prefisso `Kyc` — `KycPepStatus`, `KycEconomicActivity`, `KycActivitySector`, `KycActivityLocation`, `KycFinancingNature`, `KycPersonPurpose`, `KycCompanyPurpose`, `KycIncomeBand`, `KycWealthBand`, `KycLegalNature`, `KycGeographicArea`, `KycExecutorLink`, `KycControlCriterion`, `KycRiskLevel`, `KycStatus`, `KycCoverage`
+- Create (artisan): `app/Models/KycQuestionnaire.php`, `app/Models/KycBeneficialOwner.php`, migrazioni, `database/factories/KycQuestionnaireFactory.php`
 - Test: `tests/Feature/KycModelTest.php`
 
-**Interfaces:**
-- Produces:
-  - `KycRiskLevel::{LOW='low',MEDIUM='medium',HIGH='high'}` con `reviewMonths(): int` (6/12/36 → HIGH 6, MEDIUM 12, LOW 36).
-  - `KycStatus::{DRAFT='draft',COMPLETE='complete',APPROVED='approved'}`.
-  - `KycControlType::{SHARES='shares',CONTROL='control',RESIDUAL='residual'}`.
-  - `KycCoverage::{MISSING='missing',EXPIRED='expired',COMPLETE='complete'}` con `getColor(): string` (danger/warning/success).
-  - `KycQuestionnaire` (fillable: `client_id, client_mandate_id, pratica_id, purpose_of_relationship, funds_origin, occupation, income_source, is_remote_interaction, is_pep, high_risk_countries, risk_level, status, compiled_at, verified_by, verified_at, next_review_at, notes`), relazioni `client(): BelongsTo`, `beneficialOwners(): HasMany`; factory `KycQuestionnaire::factory()` con stati `approved()`, `draft()`.
-  - `KycBeneficialOwner` (fillable: `kyc_questionnaire_id, client_id, shares_percentage, control_type, declaration_signed_at, document_id, is_verified`), relazioni `questionnaire()`, `person(): BelongsTo` (Client).
+**Interfaces — Produces** (valori stringa = quelli indicati, ordine = ordine nel QAV):
+- `KycPepStatus`: `PublicOffice='carica_pubblica'`, `DirectFamily='familiare'`, `CloseTies='stretti_legami'`, `LocalOffice='carica_locale'`, `None='nessuna'`
+- `KycEconomicActivity`: `Employee='dipendente'`, `SelfEmployed='autonomo'`, `Professional='libero_professionista'`, `Entrepreneur='imprenditore'`, `Retired='pensionato'`, `NonProfessional='non_professionale'`
+- `KycActivitySector` (11): `Commerce='commercio_servizi'`, `PublicAdmin='pubblica_amministrazione'`, `Construction='edilizia'`, `Finance='credito_finanza'`, `Industry='industria'`, `Tourism='turismo'`, `Jewelry='gioielli_antiquariato'`, `Waste='rifiuti'`, `Renewables='energie_rinnovabili'`, `OtherRisk='altre_attivita_rischio'`, `None='nessuna_condizione'`
+- `KycActivityLocation` (5): `Region='regione_residenza'`, `ItalyMulti='piu_regioni'`, `Eu='unione_europea'`, `NonEu='extra_ue'`, `HighRisk='paesi_alto_rischio'`
+- `KycFinancingNature` (4): `SalaryAssignment='cessione_quinto'`, `PersonalLoan='prestito_personale'`, `Mortgage='mutuo'`, `TfsAdvance='anticipo_tfs'`
+- `KycPersonPurpose` (2): `Personal='personale_familiare'`, `Professional='professionale_commerciale'`
+- `KycIncomeBand` (4): `Up100k='fino_100k'`, `From100kTo250k='100k_250k'`, `From250kTo500k='250k_500k'`, `Over500k='oltre_500k'`
+- `KycWealthBand` (3): `Up500k='fino_500k'`, `From500kTo2500k='500k_2500k'`, `Over2500k='oltre_2500k'`
+- `KycLegalNature` (5): `SoleProprietorship='ditta_individuale'`, `CapitalCompany='societa_capitali'`, `Partnership='societa_persone'`, `Cooperative='cooperativa_consorzio'`, `Listed='quotata'`
+- `KycGeographicArea` (3): `Italy='italia'`, `Eu='ue'`, `NonEu='extra_ue'`
+- `KycCompanyPurpose` (10): `FinancialNeeds='fabbisogno_finanziario'`, `ConsortiumGuarantee='garanzia_consortile'`, `CreditLine='apertura_credito'`, `MortgageSecured='mutuo_ipotecario'`, `MortgageUnsecured='mutuo_chirografario'`, `ReceivablesAdvance='anticipo_crediti'`, `PortfolioDiscount='sconto_portafoglio'`, `RealEstateLeasing='leasing_immobiliare'`, `EquipmentLeasing='leasing_strumentale'`, `Factoring='factoring'`
+- `KycExecutorLink` (2): `LegalRepresentative='rappresentante_legale'`, `Delegate='delegato'`
+- `KycControlCriterion` (5): `Shares='quota_25'`, `MajorityVotes='maggioranza_voti'`, `DominantVotes='influenza_voti'`, `DominantContract='influenza_contratti'`, `Management='poteri_amministrazione'`
+- `KycRiskLevel`: `Low='low'`, `Medium='medium'`, `High='high'`; `KycStatus`: `Draft='draft'`, `Complete='complete'`, `Approved='approved'`; `KycCoverage`: `Missing='missing'`, `Expired='expired'`, `Complete='complete'` con `getColor(): string` (danger/warning/success).
+- Ogni enum ha `getLabel(): string` con il testo del QAV in italiano (es. `KycPepStatus::PublicOffice` → "Ricopre o ha ricoperto nell'ultimo anno un'importante carica pubblica").
+- `KycQuestionnaire` fillable: `client_id, client_mandate_id, pratica_id, document_id, pep_status, financing_purpose, risk_level, status, compiled_at, verified_by, verified_at, notes, economic_activity, activity_sector, activity_location, financing_nature, income_band, wealth_band, acts_for_third_party, legal_nature, geographic_area, executor_client_id, executor_link, executor_pep_status`; relazioni `client()`, `executor()` (BelongsTo `Client` su `executor_client_id`), `document()` (BelongsTo `Document`), `beneficialOwners()` (HasMany, `orderBy('position')`); factory con stati `draft()` e `approved()`.
+- `KycBeneficialOwner` fillable: `kyc_questionnaire_id, position, client_id, shares_percentage, control_criterion, pep_status, declaration_signed_at, document_id, is_verified`; relazioni `questionnaire()`, `person()` (BelongsTo `Client` su `client_id`).
 
-- [ ] **Step 1: Correggi la soglia nella spec**
-
-In `docs/superpowers/specs/2026-10-09-kyc-adeguata-verifica-design.md` sostituisci "quota ≥ 25%" con "quota > 25% (25% più uno, art. 20 D.Lgs. 231/2007)".
-
-- [ ] **Step 2: Scrivi il test che fallisce**
+- [ ] **Step 1: Test che fallisce**
 
 ```php
 <?php
 
 namespace Tests\Feature;
 
-use App\Enums\KycControlType;
-use App\Enums\KycRiskLevel;
+use App\Enums\KycControlCriterion;
+use App\Enums\KycPepStatus;
 use App\Enums\KycStatus;
 use App\Models\KycBeneficialOwner;
 use App\Models\KycQuestionnaire;
@@ -75,122 +80,85 @@ class KycModelTest extends TestCase
 
     protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];
 
-    public function test_questionnaire_casts_and_owners_relation(): void
+    public function test_questionnaire_casts_and_owners_are_ordered_by_position(): void
     {
-        $questionnaire = KycQuestionnaire::factory()->create([
-            'client_id' => 1,
-            'risk_level' => KycRiskLevel::HIGH,
+        $questionnaire = KycQuestionnaire::factory()->create(['client_id' => 1, 'pep_status' => KycPepStatus::None]);
+        KycBeneficialOwner::create([
+            'kyc_questionnaire_id' => $questionnaire->id, 'position' => 2, 'client_id' => 11,
+            'control_criterion' => KycControlCriterion::Management,
         ]);
         KycBeneficialOwner::create([
-            'kyc_questionnaire_id' => $questionnaire->id,
-            'client_id' => 2,
-            'shares_percentage' => 40,
-            'control_type' => KycControlType::SHARES,
+            'kyc_questionnaire_id' => $questionnaire->id, 'position' => 1, 'client_id' => 10,
+            'shares_percentage' => 40, 'control_criterion' => KycControlCriterion::Shares,
         ]);
 
         $questionnaire->refresh();
 
-        $this->assertSame(KycRiskLevel::HIGH, $questionnaire->risk_level);
-        $this->assertSame(KycStatus::DRAFT, $questionnaire->status);
-        $this->assertCount(1, $questionnaire->beneficialOwners);
-        $this->assertSame(KycControlType::SHARES, $questionnaire->beneficialOwners->first()->control_type);
+        $this->assertSame(KycPepStatus::None, $questionnaire->pep_status);
+        $this->assertSame(KycStatus::Draft, $questionnaire->status);
+        $this->assertSame([10, 11], $questionnaire->beneficialOwners->pluck('client_id')->all());
+        $this->assertSame(KycControlCriterion::Shares, $questionnaire->beneficialOwners->first()->control_criterion);
         $this->assertFalse($questionnaire->beneficialOwners->first()->is_verified);
     }
 
-    public function test_review_months_per_risk_level(): void
+    public function test_enum_order_matches_the_qav_letters(): void
     {
-        $this->assertSame(6, KycRiskLevel::HIGH->reviewMonths());
-        $this->assertSame(12, KycRiskLevel::MEDIUM->reviewMonths());
-        $this->assertSame(36, KycRiskLevel::LOW->reviewMonths());
+        $this->assertSame(
+            ['carica_pubblica', 'familiare', 'stretti_legami', 'carica_locale', 'nessuna'],
+            array_column(KycPepStatus::cases(), 'value'),
+        );
+        $this->assertCount(11, \App\Enums\KycActivitySector::cases());
+        $this->assertCount(10, \App\Enums\KycCompanyPurpose::cases());
+        $this->assertCount(5, KycControlCriterion::cases());
     }
 }
 ```
 
-- [ ] **Step 3: Esegui e verifica che fallisca**
-
-Run: `php artisan test --compact tests/Feature/KycModelTest.php`
-Expected: FAIL (classi inesistenti).
-
-- [ ] **Step 4: Genera i file**
-
-```bash
-php artisan make:enum KycRiskLevel --no-interaction   # se make:enum non esiste: crea il file a mano
-php artisan make:model KycQuestionnaire -mf --no-interaction
-php artisan make:model KycBeneficialOwner -m --no-interaction
-```
-
-Enum (esempio `KycRiskLevel`; le altre seguono lo stesso schema con label italiane: Bozza/Completo/Approvato; Quote/Controllo/Residuale (rappresentante legale); Mancante/Scaduto/Completo):
-
-```php
-<?php
-
-namespace App\Enums;
-
-use Filament\Support\Contracts\HasLabel;
-
-enum KycRiskLevel: string implements HasLabel
-{
-    case LOW = 'low';
-    case MEDIUM = 'medium';
-    case HIGH = 'high';
-
-    public function getLabel(): string
-    {
-        return match ($this) {
-            self::LOW => 'Basso',
-            self::MEDIUM => 'Medio',
-            self::HIGH => 'Alto',
-        };
-    }
-
-    public function reviewMonths(): int
-    {
-        return match ($this) {
-            self::LOW => 36,
-            self::MEDIUM => 12,
-            self::HIGH => 6,
-        };
-    }
-}
-```
-
-`KycCoverage::getColor()`: MISSING→`danger`, EXPIRED→`warning`, COMPLETE→`success`.
-
-Migrazione `kyc_questionnaires` (rinomina il file generato in `2026_10_09_100000_create_kyc_questionnaires_table.php`; usa `if (Schema::hasTable(...)) { return; }` come le altre):
+- [ ] **Step 2: Esegui, atteso FAIL** — `php artisan test --compact tests/Feature/KycModelTest.php`
+- [ ] **Step 3: Implementa** — `php artisan make:model KycQuestionnaire -mf --no-interaction`, `php artisan make:model KycBeneficialOwner -m --no-interaction`; rinomina migrazioni in `2026_10_09_200000_create_kyc_questionnaires_table.php` e `…200100_create_kyc_beneficial_owners_table.php`, con `if (Schema::hasTable(...)) { return; }`:
 
 ```php
 Schema::create('kyc_questionnaires', function (Blueprint $table) {
+    $table->comment('Questionari di adeguata verifica (QAV): un record per compilazione.');
     $table->id();
     $table->unsignedBigInteger('client_id')->index()->comment('mysql_proforma.clients.id');
     $table->foreignId('client_mandate_id')->nullable()->constrained('client_mandates')->nullOnDelete();
     $table->string('pratica_id', 64)->nullable()->comment('mysql_proforma.pratiches.id');
-    $table->text('purpose_of_relationship')->nullable();
-    $table->text('funds_origin')->nullable();
-    $table->string('occupation')->nullable();
-    $table->string('income_source')->nullable();
-    $table->boolean('is_remote_interaction')->default(false);
-    $table->boolean('is_pep')->default(false);
-    $table->text('high_risk_countries')->nullable();
+    $table->char('document_id', 36)->nullable()->index()->comment('documents.id: QAV generato');
+    $table->string('pep_status')->nullable();
+    $table->string('financing_purpose')->nullable();
     $table->string('risk_level')->nullable();
     $table->string('status')->default('draft')->index();
     $table->dateTime('compiled_at')->nullable();
     $table->string('verified_by')->nullable();
     $table->dateTime('verified_at')->nullable();
-    $table->date('next_review_at')->nullable();
     $table->text('notes')->nullable();
+    // persona fisica
+    $table->string('economic_activity')->nullable();
+    $table->string('activity_sector')->nullable();
+    $table->string('activity_location')->nullable();
+    $table->string('financing_nature')->nullable();
+    $table->string('income_band')->nullable();
+    $table->string('wealth_band')->nullable();
+    $table->boolean('acts_for_third_party')->default(false);
+    // persona giuridica
+    $table->string('legal_nature')->nullable();
+    $table->string('geographic_area')->nullable();
+    $table->unsignedBigInteger('executor_client_id')->nullable()->comment('mysql_proforma.clients.id');
+    $table->string('executor_link')->nullable();
+    $table->string('executor_pep_status')->nullable();
     $table->timestamps();
 });
-```
 
-Migrazione `kyc_beneficial_owners` (`2026_10_09_100100_...`):
-
-```php
 Schema::create('kyc_beneficial_owners', function (Blueprint $table) {
+    $table->comment('Titolari effettivi dichiarati nel QAV (max 3 stampabili).');
     $table->id();
     $table->foreignId('kyc_questionnaire_id')->constrained('kyc_questionnaires')->cascadeOnDelete();
+    $table->unsignedTinyInteger('position')->default(1);
     $table->unsignedBigInteger('client_id')->index()->comment('persona fisica, mysql_proforma.clients.id');
     $table->decimal('shares_percentage', 5, 2)->nullable();
-    $table->string('control_type');
+    $table->string('control_criterion');
+    $table->string('pep_status')->nullable();
     $table->dateTime('declaration_signed_at')->nullable();
     $table->char('document_id', 36)->nullable()->comment('documents.id');
     $table->boolean('is_verified')->default(false);
@@ -198,142 +166,27 @@ Schema::create('kyc_beneficial_owners', function (Blueprint $table) {
 });
 ```
 
-Modelli: `$fillable` come in Interfaces; casts (`risk_level` => `KycRiskLevel::class`, `status` => `KycStatus::class`, `control_type` => `KycControlType::class`, booleani, `compiled_at`/`verified_at` datetime, `next_review_at` date, `shares_percentage` => `decimal:2`, `declaration_signed_at` datetime). `KycQuestionnaire::client()` = `belongsTo(Client::class)`; `beneficialOwners()` = `hasMany(KycBeneficialOwner::class)`. `KycBeneficialOwner::person()` = `belongsTo(Client::class, 'client_id')`.
-
-Factory: `client_id => 1`, `status => KycStatus::DRAFT`, campi testuali con `fake()`; stati `draft()` e `approved()` (status APPROVED, `risk_level` MEDIUM, `verified_at` now, `verified_by` 'Tester', `next_review_at` now()->addYear()).
-
-- [ ] **Step 5: Esegui il test**
-
-Run: `php artisan test --compact tests/Feature/KycModelTest.php`
-Expected: PASS
-
-- [ ] **Step 6: Pint e commit**
-
-```bash
-vendor/bin/pint --dirty --format agent
-git add app database tests docs
-git commit -m "feat(kyc): tabelle, modelli ed enum del questionario KYC
-
-Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
-```
+Modelli: `$fillable`, casts (enum per ogni colonna enum — `financing_purpose` resta stringa —, booleani, datetime, `decimal:2`), relazioni come in Interfaces; `beneficialOwners()` = `hasMany(KycBeneficialOwner::class)->orderBy('position')`. Factory: `client_id => 1`, `status => KycStatus::Draft`; `approved()` = `status Approved, risk_level Medium, verified_at now(), verified_by 'Tester', pep_status None`.
+- [ ] **Step 4: Esegui, atteso PASS**; **Step 5:** pint + commit `feat(kyc): enum QAV, tabelle e modelli`.
 
 ---
 
-### Task 2: Copertura KYC del cliente
+### Task 2: Copertura KYC (scadenza dal Document)
 
-**Files:**
-- Modify: `app/Models/KycQuestionnaire.php`, `app/Models/Client.php`
-- Test: `tests/Feature/KycCoverageTest.php`
+**Files:** Modify `app/Models/KycQuestionnaire.php`, `app/Models/Client.php`; Test `tests/Feature/KycCoverageTest.php`
 
-**Interfaces:**
-- Consumes: Task 1.
-- Produces:
-  - `KycQuestionnaire::scopeApproved(Builder): Builder`
-  - `KycQuestionnaire::scopeLatestFirst(Builder): Builder` (ordina `verified_at` desc, `id` desc)
-  - `KycQuestionnaire::coverageByClient(): Collection` → mappa `client_id => KycCoverage` solo per clienti con almeno un approvato
-  - `Client::kycQuestionnaires(): HasMany`, `Client::currentKyc(): ?KycQuestionnaire`, `Client::kycCoverage(): KycCoverage`
+**Interfaces — Consumes:** Task 1. **Produces:** `KycQuestionnaire::scopeApproved`, `scopeLatestFirst` (`verified_at` desc, `id` desc), `coverage(): KycCoverage`, `static coverageByClient(): Collection<int, KycCoverage>`; `Client::kycQuestionnaires(): HasMany`, `currentKyc(): ?KycQuestionnaire`, `kycCoverage(): KycCoverage`.
 
-- [ ] **Step 1: Test che fallisce**
+Regola: `coverage()` = `Expired` se `$this->document?->expires_at` è nel passato (`< today()`), altrimenti `Complete`. `kycCoverage()` = `Missing` se nessun approvato.
+
+- [ ] **Step 1: Test che fallisce** — helper nel test: `makeClient()` come negli altri test (`Client::create([...tax_code random])`); `approvedWithExpiry(Client $c, ?Carbon $expires, string $verifiedAt = 'now')`: crea `KycQuestionnaire::factory()->approved()`; se `$expires !== null` crea `$doc = $c->documents()->create(['name' => 'QAV', 'status' => 'caricato', 'spatie_collection' => 'documents']); $doc->forceFill(['expires_at' => $expires])->saveQuietly();` e imposta `document_id`. Casi: nessun questionario → `Missing`; solo bozza → `Missing`; approvato senza documento → `Complete`; approvato con `expires_at` ieri → `Expired`; con `expires_at` fra un anno → `Complete`; vecchio approvato scaduto + nuovo approvato valido + bozza ancora più recente → `Complete`; `coverageByClient()` contiene solo i clienti con un approvato (bozza esclusa) e mappa `Expired`/`Complete` correttamente.
+- [ ] **Step 2: FAIL**; **Step 3: Implementa**
 
 ```php
-<?php
-
-namespace Tests\Feature;
-
-use App\Enums\KycCoverage;
-use App\Models\Client;
-use App\Models\KycQuestionnaire;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Illuminate\Support\Str;
-use Tests\TestCase;
-
-class KycCoverageTest extends TestCase
-{
-    use LazilyRefreshDatabase;
-
-    protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];
-
-    private function makeClient(): Client
-    {
-        return Client::create([
-            'name' => 'Rossi', 'first_name' => 'Mario', 'is_person' => true,
-            'tax_code' => strtoupper(Str::random(16)),
-        ]);
-    }
-
-    public function test_client_without_questionnaires_is_missing(): void
-    {
-        $this->assertSame(KycCoverage::MISSING, $this->makeClient()->kycCoverage());
-    }
-
-    public function test_only_draft_is_still_missing(): void
-    {
-        $client = $this->makeClient();
-        KycQuestionnaire::factory()->draft()->create(['client_id' => $client->id]);
-
-        $this->assertSame(KycCoverage::MISSING, $client->kycCoverage());
-    }
-
-    public function test_approved_not_expired_is_complete_and_null_review_never_expires(): void
-    {
-        $client = $this->makeClient();
-        KycQuestionnaire::factory()->approved()->create(['client_id' => $client->id, 'next_review_at' => null]);
-
-        $this->assertSame(KycCoverage::COMPLETE, $client->kycCoverage());
-    }
-
-    public function test_approved_with_past_review_date_is_expired(): void
-    {
-        $client = $this->makeClient();
-        KycQuestionnaire::factory()->approved()->create([
-            'client_id' => $client->id, 'next_review_at' => now()->subDay(),
-        ]);
-
-        $this->assertSame(KycCoverage::EXPIRED, $client->kycCoverage());
-    }
-
-    public function test_latest_approved_wins_and_newer_draft_does_not_cancel_it(): void
-    {
-        $client = $this->makeClient();
-        KycQuestionnaire::factory()->approved()->create([
-            'client_id' => $client->id, 'next_review_at' => now()->subYear(), 'verified_at' => now()->subYears(2),
-        ]);
-        KycQuestionnaire::factory()->approved()->create([
-            'client_id' => $client->id, 'next_review_at' => now()->addYear(), 'verified_at' => now()->subDay(),
-        ]);
-        KycQuestionnaire::factory()->draft()->create(['client_id' => $client->id]);
-
-        $this->assertSame(KycCoverage::COMPLETE, $client->kycCoverage());
-    }
-
-    public function test_coverage_by_client_maps_only_clients_with_an_approved_questionnaire(): void
-    {
-        $complete = $this->makeClient();
-        $expired = $this->makeClient();
-        $draftOnly = $this->makeClient();
-        KycQuestionnaire::factory()->approved()->create(['client_id' => $complete->id]);
-        KycQuestionnaire::factory()->approved()->create(['client_id' => $expired->id, 'next_review_at' => now()->subDay()]);
-        KycQuestionnaire::factory()->draft()->create(['client_id' => $draftOnly->id]);
-
-        $map = KycQuestionnaire::coverageByClient();
-
-        $this->assertSame(KycCoverage::COMPLETE, $map[$complete->id]);
-        $this->assertSame(KycCoverage::EXPIRED, $map[$expired->id]);
-        $this->assertArrayNotHasKey($draftOnly->id, $map->all());
-    }
-}
-```
-
-- [ ] **Step 2: Esegui, atteso FAIL** — `php artisan test --compact tests/Feature/KycCoverageTest.php`
-
-- [ ] **Step 3: Implementa**
-
-In `KycQuestionnaire`:
-
-```php
+// KycQuestionnaire
 public function scopeApproved(Builder $query): Builder
 {
-    return $query->where('status', KycStatus::APPROVED);
+    return $query->where('status', KycStatus::Approved);
 }
 
 public function scopeLatestFirst(Builder $query): Builder
@@ -343,9 +196,9 @@ public function scopeLatestFirst(Builder $query): Builder
 
 public function coverage(): KycCoverage
 {
-    return $this->next_review_at !== null && $this->next_review_at->lt(today())
-        ? KycCoverage::EXPIRED
-        : KycCoverage::COMPLETE;
+    $expiresAt = $this->document?->expires_at;
+
+    return $expiresAt !== null && $expiresAt->lt(today()) ? KycCoverage::Expired : KycCoverage::Complete;
 }
 
 /**
@@ -353,15 +206,12 @@ public function coverage(): KycCoverage
  */
 public static function coverageByClient(): Collection
 {
-    return static::approved()->latestFirst()->get()
+    return static::approved()->with('document')->latestFirst()->get()
         ->unique('client_id')
         ->mapWithKeys(fn (self $q) => [$q->client_id => $q->coverage()]);
 }
-```
 
-In `Client`:
-
-```php
+// Client
 public function kycQuestionnaires(): HasMany
 {
     return $this->hasMany(KycQuestionnaire::class);
@@ -374,100 +224,28 @@ public function currentKyc(): ?KycQuestionnaire
 
 public function kycCoverage(): KycCoverage
 {
-    return $this->currentKyc()?->coverage() ?? KycCoverage::MISSING;
+    return $this->currentKyc()?->coverage() ?? KycCoverage::Missing;
 }
 ```
-
-(Aggiungi gli `use` mancanti.)
-
-- [ ] **Step 4: Esegui, atteso PASS**
-
-- [ ] **Step 5: Pint e commit** — `git commit -m "feat(kyc): copertura KYC del cliente (mancante/scaduto/completo)"` (con trailer Co-Authored-By come sopra).
+- [ ] **Step 4: PASS**; **Step 5:** pint + commit `feat(kyc): copertura KYC dalla scadenza del documento QAV`.
 
 ---
 
 ### Task 3: Suggerimento titolari effettivi
 
-**Files:**
-- Create: `app/Services/Kyc/BeneficialOwnerSuggester.php`
-- Test: `tests/Unit/BeneficialOwnerSuggesterTest.php`
+**Files:** Create `app/Services/Kyc/BeneficialOwnerSuggester.php`; Test `tests/Unit/BeneficialOwnerSuggesterTest.php` (estende `PHPUnit\Framework\TestCase`, nessun DB)
 
-**Interfaces:**
-- Produces: `BeneficialOwnerSuggester::THRESHOLD = 25.0`; `suggest(Collection $relations, ?int $legalRepresentativeId): array` → lista di `array{client_id: int, shares_percentage: ?float, control_type: KycControlType}`. `$relations` = collection di `ClientRelation` (anche non persistiti). Puro, nessun accesso al DB.
+**Interfaces — Produces:** `BeneficialOwnerSuggester::THRESHOLD = 25.0`; `suggest(Collection $relations, ?int $legalRepresentativeId): array` → lista di `array{client_id: int, position: int, shares_percentage: float|null, control_criterion: KycControlCriterion}`, max 3 elementi, ordinati per quota decrescente, `position` 1..n. `$relations` = `ClientRelation` (anche non persistiti).
 
-- [ ] **Step 1: Test che fallisce** (estende `PHPUnit\Framework\TestCase`: nessun DB)
-
-```php
-<?php
-
-namespace Tests\Unit;
-
-use App\Enums\KycControlType;
-use App\Models\ClientRelation;
-use App\Services\Kyc\BeneficialOwnerSuggester;
-use Illuminate\Support\Collection;
-use PHPUnit\Framework\TestCase;
-
-class BeneficialOwnerSuggesterTest extends TestCase
-{
-    private function relation(int $clientId, ?float $shares, ?string $endedAt = null): ClientRelation
-    {
-        return new ClientRelation([
-            'client_id' => $clientId,
-            'shares_percentage' => $shares,
-            'data_fine_ruolo' => $endedAt,
-        ]);
-    }
-
-    public function test_only_shares_strictly_above_threshold_are_suggested(): void
-    {
-        $result = (new BeneficialOwnerSuggester)->suggest(new Collection([
-            $this->relation(1, 60.0),
-            $this->relation(2, 25.0),
-            $this->relation(3, 25.01),
-            $this->relation(4, null),
-        ]), legalRepresentativeId: 9);
-
-        $this->assertSame([1, 3], array_column($result, 'client_id'));
-        $this->assertSame(KycControlType::SHARES, $result[0]['control_type']);
-    }
-
-    public function test_ended_roles_are_ignored(): void
-    {
-        $result = (new BeneficialOwnerSuggester)->suggest(new Collection([
-            $this->relation(1, 80.0, '2020-01-01'),
-        ]), legalRepresentativeId: 9);
-
-        $this->assertSame([9], array_column($result, 'client_id'));
-    }
-
-    public function test_falls_back_to_legal_representative_as_residual(): void
-    {
-        $result = (new BeneficialOwnerSuggester)->suggest(new Collection([$this->relation(2, 10.0)]), 9);
-
-        $this->assertCount(1, $result);
-        $this->assertSame(9, $result[0]['client_id']);
-        $this->assertNull($result[0]['shares_percentage']);
-        $this->assertSame(KycControlType::RESIDUAL, $result[0]['control_type']);
-    }
-
-    public function test_returns_empty_when_nobody_qualifies_and_no_legal_representative(): void
-    {
-        $this->assertSame([], (new BeneficialOwnerSuggester)->suggest(new Collection, null));
-    }
-}
-```
-
-- [ ] **Step 2: Esegui, atteso FAIL** — `php artisan test --compact tests/Unit/BeneficialOwnerSuggesterTest.php`
-
-- [ ] **Step 3: Implementa**
+- [ ] **Step 1: Test che fallisce** — stesso schema del test della v1 (helper `relation(int $clientId, ?float $shares, ?string $endedAt = null)` = `new ClientRelation(['client_id'=>…, 'shares_percentage'=>…, 'data_fine_ruolo'=>…])`): solo quote `> 25` (60, 25.01 sì; 25.00 e `null` no) → `client_id` `[1, 3]` ordinati per quota (60 prima), `position` `[1, 2]`, criterio `Shares`; ruolo con `data_fine_ruolo` nel passato ignorato; nessuno sopra soglia con rappresentante 9 → `[['client_id'=>9, 'position'=>1, 'shares_percentage'=>null, 'control_criterion'=>Management]]`; nessuno e senza rappresentante → `[]`; 5 titolari sopra soglia → solo 3.
+- [ ] **Step 2: FAIL**; **Step 3: Implementa**
 
 ```php
 <?php
 
 namespace App\Services\Kyc;
 
-use App\Enums\KycControlType;
+use App\Enums\KycControlCriterion;
 use App\Models\ClientRelation;
 use Illuminate\Support\Collection;
 
@@ -475,28 +253,34 @@ class BeneficialOwnerSuggester
 {
     public const THRESHOLD = 25.0;
 
+    public const MAX_OWNERS = 3;
+
     /**
      * @param  Collection<int, ClientRelation>  $relations
-     * @return array<int, array{client_id: int, shares_percentage: float|null, control_type: KycControlType}>
+     * @return array<int, array{client_id: int, position: int, shares_percentage: float|null, control_criterion: KycControlCriterion}>
      */
     public function suggest(Collection $relations, ?int $legalRepresentativeId): array
     {
         $owners = $relations
             ->filter(fn (ClientRelation $r) => $r->data_fine_ruolo === null || $r->data_fine_ruolo->isFuture())
             ->filter(fn (ClientRelation $r) => (float) $r->shares_percentage > self::THRESHOLD)
-            ->map(fn (ClientRelation $r) => [
-                'client_id' => (int) $r->client_id,
-                'shares_percentage' => (float) $r->shares_percentage,
-                'control_type' => KycControlType::SHARES,
-            ])
+            ->sortByDesc(fn (ClientRelation $r) => (float) $r->shares_percentage)
+            ->take(self::MAX_OWNERS)
             ->values()
+            ->map(fn (ClientRelation $r, int $index) => [
+                'client_id' => (int) $r->client_id,
+                'position' => $index + 1,
+                'shares_percentage' => (float) $r->shares_percentage,
+                'control_criterion' => KycControlCriterion::Shares,
+            ])
             ->all();
 
         if ($owners === [] && $legalRepresentativeId !== null) {
             return [[
                 'client_id' => $legalRepresentativeId,
+                'position' => 1,
                 'shares_percentage' => null,
-                'control_type' => KycControlType::RESIDUAL,
+                'control_criterion' => KycControlCriterion::Management,
             ]];
         }
 
@@ -504,482 +288,300 @@ class BeneficialOwnerSuggester
     }
 }
 ```
-
-- [ ] **Step 4: Esegui, atteso PASS**
-
-- [ ] **Step 5: Pint e commit** — `feat(kyc): suggerimento titolari effettivi dalle cariche sociali`.
+- [ ] **Step 4: PASS**; **Step 5:** pint + commit `feat(kyc): suggerimento titolari effettivi`.
 
 ---
 
-### Task 4: Completezza e approvazione
+### Task 4: Requisiti di completezza
 
-**Files:**
-- Modify: `app/Models/KycQuestionnaire.php`
-- Test: `tests/Feature/KycApprovalTest.php`
+**Files:** Modify `app/Models/KycQuestionnaire.php`; Test `tests/Feature/KycRequirementsTest.php`
 
-**Interfaces:**
-- Consumes: Task 1, 2.
-- Produces: `KycQuestionnaire::missingRequirements(): array` (lista di stringhe italiane, vuota = completo); `KycQuestionnaire::approve(string $verifiedBy): void` (lancia `\DomainException` col testo dei requisiti mancanti se incompleto; altrimenti imposta `status` APPROVED, `verified_by`, `verified_at = now()`, e se `next_review_at` è nullo lo calcola da `risk_level->reviewMonths()`).
+**Interfaces — Produces:** `KycQuestionnaire::missingRequirements(): array<int, string>` (vuoto = approvabile).
 
-Requisiti: sempre `purpose_of_relationship`, `funds_origin`, `occupation`, `risk_level`. Se `client->is_person` è falso: almeno un titolare effettivo e tutti `is_verified`.
+Requisiti — **persona fisica** (`client->is_person`): `pep_status`, `economic_activity`, `activity_sector`, `activity_location`, `financing_nature`, `financing_purpose`, `income_band`, `wealth_band`, `risk_level`; se `acts_for_third_party` almeno un titolare effettivo. **Persona giuridica**: `legal_nature`, `geographic_area`, `financing_purpose`, `executor_client_id`, `executor_link`, `executor_pep_status`, `risk_level`, almeno 1 titolare, ogni titolare con `control_criterion` e `pep_status`, tutti `is_verified`. Con >3 titolari: nessun requisito mancante ma `warnings()` (stringa) — vedi sotto.
 
-- [ ] **Step 1: Test che fallisce**
+- [ ] **Step 1: Test che fallisce** — helper `filledPerson(Client)` / `filledCompany(Client)` che compilano tutti i campi con valori enum validi (`KycPepStatus::None`, …); casi: persona completa → `[]`; persona senza `income_band` → 1 voce con etichetta "Reddito annuo lordo"; persona con `acts_for_third_party` senza titolari → richiede titolare; società completa con 1 titolare verificato → `[]`; società senza titolari → contiene "Almeno un titolare effettivo"; titolare non verificato → contiene "Verifica di tutti i titolari effettivi"; titolare senza `pep_status` → richiesto; società con 4 titolari → `[]` e `warnings()` contiene "più di 3".
+- [ ] **Step 2: FAIL**; **Step 3: Implementa** — tabella etichette in costante `FIELD_LABELS` (campo → etichetta italiana) e due liste `PERSON_REQUIRED` / `COMPANY_REQUIRED`:
 
 ```php
-<?php
-
-namespace Tests\Feature;
-
-use App\Enums\KycControlType;
-use App\Enums\KycRiskLevel;
-use App\Enums\KycStatus;
-use App\Models\Client;
-use App\Models\KycBeneficialOwner;
-use App\Models\KycQuestionnaire;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Illuminate\Support\Str;
-use Tests\TestCase;
-
-class KycApprovalTest extends TestCase
-{
-    use LazilyRefreshDatabase;
-
-    protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];
-
-    private function makeClient(bool $isPerson): Client
-    {
-        return Client::create([
-            'name' => 'Acme', 'is_person' => $isPerson, 'tax_code' => strtoupper(Str::random(16)),
-        ]);
-    }
-
-    private function filled(Client $client, array $overrides = []): KycQuestionnaire
-    {
-        return KycQuestionnaire::factory()->draft()->create(array_merge([
-            'client_id' => $client->id,
-            'purpose_of_relationship' => 'Mediazione creditizia',
-            'funds_origin' => 'Stipendio',
-            'occupation' => 'Impiegato',
-            'risk_level' => KycRiskLevel::MEDIUM,
-        ], $overrides));
-    }
-
-    public function test_person_with_required_fields_can_be_approved_and_gets_default_review_date(): void
-    {
-        $questionnaire = $this->filled($this->makeClient(true));
-
-        $questionnaire->approve('Laura Bianchi');
-        $questionnaire->refresh();
-
-        $this->assertSame(KycStatus::APPROVED, $questionnaire->status);
-        $this->assertSame('Laura Bianchi', $questionnaire->verified_by);
-        $this->assertTrue($questionnaire->next_review_at->isSameDay(now()->addMonths(12)));
-    }
-
-    public function test_explicit_next_review_date_is_kept(): void
-    {
-        $questionnaire = $this->filled($this->makeClient(true), ['next_review_at' => '2030-01-01']);
-
-        $questionnaire->approve('Laura Bianchi');
-
-        $this->assertSame('2030-01-01', $questionnaire->fresh()->next_review_at->toDateString());
-    }
-
-    public function test_missing_required_fields_block_approval(): void
-    {
-        $questionnaire = $this->filled($this->makeClient(true), ['funds_origin' => null, 'risk_level' => null]);
-
-        $this->assertCount(2, $questionnaire->missingRequirements());
-        $this->expectException(\DomainException::class);
-        $questionnaire->approve('X');
-    }
-
-    public function test_company_needs_at_least_one_verified_beneficial_owner(): void
-    {
-        $questionnaire = $this->filled($this->makeClient(false));
-        $this->assertNotEmpty($questionnaire->missingRequirements());
-
-        $owner = KycBeneficialOwner::create([
-            'kyc_questionnaire_id' => $questionnaire->id, 'client_id' => 5,
-            'shares_percentage' => 50, 'control_type' => KycControlType::SHARES, 'is_verified' => false,
-        ]);
-        $this->assertNotEmpty($questionnaire->fresh()->missingRequirements());
-
-        $owner->update(['is_verified' => true]);
-        $this->assertSame([], $questionnaire->fresh()->missingRequirements());
-    }
-
-    public function test_person_is_not_asked_for_beneficial_owners(): void
-    {
-        $this->assertSame([], $this->filled($this->makeClient(true))->missingRequirements());
-    }
-}
-```
-
-- [ ] **Step 2: Esegui, atteso FAIL**
-
-- [ ] **Step 3: Implementa** in `KycQuestionnaire`
-
-```php
-/**
- * @return array<int, string>
- */
 public function missingRequirements(): array
 {
-    $missing = [];
+    $isPerson = (bool) $this->client?->is_person;
+    $required = $isPerson ? self::PERSON_REQUIRED : self::COMPANY_REQUIRED;
 
-    foreach ([
-        'purpose_of_relationship' => 'Scopo e natura del rapporto',
-        'funds_origin' => 'Origine dei fondi',
-        'occupation' => 'Professione / attività',
-        'risk_level' => 'Livello di rischio',
-    ] as $field => $label) {
-        if (blank($this->{$field})) {
-            $missing[] = $label;
-        }
-    }
+    $missing = collect($required)
+        ->filter(fn (string $field) => blank($this->{$field}))
+        ->map(fn (string $field) => self::FIELD_LABELS[$field])
+        ->values()
+        ->all();
 
-    if ($this->client && ! $this->client->is_person) {
-        $owners = $this->beneficialOwners;
+    $owners = $this->beneficialOwners;
 
+    if (! $isPerson || $this->acts_for_third_party) {
         if ($owners->isEmpty()) {
             $missing[] = 'Almeno un titolare effettivo';
-        } elseif ($owners->contains(fn (KycBeneficialOwner $o) => ! $o->is_verified)) {
-            $missing[] = 'Verifica di tutti i titolari effettivi';
+        } else {
+            if ($owners->contains(fn (KycBeneficialOwner $o) => blank($o->control_criterion) || blank($o->pep_status))) {
+                $missing[] = 'Criterio e PEP di ogni titolare effettivo';
+            }
+            if ($owners->contains(fn (KycBeneficialOwner $o) => ! $o->is_verified)) {
+                $missing[] = 'Verifica di tutti i titolari effettivi';
+            }
         }
     }
 
     return $missing;
 }
 
-public function approve(string $verifiedBy): void
+/**
+ * @return array<int, string>
+ */
+public function warnings(): array
 {
-    $missing = $this->missingRequirements();
-
-    if ($missing !== []) {
-        throw new \DomainException('Requisiti mancanti: '.implode(', ', $missing));
-    }
-
-    $this->update([
-        'status' => KycStatus::APPROVED,
-        'verified_by' => $verifiedBy,
-        'verified_at' => now(),
-        'next_review_at' => $this->next_review_at ?? now()->addMonths($this->risk_level->reviewMonths()),
-    ]);
+    return $this->beneficialOwners->count() > 3
+        ? ['Il QAV stampa al massimo 3 titolari effettivi: gli altri vanno allegati a parte (più di 3 dichiarati).']
+        : [];
 }
 ```
-
-- [ ] **Step 4: Esegui, atteso PASS**
-
-- [ ] **Step 5: Pint e commit** — `feat(kyc): requisiti di completezza e approvazione`.
+- [ ] **Step 4: PASS**; **Step 5:** pint + commit `feat(kyc): requisiti di completezza per persona fisica e giuridica`.
 
 ---
 
-### Task 5: RelationManager sul cliente
+### Task 5: Chiavi `kyc.*` e `checkbox_when` con uguaglianza
 
 **Files:**
-- Create: `app/Filament/Resources/Clients/RelationManagers/KycQuestionnairesRelationManager.php`
-- Modify: `app/Filament/Resources/Clients/ClientResource.php:55-60` (registra l'RM al posto del commento `ChecklistsRelationManager`)
-- Test: `tests/Feature/KycRelationManagerTest.php`
+- Modify: `app/Enums/ModuleSourceKey.php`, `app/Services/ModuleDataResolver.php`, `app/Services/ResolvedModuleData.php`, `app/Models/PdfModuleField.php`, `app/Services/PdfFormFiller.php`
+- Create: `app/Services/Kyc/KycModuleValues.php`
+- Test: `tests/Feature/ModuleKycKeysTest.php`, `tests/Feature/PdfFormFillerEqualityTest.php`
 
-**Interfaces:**
-- Consumes: Task 1-4, `BeneficialOwnerSuggester`.
-- Produces: `KycQuestionnairesRelationManager` (relationship `kycQuestionnaires`), azioni di tabella `approve` (visibile solo se non approvato).
+**Interfaces — Produces:**
+- Nuovi case di `ModuleSourceKey` (value = `kyc.*`): scalari `kyc.pep_status`, `kyc.financing_purpose`, `kyc.economic_activity`, `kyc.activity_sector`, `kyc.activity_location`, `kyc.financing_nature`, `kyc.income_band`, `kyc.wealth_band`, `kyc.legal_nature`, `kyc.geographic_area`, `kyc.executor_link`; persone `kyc.executor.<f>` per `<f>` in `PERSON_FIELDS` + `kyc.executor.pep_status`; `kyc.owner{1,2,3}.<f>` per `<f>` in `PERSON_FIELDS` + `kyc.owner{n}.criterion`, `kyc.owner{n}.pep_status`.
+- `KycModuleValues::PERSON_FIELDS` = `['name','first_name','tax_code','birth_place','birth_date','citizenship','sex','city','province','address','zip','doc_type','doc_number','doc_issuer','doc_issued_at','doc_expires_at']`.
+- `KycModuleValues::for(Client $client, ?KycQuestionnaire $kyc): array<string, mixed>` → mappa `kyc.* => valore` (enum → `->value`, persone da `Client`, sede e documento d'identità con la stessa logica di `ModuleDataResolver`).
+- `ModuleDataResolver::resolveForClient(Client $client, ?KycQuestionnaire $kyc = null, ?Pratica $pratica = null): ResolvedModuleData`; `resolve(Pratica, Client)` continua a funzionare e include anche le chiavi `kyc.*` (KYC = `$client->currentKyc()` altrimenti l'ultima bozza).
+- `ResolvedModuleData::equals(ModuleSourceKey $key, string $value): bool` (confronto di stringa del valore, enum già come stringa).
+- `checkbox_when`: formato `[!]chiave[=valore]`. `PdfModuleField::referencedKeys()` e `PdfFormFiller::isCheckboxChecked()` lo interpretano: senza `=` comportamento invariato; con `=` → `equals()`; `!` nega.
 
-Note: NON usare `HasRelationPlanAccess` (non esiste una feature key per il KYC); `canViewForRecord` restituisce `true`. Verificare le API v5 con `search-docs` (Boost) o https://filamentphp.com/docs prima di scrivere: `Schemas\Components\Actions`, `Repeater::relationship()`, `TestAction::make(...)->table($record)`.
-
-- [ ] **Step 1: Test che fallisce**
+- [ ] **Step 1: Test che fallisce (uguaglianza)** — `PdfFormFillerEqualityTest`: con `ResolvedModuleData(['kyc.pep_status' => 'nessuna'])` e due `PdfModuleField` checkbox non persistiti (`new PdfModuleField(['pdf_field_type'=>'checkbox','checkbox_on_value'=>'si','checkbox_when'=>'kyc.pep_status=nessuna'])`, `…=carica_pubblica`, `!kyc.pep_status=nessuna`, `client.is_person` invariato) e `(new PdfModule)->setRelation('fields', collect([...]))`, verifica `buildFieldValues()` → `['f1'=>'si','f2'=>'Off',…]`; verifica anche `referencedKeys()` restituisce `[ModuleSourceKey::KycPepStatus]` per `kyc.pep_status=nessuna` e per `!kyc.pep_status=nessuna`.
+- [ ] **Step 2: FAIL**; **Step 3: Implementa** — in `PdfModuleField` aggiungi:
 
 ```php
-<?php
-
-namespace Tests\Feature;
-
-use App\Enums\KycStatus;
-use App\Filament\Resources\Clients\Pages\EditClient;
-use App\Filament\Resources\Clients\RelationManagers\KycQuestionnairesRelationManager;
-use App\Models\Client;
-use App\Models\KycQuestionnaire;
-use App\Models\User;
-use Filament\Actions\Testing\TestAction;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Illuminate\Support\Str;
-use Livewire\Livewire;
-use Tests\TestCase;
-
-class KycRelationManagerTest extends TestCase
+/**
+ * @return array{negate: bool, key: ModuleSourceKey|null, value: string|null}
+ */
+public function parseCheckboxWhen(): array
 {
-    use LazilyRefreshDatabase;
+    $when = (string) $this->checkbox_when;
+    $negate = str_starts_with($when, '!');
+    [$name, $value] = array_pad(explode('=', ltrim($when, '!'), 2), 2, null);
 
-    protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];
-
-    private function manager(Client $client)
-    {
-        return Livewire::test(KycQuestionnairesRelationManager::class, [
-            'ownerRecord' => $client,
-            'pageClass' => EditClient::class,
-        ]);
-    }
-
-    private function makeClient(): Client
-    {
-        return Client::create([
-            'name' => 'Rossi', 'first_name' => 'Mario', 'is_person' => true,
-            'tax_code' => strtoupper(Str::random(16)),
-        ]);
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->actingAs(User::factory()->create());
-    }
-
-    public function test_lists_the_client_questionnaires(): void
-    {
-        $client = $this->makeClient();
-        $records = KycQuestionnaire::factory()->count(2)->draft()->create(['client_id' => $client->id]);
-
-        $this->manager($client)->assertCanSeeTableRecords($records);
-    }
-
-    public function test_approve_action_approves_a_complete_questionnaire(): void
-    {
-        $client = $this->makeClient();
-        $record = KycQuestionnaire::factory()->draft()->create([
-            'client_id' => $client->id,
-            'purpose_of_relationship' => 'x', 'funds_origin' => 'x', 'occupation' => 'x',
-            'risk_level' => 'low',
-        ]);
-
-        $this->manager($client)->callAction(TestAction::make('approve')->table($record))->assertNotified();
-
-        $this->assertSame(KycStatus::APPROVED, $record->fresh()->status);
-    }
-
-    public function test_approve_action_reports_missing_requirements_instead_of_approving(): void
-    {
-        $client = $this->makeClient();
-        $record = KycQuestionnaire::factory()->draft()->create([
-            'client_id' => $client->id, 'funds_origin' => null,
-        ]);
-
-        $this->manager($client)->callAction(TestAction::make('approve')->table($record))->assertNotified();
-
-        $this->assertSame(KycStatus::DRAFT, $record->fresh()->status);
-    }
-
-    public function test_creating_a_questionnaire_keeps_the_previous_one(): void
-    {
-        $client = $this->makeClient();
-        $old = KycQuestionnaire::factory()->approved()->create(['client_id' => $client->id]);
-
-        $this->manager($client)->callAction(TestAction::make('create')->table(), [
-            'purpose_of_relationship' => 'Nuovo', 'funds_origin' => 'Nuovo', 'occupation' => 'Nuovo',
-            'risk_level' => 'high',
-        ])->assertHasNoFormErrors();
-
-        $this->assertSame(2, $client->kycQuestionnaires()->count());
-        $this->assertSame(KycStatus::APPROVED, $old->fresh()->status);
-    }
+    return ['negate' => $negate, 'key' => ModuleSourceKey::tryFrom($name), 'value' => $value];
 }
 ```
+usalo in `referencedKeys()` e in `PdfFormFiller::isCheckboxChecked()`:
 
-- [ ] **Step 2: Esegui, atteso FAIL**
+```php
+if (filled($field->checkbox_when)) {
+    ['negate' => $negate, 'key' => $key, 'value' => $value] = $field->parseCheckboxWhen();
 
-- [ ] **Step 3: Implementa l'RM**
+    if ($key === null) {
+        return null;
+    }
 
-Struttura (segui lo stile di `ClientRelationsRelationManager`; namespace Filament v5 come da CLAUDE.md):
+    $matches = $value === null ? $data->isTruthy($key) : $data->equals($key, $value);
 
-- `protected static string $relationship = 'kycQuestionnaires'; protected static ?string $title = 'KYC / Adeguata verifica';`
-- `form(Schema $schema)`: `Section` "Questionario" (Textarea `purpose_of_relationship`, `funds_origin`; TextInput `occupation`, `income_source`; Toggle `is_pep`, `is_remote_interaction`; Textarea `high_risk_countries`; Select `risk_level` con `->options(KycRiskLevel::class)`, `->live()` e `afterStateUpdated` che imposta `next_review_at` a `now()->addMonths($level->reviewMonths())`; DatePicker `next_review_at`, `compiled_at` (default now); Select `client_mandate_id` con i mandati del cliente; Textarea `notes`). `Section` "Titolari effettivi" `->visible(fn () => ! $this->getOwnerRecord()->is_person)` con: `Actions` > `Action::make('prefill_owners')->label('Precompila da cariche sociali')` che chiama `BeneficialOwnerSuggester::suggest($client->companyRelations, $client->legal_representative_id)` e fa `$set('beneficialOwners', [...])`; `Repeater::make('beneficialOwners')->relationship()` con Select `client_id` (persone fisiche, ricerca per nome/CF, `getOptionLabelUsing`), TextInput `shares_percentage`, Select `control_type` (`KycControlType`), DateTimePicker `declaration_signed_at`, Toggle `is_verified`.
-- `table(Table $table)`: colonne `compiled_at` (data), `risk_level` badge, `status` badge, `verified_by`, `verified_at`, `next_review_at`; `headerActions` `CreateAction::make()->label('Nuova compilazione')`; record actions `EditAction`, e `Action::make('approve')->label('Approva')->icon('heroicon-o-check-badge')->visible(fn (KycQuestionnaire $r) => $r->status !== KycStatus::APPROVED)->requiresConfirmation()->action(...)` che chiama `$record->approve(auth()->user()->name)` in try/catch su `\DomainException` → `Notification::make()->danger()->title('KYC incompleto')->body($e->getMessage())->send()`, altrimenti `->success()->title('KYC approvato')`. Nessun `DeleteAction` sui record approvati (storico): `->visible(fn ($r) => $r->status !== KycStatus::APPROVED)` su `DeleteAction`.
-- In `mutateFormDataUsing` del `CreateAction`: `$data['status'] = KycStatus::DRAFT; $data['compiled_at'] ??= now();`.
+    return $matches !== $negate;
+}
+```
+`ResolvedModuleData::equals()`: `return (string) ($this->get($key) instanceof \BackedEnum ? $this->get($key)->value : $this->get($key)) === $value;` (valori nulli → `''`).
+- [ ] **Step 4: PASS**; **Step 5: Test chiavi/resolver** — `ModuleKycKeysTest`: (a) coerenza: per ogni `ModuleSourceKey` con value che inizia per `kyc.` esiste in `KycModuleValues::for(...)` e viceversa (nessuna chiave orfana in nessuna direzione); (b) `resolveForClient($company, $kyc)` espone `kyc.legal_nature`, `kyc.executor.name` (nome dell'esecutore), `kyc.owner1.tax_code`, `kyc.owner1.criterion`, `kyc.owner2.name` null se non c'è il secondo titolare; (c) la persona `sex`, `birth_date` come in `Client`; (d) `resolve($pratica, $client)` continua a restituire `pratica.codice_pratica` e ora anche `kyc.pep_status` dal KYC approvato.
+- [ ] **Step 6: Genera i case dell'enum con uno script monouso** (output da incollare in `ModuleSourceKey` e usare per le etichette):
 
-In `ClientResource::getRelations()` sostituisci la riga commentata `// ChecklistsRelationManager::class,` con `KycQuestionnairesRelationManager::class,` (+ `use`).
-
-- [ ] **Step 4: Esegui, atteso PASS** — `php artisan test --compact tests/Feature/KycRelationManagerTest.php`
-
-- [ ] **Step 5: Test del prefill** (aggiungi a `KycApprovalTest` o nuovo file): verifica che l'azione `prefill_owners` popoli il repeater usando una `Collection` di `ClientRelation` non persistiti non è possibile via Livewire; copri il comportamento con i test di Task 3 e verifica manuale dell'azione (vedi Task 8).
-
-- [ ] **Step 6: Pint e commit** — `feat(kyc): relation manager KYC sulla scheda cliente`.
+```bash
+php -r '
+$f = ["name","first_name","tax_code","birth_place","birth_date","citizenship","sex","city","province","address","zip","doc_type","doc_number","doc_issuer","doc_issued_at","doc_expires_at"];
+$cases = [];
+foreach (["pep_status","financing_purpose","economic_activity","activity_sector","activity_location","financing_nature","income_band","wealth_band","legal_nature","geographic_area","executor_link"] as $k) { $cases[] = "kyc.$k"; }
+foreach (["executor" => ["pep_status"], "owner1" => ["criterion","pep_status"], "owner2" => ["criterion","pep_status"], "owner3" => ["criterion","pep_status"]] as $s => $extra) {
+    foreach (array_merge($f, $extra) as $x) { $cases[] = "kyc.$s.$x"; }
+}
+foreach ($cases as $c) { $n = str_replace(" ", "", ucwords(str_replace([".", "_"], " ", $c))); echo "    case $n = \x27$c\x27;\n"; }
+'
+```
+Incolla l'output nell'enum e aggiungi al `match` di `getLabel()` un ramo finale `default => (string) \Illuminate\Support\Str::of($this->value)->after('kyc.')->replace(['.', '_'], ' ')->prepend('KYC: ')` (l'enum ha già un `match` esaustivo: il `default` copre tutti i `kyc.*`).
+- [ ] **Step 7: Implementa `KycModuleValues` e `resolveForClient`** — `KycModuleValues::for()`: `$map = []`; scalari: `$map['kyc.pep_status'] = $kyc?->pep_status?->value;` … (uno per scalare; `financing_purpose` è già stringa); `foreach (['executor' => $kyc?->executor, 'owner1' => …, 'owner2' => …, 'owner3' => …] as $subject => $person)` → `personBlock($subject, $person)`; owner N = `$kyc->beneficialOwners->firstWhere('position', N)` con `->person`; `kyc.owner{N}.criterion` = `$owner?->control_criterion?->value`, `…pep_status` = `$owner?->pep_status?->value`, `kyc.executor.pep_status` = `$kyc?->executor_pep_status?->value`. `personBlock` riusa gli helper del resolver: **estrai** `mainBranch()`, `fullAddress()`, `identityDocument()` da `ModuleDataResolver` in metodi `public` e passa il resolver a `KycModuleValues` (costruttore) oppure — più semplice — rendi `KycModuleValues` un metodo privato del resolver e lascia la costante `PERSON_FIELDS` in `KycModuleValues`; scegli la seconda, e documenta la scelta nel codice. In `resolve()` e `resolveForClient()`: `$kyc ??= $client->currentKyc() ?? $client->kycQuestionnaires()->latest('id')->first();` e `array_merge($values, $this->kycValues($client, $kyc))`. `resolveForClient` omette le chiavi `pratica.*` quando `$pratica === null` (valori nulli).
+- [ ] **Step 8:** esegui `php artisan test --compact tests/Feature/ModuleKycKeysTest.php tests/Feature/PdfFormFillerEqualityTest.php tests/Feature/PdfFormFillerTest.php tests/Feature/ModuleDataResolverClientLookupTest.php tests/Feature/PraticaModuleGeneratorTest.php` → PASS; pint + commit `feat(moduli): chiavi kyc.* e checkbox_when con uguaglianza`.
 
 ---
 
-### Task 6: Colonna e filtro nella lista clienti + badge nel tab AML
+### Task 6: Generazione QAV, approvazione e mappatura dei campi
 
 **Files:**
-- Modify: `app/Filament/Resources/Clients/Tables/ClientsTable.php`, `app/Filament/Resources/Clients/Schemas/ClientForm.php` (tab "Compliance AML", dopo la Section "Valutazione Rischio (AML)")
-- Test: `tests/Feature/KycClientsTableTest.php`
+- Create: `app/Services/Kyc/KycQavGenerator.php`, `app/Services/Kyc/KycApprover.php`, `database/seeders/KycQavSeeder.php`
+- Test: `tests/Feature/KycApprovalTest.php`, `tests/Feature/KycQavSeederTest.php`
 
-**Interfaces:**
-- Consumes: Task 2 (`KycQuestionnaire::coverageByClient()`, `Client::kycCoverage()`).
+**Interfaces**
+- Consumes: Task 1–5, `PdfFormFiller::fill(PdfModule, ResolvedModuleData): string`, `PdfModule::documentType`, `ModuleDataResolver::resolveForClient`.
+- Produces:
+  - `KycQavGenerator::SLUG_PERSON = 'qav-persona-fisica'`, `SLUG_COMPANY = 'qav-persona-giuridica'`; `moduleFor(Client): ?PdfModule` (modulo attivo il cui `documentType.slug` è lo slug del tipo cliente); `render(KycQuestionnaire): string` (PDF compilato, senza salvare); `generate(KycQuestionnaire, ?User): Document`.
+  - `KycApprover::approve(KycQuestionnaire, User): Document` — lancia `\DomainException` con requisiti mancanti o con "Modulo QAV non configurato per il tipo di cliente".
+  - `KycQavSeeder` idempotente.
 
-- [ ] **Step 1: Test che fallisce**
+Flusso `approve`: (1) `missingRequirements()` ≠ vuoto → `DomainException`; (2) `generate()` dentro `DB::transaction` (crea `Document` del cliente con `document_type_id` del modulo, `emitted_at = today()`, `status = DocumentStatus::UPLOADED`, media `documents`, activity log `kyc_qav` sul cliente senza valori sensibili); (3) solo se (2) riesce: `status = Approved`, `verified_by = $user->name`, `verified_at = now()`, `document_id`. Un errore a qualsiasi passo lascia `status` invariato e nessun `Document`.
+
+- [ ] **Step 1: Test che fallisce (approvazione)** — con `PdfFormFiller` mockato:
+  - setup comune: `PdfModule` "QAV Persona fisica" collegato a un `DocumentType` con `slug = 'qav-persona-fisica'`, `is_monitored = true`, `duration = 12`, `duration_unit = 'months'`; cliente persona fisica con questionario completo (helper del Task 4).
+  - `test_approve_creates_the_qav_document_and_marks_approved`: dopo `approve()` → `status Approved`, `verified_by` = nome utente, `document_id` valorizzato, il `Document` appartiene al cliente (`documentable`), ha `document_type_id` del tipo, `expires_at` = `emitted_at + 12 mesi` (≈ `today()->addMonths(12)`), media `documents` presente; `$client->kycCoverage() === KycCoverage::Complete`.
+  - `test_incomplete_questionnaire_is_rejected_without_side_effects`: `DomainException`, `Document::count() === 0`, `status` ancora `Draft`.
+  - `test_missing_qav_module_is_rejected_without_side_effects`: nessun `PdfModule` → `DomainException` "Modulo QAV non configurato…", `status` ancora `Draft`.
+  - `test_company_uses_the_company_module`: cliente `is_person = false` con titolare verificato → usa il modulo con slug `qav-persona-giuridica`.
+  - `test_filler_failure_leaves_nothing_behind`: il mock lancia `PdfFormException` → `Document::count() === 0`, `status` ancora `Draft`.
+- [ ] **Step 2: FAIL**; **Step 3: Implementa** `KycQavGenerator`:
 
 ```php
-<?php
-
-namespace Tests\Feature;
-
-use App\Filament\Resources\Clients\Pages\ListClients;
-use App\Models\Client;
-use App\Models\KycQuestionnaire;
-use App\Models\User;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Illuminate\Support\Str;
-use Livewire\Livewire;
-use Tests\TestCase;
-
-class KycClientsTableTest extends TestCase
+public function moduleFor(Client $client): ?PdfModule
 {
-    use LazilyRefreshDatabase;
+    $slug = $client->is_person ? self::SLUG_PERSON : self::SLUG_COMPANY;
 
-    protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];
+    return PdfModule::query()->active()
+        ->whereHas('documentType', fn ($query) => $query->where('slug', $slug))
+        ->first();
+}
 
-    private function makeClient(string $name): Client
-    {
-        return Client::create([
-            'name' => $name, 'first_name' => 'X', 'is_person' => true, 'is_company' => false,
-            'tax_code' => strtoupper(Str::random(16)),
+public function render(KycQuestionnaire $questionnaire): string
+{
+    $client = $questionnaire->client;
+    $module = $this->moduleFor($client)
+        ?? throw new \DomainException('Modulo QAV non configurato per il tipo di cliente.');
+
+    return $this->filler->fill($module->loadMissing('fields'), $this->resolver->resolveForClient($client, $questionnaire));
+}
+
+public function generate(KycQuestionnaire $questionnaire, ?User $user): Document
+{
+    $client = $questionnaire->client;
+    $module = $this->moduleFor($client)
+        ?? throw new \DomainException('Modulo QAV non configurato per il tipo di cliente.');
+    $content = $this->render($questionnaire);
+
+    return DB::transaction(function () use ($questionnaire, $client, $module, $content, $user): Document {
+        $document = $client->documents()->create([
+            'document_type_id' => $module->document_type_id,
+            'name' => $module->name.' - '.trim(($client->name ?? '').' '.($client->first_name ?? '')),
+            'status' => DocumentStatus::UPLOADED->value,
+            'spatie_collection' => 'documents',
+            'emitted_at' => today(),
+            'uploaded_by' => $user?->getKey(),
+            'created_by' => $user?->getKey(),
         ]);
-    }
 
-    public function test_kyc_filter_splits_missing_expired_and_complete_clients(): void
-    {
-        $this->actingAs(User::factory()->create());
-        $missing = $this->makeClient('Missing');
-        $expired = $this->makeClient('Expired');
-        $complete = $this->makeClient('Complete');
-        KycQuestionnaire::factory()->approved()->create(['client_id' => $expired->id, 'next_review_at' => now()->subDay()]);
-        KycQuestionnaire::factory()->approved()->create(['client_id' => $complete->id]);
+        $document->addMediaFromString($content)
+            ->usingFileName(Str::slug($module->name.' '.$client->tax_code).'.pdf')
+            ->toMediaCollection('documents');
 
-        Livewire::test(ListClients::class)
-            ->filterTable('kyc', 'missing')
-            ->assertCanSeeTableRecords([$missing])
-            ->assertCanNotSeeTableRecords([$expired, $complete])
-            ->filterTable('kyc', 'expired')
-            ->assertCanSeeTableRecords([$expired])
-            ->assertCanNotSeeTableRecords([$missing, $complete])
-            ->filterTable('kyc', 'complete')
-            ->assertCanSeeTableRecords([$complete])
-            ->assertCanNotSeeTableRecords([$missing, $expired]);
-    }
+        activity('kyc_qav')->performedOn($client)->causedBy($user)->event('qav_generato')
+            ->withProperties(['questionnaire_id' => $questionnaire->getKey(), 'document_id' => $document->getKey()])
+            ->log('QAV generato per il cliente');
+
+        return $document;
+    });
 }
 ```
-
-Nota: il `TernaryFilter` "Consulenti" ha `default(false)`; i client del test hanno `is_company = false`, quindi sono visibili con il filtro di default.
-
-- [ ] **Step 2: Esegui, atteso FAIL**
-
-- [ ] **Step 3: Implementa**
-
-In `ClientsTable::columns()`, dopo la colonna `is_art108`:
+`KycApprover::approve()` come da flusso sopra (il `generate()` fa già il controllo modulo; i requisiti si controllano per primi).
+- [ ] **Step 4: PASS**.
+- [ ] **Step 5: Seeder `KycQavSeeder`** — (a) per i due moduli QAV (`PdfModule` con `file_path` dei due QAV) chiama `PdfFieldSynchronizer::linkDocumentType()` e, **solo se il tipo non ha già `is_monitored`**, imposta: `is_monitored true`, `duration 12`, `duration_unit 'months'`, `is_signed true`, `is_client true`, `is_practice false`, `document_typable 'cliente'`, `slug` = `KycQavGenerator::SLUG_PERSON/COMPANY` (+ `is_person`/`is_company` coerenti); (b) applica la mappatura campi **solo ai campi senza `source_key` e senza `checkbox_when`**:
 
 ```php
-TextColumn::make('kyc')
-    ->label('KYC')
-    ->badge()
+private const LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'l', 'm'];
+
+// domanda => [chiave scalare, classe enum]
+PERSON  = ['1' => ['kyc.pep_status', KycPepStatus::class], '2' => ['kyc.economic_activity', KycEconomicActivity::class],
+           '3' => ['kyc.activity_sector', KycActivitySector::class], '4' => ['kyc.activity_location', KycActivityLocation::class],
+           '5' => ['kyc.financing_nature', KycFinancingNature::class], '6' => ['kyc.financing_purpose', KycPersonPurpose::class],
+           '7' => ['kyc.income_band', KycIncomeBand::class], '8' => ['kyc.wealth_band', KycWealthBand::class]];
+COMPANY = ['1' => ['kyc.legal_nature', KycLegalNature::class], '2' => ['kyc.geographic_area', KycGeographicArea::class],
+           '3' => ['kyc.financing_purpose', KycCompanyPurpose::class], '4' => ['kyc.executor_link', KycExecutorLink::class],
+           '5' => ['kyc.executor.pep_status', KycPepStatus::class],
+           '6' => ['kyc.owner1.criterion', KycControlCriterion::class], '7' => ['kyc.owner1.pep_status', KycPepStatus::class],
+           '8' => ['kyc.owner2.criterion', KycControlCriterion::class], '9' => ['kyc.owner2.pep_status', KycPepStatus::class],
+           '10' => ['kyc.owner3.criterion', KycControlCriterion::class], '11' => ['kyc.owner3.pep_status', KycPepStatus::class]];
+// per ogni [domanda, chiave, enum] e ogni case $i: campo "{domanda}{LETTERS[$i]}" -> checkbox_when "{chiave}={case->value}"
+```
+  Campi di testo (nome campo PDF → chiave; `birth_date`, `doc_issued_at`, `doc_expires_at` con `Fmt::DateIt`), nell'ordine di `PERSON_FIELDS`:
+  - **Persona fisica**: nessun campo di testo nuovo (anagrafica già mappata da `PdfModuleFieldMappingSeeder`); `data` → `Key::PraticaOggi` + `DateIt`.
+  - **Persona giuridica, esecutore**: `dummyFieldName25, dummyFieldName26, dummyFieldName27, dummyFieldName28, Text22, Text23, Text24, Text25, Text26, Text27, Text28, Text29, Text30, Text31, Text32, Text33` → `kyc.executor.<PERSON_FIELDS[i]>`.
+  - **Titolare 1**: `Text39, Text40, Text41, Text42, Text43, Text44, Text45, Text46, Text47, Text48, Text49, Text50, Text51, Text53, Text54, Text55`; **Titolare 2**: `Text59…Text74` (16 campi consecutivi); **Titolare 3**: `Text78…Text93` (16 campi consecutivi) → `kyc.owner{n}.<…>`. Verificato sul PDF diagnostico: esecutore e titolari 1–2; il titolare 3 è per analogia → controllare con `modules:sync-fields --diagnostic`.
+  - `Text97` e `Text100` → `PraticaOggi` + `DateIt`. `luogo`, `Text99` (collaboratore) restano a mano.
+- [ ] **Step 6: Test del seeder** — `KycQavSeederTest`: dopo `PdfModuleSeeder` e due `PdfModule` QAV con campi creati a mano (o `PdfModuleField::factory()` con i nomi `1a`, `1e`, `3m`, `Text39`, …) il seeder imposta `checkbox_when` = `kyc.pep_status=carica_pubblica` su `1a`, `kyc.activity_sector=nessuna_condizione` su `3m` (indice 10 ↔ lettera `m`), `kyc.owner1.name` su `Text39`; è idempotente; **non** sovrascrive un campo già mappato; imposta durata 12 mesi e `is_monitored` solo se il tipo non lo era.
+- [ ] **Step 7:** pint + commit `feat(kyc): approvazione con generazione QAV e mappatura campi`.
+
+---
+
+### Task 7: RelationManager Filament
+
+**Files:** Create `app/Filament/Resources/Clients/RelationManagers/KycQuestionnairesRelationManager.php`; Modify `app/Filament/Resources/Clients/ClientResource.php` (registra l'RM al posto della riga commentata `// ChecklistsRelationManager::class`); Test `tests/Feature/KycRelationManagerTest.php`
+
+**Interfaces — Consumes:** Task 1–6, `BeneficialOwnerSuggester`. Verifica le API v5 con `search-docs` prima di scrivere (`Schemas\Components\Actions`, `Repeater::relationship()`, `TestAction::make(...)->table($record)`). **Non** usare `HasRelationPlanAccess` (nessuna feature key): `canViewForRecord` → `true`.
+
+Form (sezioni visibili in base a `$this->getOwnerRecord()->is_person`):
+- *Comune*: `pep_status` (Radio, `KycPepStatus`), `financing_purpose` (Select, opzioni `KycPersonPurpose` o `KycCompanyPurpose` secondo il tipo), `risk_level` (Select), `client_mandate_id` (mandati del cliente), `compiled_at` (default now), `notes`.
+- *Persona fisica*: `economic_activity`, `activity_sector`, `activity_location`, `financing_nature`, `income_band`, `wealth_band` (Radio/Select con le enum), `acts_for_third_party` (Toggle).
+- *Persona giuridica*: `legal_nature`, `geographic_area`, `executor_client_id` (Select cercabile sulle persone fisiche), `executor_link`, `executor_pep_status`.
+- *Titolari effettivi* (persona giuridica, o persona fisica con `acts_for_third_party`): `Actions` con `prefill_owners` ("Precompila da cariche sociali") che usa `BeneficialOwnerSuggester::suggest($client->companyRelations, $client->legal_representative_id)` e fa `$set('beneficialOwners', …)`; `Repeater::make('beneficialOwners')->relationship()->maxItems(3)` con `position` (hidden, ordine), `client_id` (Select), `shares_percentage`, `control_criterion`, `pep_status`, `declaration_signed_at`, `is_verified`.
+
+Tabella: colonne `compiled_at`, `risk_level` badge, `status` badge, `verified_by`, `verified_at`, `document.expires_at` ("Scade il"); `CreateAction` "Nuova compilazione" con `mutateFormDataUsing` → `status = Draft`; record actions: `EditAction`; `approve` (visibile se `status !== Approved`, `requiresConfirmation`, chiama `app(KycApprover::class)->approve($record, auth()->user())` in try/catch `\DomainException` → `Notification::make()->danger()->title('KYC incompleto')->body($e->getMessage())`; successo `->success()->title('KYC approvato')`; se `$record->warnings()` non è vuoto, aggiungili al body); `print` ("Stampa QAV": `response()->streamDownload(fn () => print(app(KycQavGenerator::class)->render($record)), 'QAV.pdf')`, errori `DomainException`/`PdfFormException` → notifica); `DeleteAction` solo se `status !== Approved`.
+
+- [ ] **Step 1: Test che fallisce** — `Livewire::test(KycQuestionnairesRelationManager::class, ['ownerRecord' => $client, 'pageClass' => EditClient::class])` con `actingAs(User::factory()->create())`: lista dei questionari; `approve` su un questionario completo (con modulo QAV e filler mockati come nel Task 6) → `status Approved` e notifica; `approve` su un incompleto → notifica e `status` ancora `Draft`; creare una nuova compilazione (`TestAction::make('create')->table()` con i campi minimi per persona fisica) conserva il questionario approvato precedente (`count() === 2`).
+- [ ] **Step 2: FAIL**; **Step 3: Implementa**; **Step 4: PASS**; **Step 5:** pint + commit `feat(kyc): relation manager KYC sulla scheda cliente`.
+
+---
+
+### Task 8: Lista clienti e tab AML
+
+**Files:** Modify `app/Filament/Resources/Clients/Tables/ClientsTable.php`, `app/Filament/Resources/Clients/Schemas/ClientForm.php` (tab "Compliance AML"); Test `tests/Feature/KycClientsTableTest.php`
+
+**Interfaces — Consumes:** `KycQuestionnaire::coverageByClient()`, `Client::kycCoverage()`.
+
+- [ ] **Step 1: Test che fallisce** — come nella v1: tre clienti (`is_company = false`, visibili col filtro "Consulenti" di default), uno `Missing`, uno `Expired` (approvato con documento scaduto), uno `Complete`; `Livewire::test(ListClients::class)->filterTable('kyc', 'missing'|'expired'|'complete')` mostra solo il cliente atteso.
+- [ ] **Step 2: FAIL**; **Step 3: Implementa** — colonna:
+
+```php
+TextColumn::make('kyc')->label('KYC')->badge()
     ->state(fn (Client $record) => $record->kycCoverage())
     ->formatStateUsing(fn (KycCoverage $state) => $state->getLabel())
     ->color(fn (KycCoverage $state) => $state->getColor()),
 ```
-
-In `->filters([...])`:
-
-```php
-SelectFilter::make('kyc')
-    ->label('KYC')
-    ->options(KycCoverage::class)
-    ->query(function (Builder $query, array $data) {
-        $value = $data['value'] ?? null;
-
-        if (! $value) {
-            return $query;
-        }
-
-        $coverage = KycQuestionnaire::coverageByClient();
-
-        if ($value === KycCoverage::MISSING->value) {
-            return $query->whereNotIn('id', $coverage->keys()->all());
-        }
-
-        $ids = $coverage->filter(fn (KycCoverage $c) => $c->value === $value)->keys()->all();
-
-        return $query->whereIn('id', $ids);
-    }),
-```
-
-(Gli id vengono passati come array, mai come subquery: `Client` è su un'altra connessione.)
-
-In `ClientForm`, tab "Compliance AML", nuova `Section::make('KYC / Adeguata verifica')` con un componente testuale (verifica la classe esistente in v5: `Filament\Schemas\Components\Text`) che mostra `$record?->kycCoverage()->getLabel()` e, se presente, "verificato il … da …; prossima revisione …"; visibile solo su record esistenti.
-
-- [ ] **Step 4: Esegui, atteso PASS**
-
-- [ ] **Step 5: Pint e commit** — `feat(kyc): colonna e filtro KYC nella lista clienti`.
+filtro `SelectFilter::make('kyc')->options(KycCoverage::class)->query(…)`: `missing` → `whereNotIn('id', $coverage->keys()->all())`; `expired`/`complete` → `whereIn('id', ids con quella copertura)` (array di id, mai subquery). Nel tab AML una `Section` "KYC / Adeguata verifica" visibile sui record esistenti con il testo `Filament\Schemas\Components\Text` (verifica che la classe esista in v5) che mostra la copertura e "verificato il … da …".
+- [ ] **Step 4: PASS**; **Step 5:** pint + commit `feat(kyc): colonna e filtro KYC nella lista clienti`.
 
 ---
 
-### Task 7: Avviso KYC sulla pratica
+### Task 9: Avviso sulla pratica
 
-**Files:**
-- Modify: `app/Filament/Resources/Praticas/Pages/EditPratica.php`
-- Test: `tests/Feature/KycPraticaNoticeTest.php`
+**Files:** Modify `app/Filament/Resources/Praticas/Pages/EditPratica.php`; Test `tests/Feature/KycPraticaNoticeTest.php`
 
-**Interfaces:**
-- Consumes: `Client::kycCoverage()`. Produce un testo in `getSubheading()`; nessun blocco.
-
-- [ ] **Step 1: Test che fallisce**
-
-Usa lo schema di creazione pratica di `tests/Feature/ClientEmployerIbanTest.php` (`Pratica::create(['id' => uuid, 'codice_pratica' => ..., 'codice_fiscale' => $client->tax_code])`).
-
-```php
-public function test_edit_pratica_warns_when_client_kyc_is_missing(): void
-{
-    $this->actingAs(User::factory()->create());
-    $client = Client::create(['name' => 'Rossi', 'first_name' => 'Mario', 'is_person' => true, 'tax_code' => 'RSSMRA80A01H501U']);
-    $pratica = Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => 'P-KYC-1', 'codice_fiscale' => $client->tax_code]);
-
-    Livewire::test(EditPratica::class, ['record' => $pratica->getKey()])
-        ->assertSee('KYC mancante');
-}
-
-public function test_edit_pratica_shows_no_warning_when_kyc_is_complete(): void
-{
-    // stesso setup + KycQuestionnaire::factory()->approved()->create(['client_id' => $client->id]);
-    // ->assertDontSee('KYC mancante')->assertDontSee('KYC scaduto')
-}
-```
-
-(Completa il secondo test con il setup completo; stesso file con `use` e `connectionsToTransact` come gli altri.)
-
-- [ ] **Step 2: Esegui, atteso FAIL**
-
-- [ ] **Step 3: Implementa** in `EditPratica`
+- [ ] **Step 1: Test che fallisce** — `Pratica::create(['id' => uuid, 'codice_pratica' => 'P-KYC-1', 'codice_fiscale' => $client->tax_code])`; `Livewire::test(EditPratica::class, ['record' => $pratica->getKey()])->assertSee('KYC mancante')` per cliente senza KYC; `assertSee('KYC scaduto')` con documento scaduto; né l'uno né l'altro con KYC completo.
+- [ ] **Step 2: FAIL**; **Step 3: Implementa** in `EditPratica`:
 
 ```php
 public function getSubheading(): ?string
 {
     $client = Client::where('tax_code', $this->getRecord()->codice_fiscale)->first();
-    $coverage = $client?->kycCoverage();
 
-    return match ($coverage) {
-        KycCoverage::MISSING => 'Attenzione: KYC mancante per il cliente',
-        KycCoverage::EXPIRED => 'Attenzione: KYC scaduto per il cliente',
+    return match ($client?->kycCoverage()) {
+        KycCoverage::Missing => 'Attenzione: KYC mancante per il cliente',
+        KycCoverage::Expired => 'Attenzione: KYC scaduto per il cliente',
         default => null,
     };
 }
 ```
-
-- [ ] **Step 4: Esegui, atteso PASS**
-
-- [ ] **Step 5: Pint e commit** — `feat(kyc): avviso KYC mancante/scaduto sulla pratica`.
+- [ ] **Step 4: PASS**; **Step 5:** pint + commit `feat(kyc): avviso KYC mancante/scaduto sulla pratica`.
 
 ---
 
-### Task 8: Verifica finale
+### Task 10: Verifica finale e messa in servizio
 
-- [ ] **Step 1:** `php artisan test --compact tests/Feature/Kyc*.php tests/Unit/BeneficialOwnerSuggesterTest.php` → tutto verde.
-- [ ] **Step 2:** `php artisan migrate:status | grep kyc` sulla base dati di sviluppo (chiedi conferma prima di eseguire `migrate` in sviluppo).
-- [ ] **Step 3: Verifica manuale** nel browser: scheda di una società → tab KYC → "Precompila da cariche sociali" → salva → "Approva". Nota: `Client::companyRelations` usa `company_id = client.id`, ma `client_relations.company_id` ha una FK verso `companies.id` (uuid). Se in dati reali non produce righe, segnalarlo: la causa è nel modello esistente, non nel KYC.
-- [ ] **Step 4:** chiedere all'utente se eseguire l'intera suite (`php artisan test --compact`).
+- [ ] **Step 1:** `php artisan test --compact tests/Feature/Kyc*.php tests/Feature/ModuleKycKeysTest.php tests/Feature/PdfFormFillerEqualityTest.php tests/Unit/BeneficialOwnerSuggesterTest.php` e i 37 test del sistema moduli → tutto verde.
+- [ ] **Step 2: Messa in servizio sul DB di sviluppo (chiedere conferma prima):** `php artisan migrate`; `php artisan db:seed --class=PdfModuleSeeder`; `php artisan modules:sync-fields --link-document-types`; `php artisan db:seed --class=PdfModuleFieldMappingSeeder`; `php artisan db:seed --class=KycQavSeeder`.
+- [ ] **Step 3: Verifica manuale** (browser): società → tab "KYC / Adeguata verifica" → "Precompila da cariche sociali" → compila → "Approva" → scarica il QAV dal documento e controlla con `modules:sync-fields --diagnostic` la posizione dei campi del **titolare 3** (mappato per analogia). Nota: `Client::companyRelations` usa `company_id = client.id` mentre `client_relations.company_id` ha una FK verso `companies.id` (uuid): se in dati reali il precompilato non trova righe, la causa è nel modello esistente, non nel KYC.
+- [ ] **Step 4:** chiedere all'utente se eseguire l'intera suite (`php artisan test --compact`; nota: 2 test di `DocumentReminderServiceTest` falliscono già su main per `employees.employee_roles`).
