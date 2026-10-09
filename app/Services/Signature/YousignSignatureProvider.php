@@ -237,7 +237,7 @@ class YousignSignatureProvider implements SignatureProvider
     }
 
     /**
-     * @return array<string, array<string, array<string, string>>>
+     * @return array<string, array<string, mixed>>
      */
     private function emailNotification(?string $subject): array
     {
@@ -245,7 +245,7 @@ class YousignSignatureProvider implements SignatureProvider
             return [];
         }
 
-        return ['email_notification' => ['custom_text' => [
+        return ['email_notification' => ['sender' => ['type' => 'organization'], 'custom_text' => [
             'request_subject' => $subject,
             'reminder_subject' => $subject,
         ]]];
