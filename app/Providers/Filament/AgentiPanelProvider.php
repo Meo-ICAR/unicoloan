@@ -26,6 +26,7 @@ class AgentiPanelProvider extends PanelProvider
             ->id('agenti')
             ->path('agenti')
             ->login()
+            ->passwordReset()
             ->brandName('Portale agenti')
          //   ->brandLogo(asset('images/unicoOAM_banner.png'))
             // Opzionale: imposta un'altezza fissa se ti sembra troppo grande o piccolo

@@ -2,13 +2,16 @@
 
 namespace App\Filament\Resources\Fornitores\Tables;
 
+use App\Enums\AgentAccessOutcome;
+use App\Enums\UserRole;
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\Company;
 use App\Models\Task;
+use App\Services\Agenti\AgentAccessService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\EditAction;  // Importante per il form nel modal
+use Filament\Actions\BulkActionGroup;  // Importante per il form nel modal
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -17,6 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use pxlrbt\FilamentExcel\Actions\ExportAction;
 
@@ -117,6 +121,34 @@ class FornitoresTable
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    BulkAction::make('createAgentAccess')
+                        ->label('Crea accesso portale agenti')
+                        ->icon('heroicon-o-key')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Crea accesso al portale agenti')
+                        ->modalDescription('Per ogni fornitore selezionato con email valida viene creato un utente e inviata un\'email per impostare la password.')
+                        ->visible(fn (): bool => in_array(Auth::user()?->role, [UserRole::ADMIN->value, UserRole::SUPER_ADMIN->value], true))
+                        ->deselectRecordsAfterCompletion()
+                        ->action(function (Collection $records): void {
+                            $service = app(AgentAccessService::class);
+                            $counts = [];
+
+                            foreach ($records as $record) {
+                                $outcome = $service->enable($record);
+                                $counts[$outcome->value] = ($counts[$outcome->value] ?? 0) + 1;
+                            }
+
+                            $lines = collect(AgentAccessOutcome::cases())
+                                ->filter(fn (AgentAccessOutcome $outcome): bool => isset($counts[$outcome->value]))
+                                ->map(fn (AgentAccessOutcome $outcome): string => $outcome->getLabel().': '.$counts[$outcome->value]);
+
+                            Notification::make()
+                                ->title('Accessi al portale agenti')
+                                ->body($lines->implode("\n"))
+                                ->status(isset($counts[AgentAccessOutcome::Created->value]) ? 'success' : 'warning')
+                                ->send();
+                        }),
                     BulkAction::make('CheckPEC')
                         ->label('Invia PEC di check periodica')
                         ->icon('heroicon-o-check-badge')  // Un'icona leggermente diversa per distinguerla dal sollecito
