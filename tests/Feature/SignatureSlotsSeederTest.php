@@ -19,7 +19,7 @@ class SignatureSlotsSeederTest extends TestCase
         $this->seed(SignatureSlotsSeeder::class);
 
         $this->assertCount(1, $person->refresh()->signature_slots);
-        $this->assertEquals(['slot' => 'signer1', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 40], $person->signature_slots[0]);
+        $this->assertEquals(['slot' => 'cliente', 'role' => 'client', 'page' => 3, 'x' => 345, 'y' => 748, 'width' => 142, 'height' => 40], $person->signature_slots[0]);
         $this->assertCount(2, $company->refresh()->signature_slots);
         $this->assertSame('collaborator', $company->signature_slots[1]['role']);
         $this->assertSame(6, $company->signature_slots[1]['page']);
@@ -38,7 +38,7 @@ class SignatureSlotsSeederTest extends TestCase
 
     public function test_it_does_not_overwrite_existing_slots(): void
     {
-        $custom = [['slot' => 'signer1', 'role' => 'client', 'page' => 1, 'x' => 1, 'y' => 2, 'width' => 3, 'height' => 4]];
+        $custom = [['slot' => 'cliente', 'role' => 'client', 'page' => 1, 'x' => 1, 'y' => 2, 'width' => 3, 'height' => 4]];
         $person = PdfModule::factory()->create(['name' => 'QAV Persona fisica', 'signature_slots' => $custom]);
 
         $this->seed(SignatureSlotsSeeder::class);
@@ -51,5 +51,16 @@ class SignatureSlotsSeederTest extends TestCase
         $this->seed(SignatureSlotsSeeder::class);
 
         $this->assertSame(0, PdfModule::query()->count());
+    }
+
+    public function test_seeded_slot_names_match_the_signer_defaults_keys(): void
+    {
+        $person = PdfModule::factory()->create(['name' => 'QAV Persona fisica']);
+        $company = PdfModule::factory()->create(['name' => 'QAV Persona giuridica']);
+
+        $this->seed(SignatureSlotsSeeder::class);
+
+        $names = array_merge(array_column($person->refresh()->signature_slots, 'slot'), array_column($company->refresh()->signature_slots, 'slot'));
+        $this->assertEqualsCanonicalizing(['cliente', 'cliente', 'collaboratore'], $names);
     }
 }

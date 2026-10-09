@@ -58,7 +58,7 @@ class PdfModuleForm
                             ->schema([
                                 Select::make('slot')
                                     ->label('Firmatario')
-                                    ->options(['signer1' => 'Firmatario 1', 'signer2' => 'Firmatario 2'])
+                                    ->options(['cliente' => 'Cliente', 'collaboratore' => 'Collaboratore'])
                                     ->required(),
                                 Select::make('role')
                                     ->label('Ruolo')

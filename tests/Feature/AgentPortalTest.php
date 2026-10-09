@@ -397,7 +397,7 @@ class AgentPortalTest extends TestCase
         ]);
         PdfModule::factory()->create([
             'name' => 'QAV Persona fisica', 'document_type_id' => $type->id,
-            'signature_slots' => [['slot' => 'signer1', 'role' => 'client', 'page' => 1, 'x' => 50, 'y' => 700, 'width' => 142, 'height' => 40]],
+            'signature_slots' => [['slot' => 'cliente', 'role' => 'client', 'page' => 1, 'x' => 50, 'y' => 700, 'width' => 142, 'height' => 40]],
         ]);
     }
 

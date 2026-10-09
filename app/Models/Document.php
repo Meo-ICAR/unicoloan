@@ -125,6 +125,11 @@ class Document extends Model implements HasMedia
                 $document->rejection_note = $document->rejection_note ?? 'Nessuna nota fornita.';
             }
         });
+
+        // Un documento eliminato (anche per sostituzione col firmato) esce subito dallo scadenziario.
+        static::deleted(function (Document $document) {
+            DocumentSchedule::query()->where('document_id', $document->getKey())->delete();
+        });
     }
 
     /**

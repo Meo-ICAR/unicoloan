@@ -7,6 +7,7 @@ use App\Enums\SignerRole;
 use App\Enums\SignerStatus;
 use App\Models\Client;
 use App\Models\Document;
+use App\Models\DocumentSchedule;
 use App\Models\DocumentType;
 use App\Models\KycQuestionnaire;
 use App\Models\PdfModule;
@@ -158,6 +159,27 @@ class SignatureReconcileTest extends TestCase
         $this->assertSame($request->id, (int) $activity->subject_id);
         $this->assertEqualsCanonicalizing(['signature_request_id', 'provider', 'document_id', 'replaced_document_id'], array_keys($activity->properties->all()));
         $this->assertTrue($request->signers->every(fn ($s) => $s->status === SignerStatus::Signed));
+    }
+
+    public function test_deleted_documents_leave_the_expiry_schedule_and_the_signed_replacement_removes_the_original_row(): void
+    {
+        $document = $this->documentWithModule();
+        $row = fn (Document $doc): array => [
+            'document_id' => $doc->getKey(), 'documentable_group_key' => 'k', 'document_name' => 'QAV', 'document_type_name' => 'QAV',
+            'entity_name' => 'ZZ', 'documentable_type' => 'client', 'documentable_id' => '1', 'status' => 'caricato', 'days_until_expiry' => 10,
+        ];
+        DocumentSchedule::create($row($document));
+        $request = $this->sentRequest($document);
+        $this->fake()->completeAll($request->provider_ref);
+
+        $this->service()->reconcile($request);
+
+        $this->assertSame(0, DocumentSchedule::query()->where('document_id', $document->getKey())->count());
+
+        $other = $this->documentWithModule();
+        DocumentSchedule::create($row($other));
+        $other->delete();
+        $this->assertSame(0, DocumentSchedule::query()->where('document_id', $other->getKey())->count());
     }
 
     public function test_signed_document_replaces_the_original_for_the_kyc_questionnaire(): void

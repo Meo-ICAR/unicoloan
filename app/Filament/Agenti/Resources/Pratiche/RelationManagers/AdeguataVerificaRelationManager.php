@@ -270,7 +270,7 @@ class AdeguataVerificaRelationManager extends RelationManager
         $client = $record->client;
 
         $signer = new SignerInput(
-            (string) ($slot['slot'] ?? 'signer1'),
+            (string) ($slot['slot'] ?? 'cliente'),
             SignerRole::Client,
             trim((string) $data['first_name']),
             trim((string) $data['last_name']),
