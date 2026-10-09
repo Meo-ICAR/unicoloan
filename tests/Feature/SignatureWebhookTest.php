@@ -6,7 +6,7 @@ use App\Enums\SignatureRequestStatus;
 use App\Jobs\ReconcileSignatureRequest;
 use App\Models\SignatureRequest;
 use App\Services\Signature\SignatureRequestService;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -84,7 +84,7 @@ class SignatureWebhookTest extends TestCase
 
         Queue::assertPushed(ReconcileSignatureRequest::class, 1);
         $job = new ReconcileSignatureRequest($request->id);
-        $this->assertInstanceOf(ShouldBeUnique::class, $job);
+        $this->assertInstanceOf(ShouldBeUniqueUntilProcessing::class, $job);
         $this->assertSame((string) $request->id, $job->uniqueId());
     }
 
@@ -126,5 +126,36 @@ class SignatureWebhookTest extends TestCase
         $this->assertSame(3, $job->tries);
         $this->assertSame([60, 300, 900], $job->backoff);
         $this->assertGreaterThan(0, $job->uniqueFor);
+    }
+
+    public function test_non_active_provider_is_rejected_without_side_effects(): void
+    {
+        $request = $this->sentRequest();
+        config(['signature.driver' => 'yousign']);
+        DB::connection('mysql')->enableQueryLog();
+
+        $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
+
+        Queue::assertNothingPushed();
+        $this->assertCount(0, DB::connection('mysql')->getQueryLog());
+        $this->assertNull($request->fresh()->last_event_at);
+    }
+
+    public function test_provider_different_from_driver_is_not_found(): void
+    {
+        $this->postJson('/api/signature/webhook/yousign', $this->payload('x'))->assertNotFound();
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_fake_provider_is_not_found_in_production(): void
+    {
+        $request = $this->sentRequest();
+        $this->app->detectEnvironment(fn () => 'production');
+
+        $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
+
+        Queue::assertNothingPushed();
+        $this->assertNull($request->fresh()->last_event_at);
     }
 }

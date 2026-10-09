@@ -4,14 +4,14 @@ namespace App\Jobs;
 
 use App\Models\SignatureRequest;
 use App\Services\Signature\SignatureRequestService;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Riallinea una richiesta di firma allo stato presso il provider.
  */
-class ReconcileSignatureRequest implements ShouldBeUnique, ShouldQueue
+class ReconcileSignatureRequest implements ShouldBeUniqueUntilProcessing, ShouldQueue
 {
     use Queueable;
 
