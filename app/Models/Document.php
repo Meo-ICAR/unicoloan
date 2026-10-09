@@ -26,6 +26,10 @@ class Document extends Model implements HasMedia
     {
         $this->addMediaCollection('documents')
             ->useDisk('public');
+
+        $this->addMediaCollection('signed')
+            ->useDisk('public')
+            ->singleFile();
     }
 
     protected $orderBy = 'name';
@@ -153,6 +157,16 @@ class Document extends Model implements HasMedia
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function signatureRequests(): HasMany
+    {
+        return $this->hasMany(SignatureRequest::class);
+    }
+
+    public function latestSignatureRequest(): ?SignatureRequest
+    {
+        return $this->signatureRequests()->latest('id')->first();
     }
 
     public function reminders(): HasMany

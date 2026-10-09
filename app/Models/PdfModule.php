@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property array<int, array{slot: string, role: string, page: int, x: float, y: float, width: float, height: float}>|null $signature_slots
+ */
 class PdfModule extends Model
 {
     use HasFactory;
@@ -28,6 +31,7 @@ class PdfModule extends Model
         'tipi_prodotto',
         'client_scope',
         'is_active',
+        'signature_slots',
     ];
 
     /**
@@ -37,6 +41,7 @@ class PdfModule extends Model
         'tipi_prodotto' => 'array',
         'client_scope' => PdfModuleClientScope::class,
         'is_active' => 'boolean',
+        'signature_slots' => 'array',
     ];
 
     public function documentType(): BelongsTo
