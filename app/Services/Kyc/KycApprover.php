@@ -16,7 +16,7 @@ class KycApprover
     public function __construct(private KycQavGenerator $generator) {}
 
     /**
-     * @throws \DomainException con i requisiti mancanti o il modulo non configurato
+     * @throws \DomainException con i requisiti mancanti, il modulo non configurato o se gia' approvato
      */
     public function approve(KycQuestionnaire $questionnaire, User $user): Document
     {
@@ -33,6 +33,12 @@ class KycApprover
         $content = $this->generator->render($questionnaire);
 
         return DB::connection('mysql')->transaction(function () use ($questionnaire, $user, $content): Document {
+            $locked = KycQuestionnaire::query()->whereKey($questionnaire->getKey())->lockForUpdate()->first();
+
+            if ($locked === null || $locked->status === KycStatus::Approved) {
+                throw new \DomainException('KYC già approvato');
+            }
+
             $document = $this->generator->store($questionnaire, $content, $user);
 
             $questionnaire->update([
