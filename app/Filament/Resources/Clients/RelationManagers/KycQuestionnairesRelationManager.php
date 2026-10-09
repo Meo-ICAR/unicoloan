@@ -73,6 +73,7 @@ class KycQuestionnairesRelationManager extends RelationManager
                         Radio::make('pep_status')
                             ->label('Condizione PEP')
                             ->options(KycPepStatus::class)
+                            ->visible($isPerson)
                             ->columnSpanFull(),
                         Select::make('financing_purpose')
                             ->label('Scopo del finanziamento')
@@ -141,7 +142,7 @@ class KycQuestionnairesRelationManager extends RelationManager
                             ->schema([
                                 Select::make('client_id')
                                     ->label('Persona')
-                                    ->relationship('person', 'name')
+                                    ->relationship('person', 'name', fn (Builder $query) => $query->where('is_person', true))
                                     ->searchable()
                                     ->preload()
                                     ->required(),
@@ -163,7 +164,7 @@ class KycQuestionnairesRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('id')
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('document')->latestFirst())
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('document')->orderByDesc('compiled_at')->orderByDesc('id'))
             ->columns([
                 TextColumn::make('compiled_at')->label('Compilato il')->dateTime('d/m/Y'),
                 TextColumn::make('risk_level')

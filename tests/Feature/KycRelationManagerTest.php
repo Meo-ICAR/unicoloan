@@ -98,6 +98,67 @@ class KycRelationManagerTest extends TestCase
             ->assertCanNotSeeTableRecords([$foreign]);
     }
 
+    public function test_new_draft_is_listed_before_an_older_approved_one(): void
+    {
+        $client = $this->person();
+        $approved = $this->completeFor($client, [
+            'status' => KycStatus::Approved,
+            'compiled_at' => now()->subYear(),
+            'verified_at' => now()->subYear(),
+        ]);
+        $draft = $this->completeFor($client, ['compiled_at' => now()]);
+
+        $this->relationManager($client)
+            ->assertCanSeeTableRecords([$draft, $approved], inOrder: true);
+    }
+
+    public function test_common_pep_radio_is_visible_for_persons_and_hidden_for_companies(): void
+    {
+        $company = Client::create([
+            'name' => 'Acme Srl',
+            'is_person' => false,
+            'tax_code' => strtoupper(Str::random(16)),
+        ]);
+
+        $this->relationManager($this->person())
+            ->mountAction(TestAction::make('create')->table())
+            ->assertFormFieldVisible('pep_status');
+
+        $this->relationManager($company)
+            ->mountAction(TestAction::make('create')->table())
+            ->assertFormFieldHidden('pep_status');
+    }
+
+    public function test_beneficial_owner_select_only_offers_natural_persons(): void
+    {
+        $company = Client::create([
+            'name' => 'Acme Srl',
+            'is_person' => false,
+            'tax_code' => strtoupper(Str::random(16)),
+        ]);
+        $otherCompany = Client::create([
+            'name' => 'ZzzBeta Spa',
+            'is_person' => false,
+            'tax_code' => strtoupper(Str::random(16)),
+        ]);
+        $person = $this->person();
+        $person->update(['name' => 'ZzzAlfa']);
+
+        $component = $this->relationManager($company)
+            ->mountAction(TestAction::make('create')->table())
+            ->set('mountedActions.0.data.beneficialOwners', ['item1' => []])
+            ->instance();
+        $schemaName = $component->getMountedActionSchemaName();
+        $select = $component->{$schemaName}->getFlatComponents(withActions: false, withAbsoluteKeys: true);
+
+        $field = collect($select)->first(fn ($component, $path) => str_ends_with((string) $path, 'client_id') && str_contains((string) $path, 'beneficialOwners'));
+        $this->assertNotNull($field);
+        $results = $field->getSearchResults('Zzz');
+
+        $this->assertSame([$person->id], array_keys($results));
+        $this->assertNotContains($otherCompany->id, array_keys($results));
+    }
+
     public function test_approve_marks_the_questionnaire_approved(): void
     {
         $this->mock(PdfFormFiller::class)->shouldReceive('fill')->andReturn('%PDF-1.4 finto');
