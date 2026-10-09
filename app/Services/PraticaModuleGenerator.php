@@ -92,6 +92,7 @@ class PraticaModuleGenerator
     {
         /** @var Document $document */
         $document = $pratica->documents()->create([
+            'document_type_id' => $module->document_type_id,
             'name' => $module->name.' - '.$reference,
             'status' => DocumentStatus::UPLOADED->value,
             'spatie_collection' => 'documents',

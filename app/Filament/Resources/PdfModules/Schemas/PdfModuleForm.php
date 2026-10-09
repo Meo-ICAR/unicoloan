@@ -27,6 +27,12 @@ class PdfModuleForm
                             ->label('File')
                             ->disabled()
                             ->dehydrated(false),
+                        Select::make('document_type_id')
+                            ->label('Tipo documento (catalogo)')
+                            ->relationship('documentType', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->helperText('I documenti generati ereditano scadenze, firma e conservazione di questo tipo.'),
                         TextInput::make('version')
                             ->label('Versione')
                             ->maxLength(255),

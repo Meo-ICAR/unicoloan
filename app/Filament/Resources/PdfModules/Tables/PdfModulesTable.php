@@ -18,6 +18,9 @@ class PdfModulesTable
                     ->label('Modulo')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('documentType.name')
+                    ->label('Tipo documento')
+                    ->placeholder('Non collegato'),
                 TextColumn::make('client_scope')
                     ->label('Ambito')
                     ->badge(),

@@ -6,6 +6,7 @@ use App\Enums\PdfModuleClientScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PdfModule extends Model
@@ -22,6 +23,7 @@ class PdfModule extends Model
     protected $fillable = [
         'name',
         'file_path',
+        'document_type_id',
         'version',
         'tipi_prodotto',
         'client_scope',
@@ -36,6 +38,11 @@ class PdfModule extends Model
         'client_scope' => PdfModuleClientScope::class,
         'is_active' => 'boolean',
     ];
+
+    public function documentType(): BelongsTo
+    {
+        return $this->belongsTo(DocumentType::class);
+    }
 
     public function fields(): HasMany
     {

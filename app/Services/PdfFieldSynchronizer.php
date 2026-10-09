@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\DocumentType;
 use App\Models\PdfModule;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Allinea `pdf_modules` / `pdf_module_fields` ai PDF presenti in storage/app/public/module.
@@ -99,6 +101,34 @@ class PdfFieldSynchronizer
             ->all();
 
         return ['module' => $module, 'created' => $created, 'removed' => $removed];
+    }
+
+    /**
+     * Collega il modulo al catalogo `document_types`: riusa il tipo con lo stesso slug, altrimenti
+     * ne crea uno "Modulo da Compilare". Un modulo gia' collegato non viene toccato.
+     */
+    public function linkDocumentType(PdfModule $module): DocumentType
+    {
+        if ($module->documentType) {
+            return $module->documentType;
+        }
+
+        $type = DocumentType::query()->firstOrCreate(
+            ['slug' => Str::slug($module->name)],
+            [
+                'name' => $module->name,
+                'nature' => 'template_fillable',
+                'doctype' => 'modulo',
+                'is_template' => true,
+                'is_person' => true,
+                'is_company' => true,
+                'is_practice' => true,
+            ],
+        );
+
+        $module->update(['document_type_id' => $type->getKey()]);
+
+        return $type;
     }
 
     public function moduleNameFromPath(string $path): string

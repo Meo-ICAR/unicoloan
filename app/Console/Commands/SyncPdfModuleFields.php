@@ -9,7 +9,8 @@ use Illuminate\Console\Command;
 
 class SyncPdfModuleFields extends Command
 {
-    protected $signature = 'modules:sync-fields {--diagnostic : Genera per ogni modulo un PDF in cui ogni campo mostra il proprio nome}';
+    protected $signature = 'modules:sync-fields {--diagnostic : Genera per ogni modulo un PDF in cui ogni campo mostra il proprio nome}
+                            {--link-document-types : Collega ogni modulo a un tipo documento del catalogo, creandolo se manca}';
 
     protected $description = 'Legge i campi AcroForm dei PDF in storage/app/public/module e li registra in pdf_module_fields';
 
@@ -46,6 +47,10 @@ class SyncPdfModuleFields extends Command
 
             if ($result['removed'] !== []) {
                 $this->warn('  campi spariti: '.implode(', ', $result['removed']));
+            }
+
+            if ($this->option('link-document-types')) {
+                $this->line('  tipo documento: '.$synchronizer->linkDocumentType($module)->name);
             }
 
             if ($this->option('diagnostic')) {

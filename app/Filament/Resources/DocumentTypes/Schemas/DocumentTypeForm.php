@@ -65,6 +65,13 @@ class DocumentTypeForm
                         TextInput::make('document_url')
                             ->label('URL documento'),
                         // ->url(fn($record) => $record->document_url ? (str_starts_with($record->document_url, 'http') ? $record->document_url : "https://{$record->document_url}") : null),
+                        TextInput::make('pdf_module_name')
+                            ->label('Modulo PDF compilabile collegato')
+                            ->helperText('Si imposta dalla scheda del modulo in Moduli PDF.')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->visible(fn ($get) => $get('nature') === 'template_fillable')
+                            ->afterStateHydrated(fn ($component, $record) => $component->state($record?->pdfModule?->name ?? 'Nessuno')),
                         SpatieMediaLibraryFileUpload::make('attachments')
                             ->label('Carica file (PDF, immagini, Word)')
                             ->multiple()
