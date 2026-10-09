@@ -84,6 +84,7 @@ class ModuleKycKeysTest extends TestCase
         $this->assertSame(KycControlCriterion::cases()[0]->value, $data->get(ModuleSourceKey::KycOwner1Criterion));
         $this->assertNull($data->get(ModuleSourceKey::KycOwner2Name));
         $this->assertNull($data->get(ModuleSourceKey::PraticaCodice));
+        $this->assertNotNull($data->get(ModuleSourceKey::PraticaOggi));
     }
 
     public function test_person_sex_and_birth_date_come_from_client(): void

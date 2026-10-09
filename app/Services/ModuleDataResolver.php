@@ -77,7 +77,7 @@ class ModuleDataResolver
             Key::PraticaAbi->value => $pratica?->abi,
             Key::PraticaProdotto->value => $pratica?->denominazione_prodotto,
             Key::PraticaDataInserimento->value => $pratica?->data_inserimento_pratica,
-            Key::PraticaOggi->value => $pratica ? now() : null,
+            Key::PraticaOggi->value => now(),
 
             Key::ClienteCognome->value => $client->name,
             Key::ClienteNome->value => $client->first_name,
