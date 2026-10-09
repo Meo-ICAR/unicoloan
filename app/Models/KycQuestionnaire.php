@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\KycActivityLocation;
 use App\Enums\KycActivitySector;
+use App\Enums\KycCoverage;
 use App\Enums\KycEconomicActivity;
 use App\Enums\KycExecutorLink;
 use App\Enums\KycFinancingNature;
@@ -14,10 +15,12 @@ use App\Enums\KycPepStatus;
 use App\Enums\KycRiskLevel;
 use App\Enums\KycStatus;
 use App\Enums\KycWealthBand;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 /**
  * Questionario di adeguata verifica (QAV) di un cliente.
@@ -29,6 +32,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class KycQuestionnaire extends Model
 {
     use HasFactory;
+
+    protected $connection = 'mysql';
 
     protected $fillable = [
         'client_id',
@@ -100,5 +105,32 @@ class KycQuestionnaire extends Model
     public function beneficialOwners(): HasMany
     {
         return $this->hasMany(KycBeneficialOwner::class)->orderBy('position');
+    }
+
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status', KycStatus::Approved);
+    }
+
+    public function scopeLatestFirst(Builder $query): Builder
+    {
+        return $query->orderByDesc('verified_at')->orderByDesc('id');
+    }
+
+    public function coverage(): KycCoverage
+    {
+        $expiresAt = $this->document?->expires_at;
+
+        return $expiresAt !== null && $expiresAt->lt(today()) ? KycCoverage::Expired : KycCoverage::Complete;
+    }
+
+    /**
+     * @return Collection<int, KycCoverage>
+     */
+    public static function coverageByClient(): Collection
+    {
+        return static::approved()->with('document')->latestFirst()->get()
+            ->unique('client_id')
+            ->mapWithKeys(fn (self $q) => [$q->client_id => $q->coverage()]);
     }
 }

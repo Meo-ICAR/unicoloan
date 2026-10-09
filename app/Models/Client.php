@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\KycCoverage;
 use App\Models\PROFORMA\Pratica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -252,5 +253,20 @@ class Client extends Model
             ->clientMandates()
             ->whereNotNull('importo_richiesto_mandato')
             ->sum('importo_richiesto_mandato');
+    }
+
+    public function kycQuestionnaires(): HasMany
+    {
+        return $this->hasMany(KycQuestionnaire::class);
+    }
+
+    public function currentKyc(): ?KycQuestionnaire
+    {
+        return $this->kycQuestionnaires()->approved()->latestFirst()->first();
+    }
+
+    public function kycCoverage(): KycCoverage
+    {
+        return $this->currentKyc()?->coverage() ?? KycCoverage::Missing;
     }
 }
