@@ -233,7 +233,7 @@ class YousignSignatureProvider implements SignatureProvider
         // (*) da verificare sul sandbox: nome del campo con la data di firma
         $value = $signer['signed_at'] ?? null;
 
-        return $value ? Carbon::parse($value) : null;
+        return $value ? Carbon::parse($value)->setTimezone(config('app.timezone')) : null;
     }
 
     /**

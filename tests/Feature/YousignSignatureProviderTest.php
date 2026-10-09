@@ -338,6 +338,7 @@ class YousignSignatureProviderTest extends TestCase
 
         $this->assertSame(SignerStatus::Signed, $signers['a']->status);
         $this->assertSame('2026-10-09', $signers['a']->signedAt->toDateString());
+        $this->assertSame('12:00', $signers['a']->signedAt->format('H:i'));
         $this->assertSame(SignerStatus::Declined, $signers['b']->status);
         $this->assertSame(SignerStatus::Notified, $signers['c']->status);
         $this->assertSame(SignerStatus::Notified, $signers['d']->status);
