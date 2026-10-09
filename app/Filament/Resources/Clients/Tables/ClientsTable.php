@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Clients\Tables;
 
+use App\Enums\KycCoverage;
+use App\Models\Client;
+use App\Models\KycQuestionnaire;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\IconColumn;
@@ -11,6 +14,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ClientsTable
 {
@@ -70,6 +74,12 @@ class ClientsTable
                     ->trueIcon('heroicon-s-shield-check')
                     ->falseIcon('heroicon-o-x-mark')
                     ->color(fn ($state) => $state ? 'success' : 'gray'),
+                TextColumn::make('kyc')
+                    ->label('KYC')
+                    ->badge()
+                    ->state(fn (Client $record): KycCoverage => $record->kycCoverage())
+                    ->formatStateUsing(fn (KycCoverage $state): string => $state->getLabel())
+                    ->color(fn (KycCoverage $state): string => $state->getColor()),
                 // Dati Finanziari
                 TextColumn::make('salary')
                     ->sortable()
@@ -101,6 +111,28 @@ class ClientsTable
                         'valutazione_aml' => 'In Valutazione',
                         'approvata' => 'Approvati',
                     ]),
+                // Copertura KYC: gli id si calcolano in PHP perche' Client e KycQuestionnaire sono su connessioni diverse
+                SelectFilter::make('kyc')
+                    ->label('KYC')
+                    ->options(KycCoverage::class)
+                    ->query(function (Builder $query, array $data): Builder {
+                        $value = $data['value'] ?? null;
+
+                        if (blank($value)) {
+                            return $query;
+                        }
+
+                        $coverage = KycQuestionnaire::coverageByClient();
+
+                        if ($value === KycCoverage::Missing->value) {
+                            return $query->whereNotIn('id', $coverage->keys()->all());
+                        }
+
+                        return $query->whereIn('id', $coverage
+                            ->filter(fn (KycCoverage $item): bool => $item->value === $value)
+                            ->keys()
+                            ->all());
+                    }),
                 // Filtro Rischio
                 Filter::make('high_risk')
                     ->label('Alto Rischio (AML)')
