@@ -36,7 +36,7 @@
 ### Task 1: Enum, migrazioni, modelli, factory
 
 **Files:**
-- Create: `app/Enums/Kyc/` non esiste come cartella nuova di base: usare direttamente `app/Enums/` con prefisso `Kyc` — `KycPepStatus`, `KycEconomicActivity`, `KycActivitySector`, `KycActivityLocation`, `KycFinancingNature`, `KycPersonPurpose`, `KycCompanyPurpose`, `KycIncomeBand`, `KycWealthBand`, `KycLegalNature`, `KycGeographicArea`, `KycExecutorLink`, `KycControlCriterion`, `KycRiskLevel`, `KycStatus`, `KycCoverage`
+- Create in `app/Enums/` (nessuna sottocartella nuova, prefisso `Kyc`): `KycPepStatus`, `KycEconomicActivity`, `KycActivitySector`, `KycActivityLocation`, `KycFinancingNature`, `KycPersonPurpose`, `KycCompanyPurpose`, `KycIncomeBand`, `KycWealthBand`, `KycLegalNature`, `KycGeographicArea`, `KycExecutorLink`, `KycControlCriterion`, `KycRiskLevel`, `KycStatus`, `KycCoverage`
 - Create (artisan): `app/Models/KycQuestionnaire.php`, `app/Models/KycBeneficialOwner.php`, migrazioni, `database/factories/KycQuestionnaireFactory.php`
 - Test: `tests/Feature/KycModelTest.php`
 
