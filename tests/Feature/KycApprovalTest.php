@@ -31,6 +31,7 @@ use App\Services\PdfFormException;
 use App\Services\PdfFormFiller;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
@@ -43,6 +44,14 @@ class KycApprovalTest extends TestCase
      * @var array<int, string>
      */
     protected array $connectionsToTransact = ['mysql', 'mysql_proforma'];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Storage::fake('public');
+        Storage::fake(config('media-library.disk_name'));
+    }
 
     private function qavModule(string $slug = KycQavGenerator::SLUG_PERSON, string $name = 'QAV Persona fisica'): PdfModule
     {
@@ -133,6 +142,43 @@ class KycApprovalTest extends TestCase
         $this->assertCount(1, $document->getMedia('documents'));
         $this->assertSame(KycCoverage::Complete, $questionnaire->client->kycCoverage());
         $this->assertSame(1, Activity::query()->where('log_name', 'kyc_qav')->count());
+    }
+
+    public function test_re_approval_is_rejected_without_a_second_document(): void
+    {
+        $this->fakeFiller();
+        $this->qavModule();
+        $questionnaire = $this->completePerson();
+        $first = User::factory()->create();
+        $second = User::factory()->create();
+        $document = app(KycApprover::class)->approve($questionnaire, $first);
+
+        try {
+            app(KycApprover::class)->approve($questionnaire->fresh(), $second);
+            $this->fail('DomainException attesa');
+        } catch (\DomainException $e) {
+            $this->assertSame('KYC già approvato', $e->getMessage());
+        }
+
+        $questionnaire->refresh();
+        $this->assertSame($first->name, $questionnaire->verified_by);
+        $this->assertSame($document->id, $questionnaire->document_id);
+        $this->assertSame(1, Document::query()->where('documentable_id', $questionnaire->client_id)->count());
+        $this->assertSame(1, Activity::query()->where('log_name', 'kyc_qav')->count());
+    }
+
+    public function test_stale_instance_cannot_double_approve(): void
+    {
+        $this->fakeFiller();
+        $this->qavModule();
+        $questionnaire = $this->completePerson();
+        $stale = KycQuestionnaire::find($questionnaire->id);
+        app(KycApprover::class)->approve($questionnaire, User::factory()->create());
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('KYC già approvato');
+
+        app(KycApprover::class)->approve($stale, User::factory()->create());
     }
 
     public function test_incomplete_questionnaire_is_rejected_without_side_effects(): void

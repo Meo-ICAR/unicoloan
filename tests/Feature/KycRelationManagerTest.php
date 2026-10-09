@@ -24,6 +24,7 @@ use App\Services\PdfFormFiller;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -40,6 +41,9 @@ class KycRelationManagerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Storage::fake('public');
+        Storage::fake(config('media-library.disk_name'));
 
         Filament::setCurrentPanel('admin');
         $this->actingAs(User::factory()->create());
