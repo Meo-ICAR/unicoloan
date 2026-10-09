@@ -114,6 +114,7 @@ class SignatureRequestService
             signers: array_map(fn (array $signer): EnvelopeSigner => $signer['envelope'], $envelopeSigners),
             expiresAt: $request->expires_at,
             externalId: (string) $request->id,
+            emailSubject: $this->emailSubject($document),
         );
 
         try {
@@ -173,6 +174,17 @@ class SignatureRequestService
      *
      * @throws SignatureRequestException
      */
+    /**
+     * Oggetto dell'email al firmatario: tipo documento, orario di invio e cliente (distingue gli invii ravvicinati).
+     */
+    private function emailSubject(Document $document): string
+    {
+        $type = (string) ($document->documentType?->name ?? 'documento');
+        $owner = trim((string) ($document->documentable?->name ?? ''));
+
+        return trim(sprintf('Firma %s - ore %s %s', $type, now()->format('H:i'), $owner));
+    }
+
     public function reconcile(SignatureRequest $request): SignatureRequest
     {
         if ($request->status !== SignatureRequestStatus::Sent || blank($request->provider_ref)) {

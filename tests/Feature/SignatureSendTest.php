@@ -242,6 +242,7 @@ class SignatureSendTest extends TestCase
                     && $data->signers[0]->placement->page === 1
                     && $data->name === 'QAV Rossi'
                     && $data->fileName === 'qav-rossi.pdf'
+                    && preg_match('/^Firma .+ - ore \d{2}:\d{2}/', (string) $data->emailSubject) === 1
                     && str_starts_with($data->pdf, '%PDF')
                     && $data->externalId === (string) SignatureRequest::query()->latest('id')->value('id');
             }))

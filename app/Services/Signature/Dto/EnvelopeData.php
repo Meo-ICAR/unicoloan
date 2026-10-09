@@ -14,5 +14,6 @@ final readonly class EnvelopeData
         public array $signers,
         public ?\DateTimeInterface $expiresAt,
         public string $externalId,
+        public ?string $emailSubject = null,
     ) {}
 }

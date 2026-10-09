@@ -148,6 +148,30 @@ class YousignSignatureProviderTest extends TestCase
         Http::assertNotSent(fn (HttpRequest $r) => $r->method() === 'DELETE');
     }
 
+    public function test_email_subject_is_sent_as_custom_text_only_when_given(): void
+    {
+        $this->fakeHappyPath();
+        $envelope = $this->makeEnvelope();
+        $withSubject = new EnvelopeData(
+            $envelope->name, $envelope->fileName, $envelope->pdf, $envelope->signers, $envelope->expiresAt, $envelope->externalId, 'Firma QAV - ore 19:58 ROSSI',
+        );
+
+        $this->provider()->createEnvelope($withSubject);
+
+        Http::assertSent(fn ($request): bool => str_ends_with($request->url(), '/signature_requests')
+            && $request->method() === 'POST'
+            && $request['email_notification']['custom_text']['request_subject'] === 'Firma QAV - ore 19:58 ROSSI'
+            && $request['email_notification']['custom_text']['reminder_subject'] === 'Firma QAV - ore 19:58 ROSSI');
+
+        Http::fake();
+        $this->fakeHappyPath();
+        $this->provider()->createEnvelope($envelope);
+
+        Http::assertSent(fn ($request): bool => str_ends_with($request->url(), '/signature_requests')
+            && $request->method() === 'POST'
+            && ! isset($request['email_notification']));
+    }
+
     public function test_signers_are_created_in_position_order_even_if_given_reversed(): void
     {
         $this->fakeHappyPath();

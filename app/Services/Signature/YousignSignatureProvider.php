@@ -88,7 +88,7 @@ class YousignSignatureProvider implements SignatureProvider
             'external_id' => $envelope->externalId,
             // (*) da verificare sul sandbox: campo e formato della scadenza
             'expiration_date' => $envelope->expiresAt?->format('Y-m-d'),
-        ]);
+        ] + $this->emailNotification($envelope->emailSubject));
         $requestId = $this->requireId($created, 'richiesta');
 
         try {
@@ -234,6 +234,21 @@ class YousignSignatureProvider implements SignatureProvider
         $value = $signer['signed_at'] ?? null;
 
         return $value ? Carbon::parse($value)->setTimezone(config('app.timezone')) : null;
+    }
+
+    /**
+     * @return array<string, array<string, array<string, string>>>
+     */
+    private function emailNotification(?string $subject): array
+    {
+        if ($subject === null || $subject === '') {
+            return [];
+        }
+
+        return ['email_notification' => ['custom_text' => [
+            'request_subject' => $subject,
+            'reminder_subject' => $subject,
+        ]]];
     }
 
     /**
