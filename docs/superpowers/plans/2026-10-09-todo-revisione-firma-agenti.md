@@ -5,7 +5,7 @@ Legenda: [x] fatto, [ ] da fare, [-] escluso per decisione.
 ## Sicurezza
 - [x] 1. `checkPiano` non deve concedere nulla al ruolo `agent` (download documenti incluso).
 - [x] 2. Un agente non puo' agganciare una pratica a un cliente gia' in anagrafica che non e' suo.
-- [ ] 3. OTP e approvazione KYC alla firma: decisione di processo ancora da prendere (contatti del firmatario modificabili dal produttore; `verified_by` = produttore).
+- [ ] 3. (rimandato a dopo) OTP e approvazione KYC alla firma: i contatti del firmatario sono modificabili dal produttore e `verified_by` e' il produttore; decidere il processo.
 - [-] 4. File su disco pubblico: si sposteranno su SharePoint.
 - [x] 5. Perimetro pratiche dell'agente: solo P.IVA esatta (la P.IVA agente non e' modificabile), senza sentinella.
 
@@ -18,6 +18,6 @@ Legenda: [x] fatto, [ ] da fare, [-] escluso per decisione.
 - [-] 11. Punti Yousign da verificare e dati personali nell'oggetto email.
 
 ## Operativita' e qualita'
-- [ ] 12. Rate limiting su creazione pratiche e invii OTP (non richiesto: aperto).
+- [ ] 12. Rate limiting su creazione pratiche e invii OTP (da fare dopo, insieme al punto 3).
 - [x] 13. Cancellare i dati di prova dal DB di sviluppo (KYC, richieste di firma, documenti).
 - [x] 14. Refactoring: stesso codice per il form KYC (admin e portale), niente nomi di classe inline.
