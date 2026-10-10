@@ -78,13 +78,13 @@ class ModuleKycKeysTest extends TestCase
 
         $data = app(ModuleDataResolver::class)->resolveForClient($company, $kyc);
 
-        $this->assertSame(KycLegalNature::cases()[0]->value, $data->get(ModuleSourceKey::KycLegalNature));
-        $this->assertSame('Bianchi', $data->get(ModuleSourceKey::KycExecutorName));
-        $this->assertSame($owner->tax_code, $data->get(ModuleSourceKey::KycOwner1TaxCode));
-        $this->assertSame(KycControlCriterion::cases()[0]->value, $data->get(ModuleSourceKey::KycOwner1Criterion));
-        $this->assertNull($data->get(ModuleSourceKey::KycOwner2Name));
-        $this->assertNull($data->get(ModuleSourceKey::PraticaCodice));
-        $this->assertNotNull($data->get(ModuleSourceKey::PraticaOggi));
+        $this->assertSame(KycLegalNature::cases()[0]->value, $data->get(ModuleSourceKey::KycLegalNature->value));
+        $this->assertSame('Bianchi', $data->get(ModuleSourceKey::KycExecutorName->value));
+        $this->assertSame($owner->tax_code, $data->get(ModuleSourceKey::KycOwner1TaxCode->value));
+        $this->assertSame(KycControlCriterion::cases()[0]->value, $data->get(ModuleSourceKey::KycOwner1Criterion->value));
+        $this->assertNull($data->get(ModuleSourceKey::KycOwner2Name->value));
+        $this->assertNull($data->get(ModuleSourceKey::PraticaCodice->value));
+        $this->assertNotNull($data->get(ModuleSourceKey::PraticaOggi->value));
     }
 
     public function test_person_sex_and_birth_date_come_from_client(): void
@@ -93,8 +93,8 @@ class ModuleKycKeysTest extends TestCase
 
         $data = app(ModuleDataResolver::class)->resolveForClient($company, $kyc);
 
-        $this->assertSame('M', $data->get(ModuleSourceKey::KycExecutorSex));
-        $this->assertEquals($executor->fresh()->birth_date, $data->get(ModuleSourceKey::KycExecutorBirthDate));
+        $this->assertSame('M', $data->get(ModuleSourceKey::KycExecutorSex->value));
+        $this->assertEquals($executor->fresh()->birth_date, $data->get(ModuleSourceKey::KycExecutorBirthDate->value));
     }
 
     public function test_resolve_keeps_pratica_values_and_adds_approved_kyc(): void
@@ -106,8 +106,8 @@ class ModuleKycKeysTest extends TestCase
 
         $data = app(ModuleDataResolver::class)->resolve($pratica, $client);
 
-        $this->assertSame('PR-1', $data->get(ModuleSourceKey::PraticaCodice));
-        $this->assertSame(KycPepStatus::None->value, $data->get(ModuleSourceKey::KycPepStatus));
+        $this->assertSame('PR-1', $data->get(ModuleSourceKey::PraticaCodice->value));
+        $this->assertSame(KycPepStatus::None->value, $data->get(ModuleSourceKey::KycPepStatus->value));
     }
 
     public function test_every_kyc_key_has_an_italian_label(): void

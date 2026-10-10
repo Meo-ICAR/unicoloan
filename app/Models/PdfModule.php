@@ -31,7 +31,7 @@ class PdfModule extends CorePdfModule
         return $this->belongsTo(DocumentType::class);
     }
 
-    public function fields(): HasMany
+    public function pdfModuleFields(): HasMany
     {
         return $this->hasMany(PdfModuleField::class, 'pdf_module_id');
     }

@@ -31,8 +31,8 @@ class CheckPrintableModulesCommandTest extends TestCase
         Storage::disk('public')->put('module/modulo-prova.pdf', $this->fixturePdfContents());
 
         $module = PdfModule::factory()->create(['name' => 'Modulo prova', 'file_path' => 'module/modulo-prova.pdf', 'tipi_prodotto' => ['Prestito']]);
-        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'cliente', 'source_key' => Key::ClienteNominativo]);
-        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'importo', 'source_key' => Key::ClienteEmail]);
+        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'cliente', 'source_key' => Key::ClienteNominativo->value]);
+        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'importo', 'source_key' => Key::ClienteEmail->value]);
     }
 
     private function pratica(string $code, ?string $taxCode, string $product = 'Prestito'): Pratica

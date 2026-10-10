@@ -223,7 +223,7 @@ class PdfModuleFieldMappingSeeder extends Seeder
             foreach ($fields as $name => $definition) {
                 [$key, $formatter, $force] = [$definition[0], $definition[1] ?? null, $definition[2] ?? false];
 
-                $mapped += $module->fields()
+                $mapped += $module->pdfModuleFields()
                     ->where('pdf_field_name', $name)
                     ->when(! $force, fn ($query) => $query->whereNull('source_key'))
                     ->update([

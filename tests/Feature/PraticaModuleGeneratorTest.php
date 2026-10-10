@@ -9,7 +9,7 @@ use App\Models\PdfModule;
 use App\Models\PdfModuleField;
 use App\Models\PROFORMA\Pratica;
 use App\Models\User;
-use App\Services\PdfFormException;
+use Unico\Core\Pdf\PdfFormException;
 use App\Services\PraticaModuleGenerator;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -62,11 +62,11 @@ class PraticaModuleGeneratorTest extends TestCase
     private function module(string $path = 'module/modulo-prova.pdf', string $name = 'Modulo prova'): PdfModule
     {
         $module = PdfModule::factory()->create(['name' => $name, 'file_path' => $path]);
-        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'cliente', 'source_key' => Key::ClienteNominativo]);
-        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'importo', 'source_key' => Key::PraticaImporto, 'formatter' => 'money_it']);
-        PdfModuleField::factory()->checkbox('si')->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'consenso', 'source_key' => Key::ClientePersonaFisica]);
+        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'cliente', 'source_key' => Key::ClienteNominativo->value]);
+        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'importo', 'source_key' => Key::PraticaImporto->value, 'formatter' => 'money_it']);
+        PdfModuleField::factory()->checkbox('si')->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'consenso', 'source_key' => Key::ClientePersonaFisica->value]);
 
-        return $module->load('fields');
+        return $module->load('pdfModuleFields');
     }
 
     public function test_generates_a_document_per_module_with_the_filled_pdf_attached(): void
@@ -167,11 +167,11 @@ class PraticaModuleGeneratorTest extends TestCase
     {
         $client = $this->client(['iban' => null]);
         $module = $this->module();
-        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'extra', 'source_key' => Key::ClienteIban]);
-        $module->load('fields');
+        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'extra', 'source_key' => Key::ClienteIban->value]);
+        $module->load('pdfModuleFields');
 
         $missing = app(PraticaModuleGenerator::class)->missingByModule($this->pratica(), $client, [$module]);
 
-        $this->assertSame([Key::ClienteIban], $missing[$module->id]);
+        $this->assertSame([Key::ClienteIban->value], $missing[$module->id]);
     }
 }

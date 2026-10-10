@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Enums\ModuleSourceKey;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;
-use App\Services\PdfFormFiller;
-use App\Services\ResolvedModuleData;
+use Unico\Core\Pdf\PdfFormFiller;
+use Unico\Core\Pdf\ResolvedModuleData;
 use Tests\TestCase;
 
 class PdfFormFillerEqualityTest extends TestCase
@@ -23,7 +23,7 @@ class PdfFormFillerEqualityTest extends TestCase
 
     public function test_checkbox_when_supports_equality_and_negation(): void
     {
-        $module = (new PdfModule)->setRelation('fields', collect([
+        $module = (new PdfModule)->setRelation('pdfModuleFields', collect([
             $this->checkbox('f1', 'kyc.pep_status=nessuna'),
             $this->checkbox('f2', 'kyc.pep_status=carica_pubblica'),
             $this->checkbox('f3', '!kyc.pep_status=nessuna'),
@@ -47,7 +47,7 @@ class PdfFormFillerEqualityTest extends TestCase
     {
         foreach (['kyc.pep_status=nessuna', '!kyc.pep_status=nessuna'] as $when) {
             $this->assertSame(
-                [ModuleSourceKey::KycPepStatus],
+                [ModuleSourceKey::KycPepStatus->value],
                 $this->checkbox('f', $when)->referencedKeys(),
             );
         }
@@ -57,8 +57,8 @@ class PdfFormFillerEqualityTest extends TestCase
     {
         $data = new ResolvedModuleData(['kyc.pep_status' => 'nessuna']);
 
-        $this->assertTrue($data->equals(ModuleSourceKey::KycPepStatus, 'nessuna'));
-        $this->assertFalse($data->equals(ModuleSourceKey::KycPepStatus, 'altro'));
-        $this->assertTrue($data->equals(ModuleSourceKey::KycLegalNature, ''));
+        $this->assertTrue($data->equals(ModuleSourceKey::KycPepStatus->value, 'nessuna'));
+        $this->assertFalse($data->equals(ModuleSourceKey::KycPepStatus->value, 'altro'));
+        $this->assertTrue($data->equals(ModuleSourceKey::KycLegalNature->value, ''));
     }
 }

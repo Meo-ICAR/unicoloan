@@ -13,7 +13,7 @@ use App\Models\KycQuestionnaire;
 use App\Services\Kyc\BeneficialOwnerSuggester;
 use App\Services\Kyc\KycApprover;
 use App\Services\Kyc\KycQavGenerator;
-use App\Services\PdfFormException;
+use Unico\Core\Pdf\PdfFormException;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;

@@ -180,7 +180,7 @@ class KycQavSeeder extends Seeder
      */
     private function mapField(PdfModule $module, string $fieldName, array $attributes): void
     {
-        $module->fields()
+        $module->pdfModuleFields()
             ->where('pdf_field_name', $fieldName)
             ->whereNull('source_key')
             ->where(fn ($query) => $query->whereNull('checkbox_when')->orWhere('checkbox_when', ''))

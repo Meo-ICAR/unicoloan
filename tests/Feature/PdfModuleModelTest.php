@@ -80,7 +80,7 @@ class PdfModuleModelTest extends TestCase
         $this->assertTrue($field->isCheckbox());
         $this->assertSame(
             ['client.is_person', 'client.is_person'],
-            array_map(fn ($key) => $key->value, $field->referencedKeys()),
+            $field->referencedKeys(),
         );
         $this->assertFalse((new PdfModuleField(['pdf_field_type' => 'text']))->isCheckbox());
         $this->assertSame([], (new PdfModuleField(['pdf_field_type' => 'text']))->referencedKeys());

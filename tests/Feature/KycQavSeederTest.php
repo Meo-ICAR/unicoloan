@@ -40,7 +40,7 @@ class KycQavSeederTest extends TestCase
 
     private function field(PdfModule $module, string $name): PdfModuleField
     {
-        return $module->fields()->where('pdf_field_name', $name)->firstOrFail();
+        return $module->pdfModuleFields()->where('pdf_field_name', $name)->firstOrFail();
     }
 
     public function test_it_maps_checkboxes_and_text_fields(): void
@@ -53,10 +53,10 @@ class KycQavSeederTest extends TestCase
         $this->assertSame('kyc.pep_status=nessuna', $this->field($person, '1e')->checkbox_when);
         $this->assertSame('kyc.activity_sector=nessuna_condizione', $this->field($person, '3m')->checkbox_when);
         $this->assertNull($this->field($person, 'Text1')->source_key);
-        $this->assertSame(Key::KycOwner1Name, $this->field($company, 'Text39')->source_key);
-        $this->assertSame(Key::KycOwner1FirstName, $this->field($company, 'Text40')->source_key);
+        $this->assertSame(Key::KycOwner1Name->value, $this->field($company, 'Text39')->source_key);
+        $this->assertSame(Key::KycOwner1FirstName->value, $this->field($company, 'Text40')->source_key);
         $this->assertSame('date_it', $this->field($company, 'Text43')->formatter->value);
-        $this->assertSame(Key::PraticaOggi, $this->field($company, 'Text97')->source_key);
+        $this->assertSame(Key::PraticaOggi->value, $this->field($company, 'Text97')->source_key);
         $this->assertNotNull($this->field($company, '6a')->checkbox_when);
     }
 

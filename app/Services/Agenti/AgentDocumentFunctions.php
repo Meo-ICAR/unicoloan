@@ -9,7 +9,7 @@ use App\Models\PROFORMA\Pratica;
 use App\Models\SignatureRequest;
 use App\Services\ModuleDataResolver;
 use App\Services\ModuleSuggester;
-use App\Services\PdfFormException;
+use Unico\Core\Pdf\PdfFormException;
 use App\Services\PraticaModuleGenerator;
 use App\Services\Signature\Exceptions\SignatureRequestException;
 use App\Services\Signature\SignatureRequestService;
@@ -49,9 +49,9 @@ class AgentDocumentFunctions
     /** @return array<int, string> chiavi dati che il modulo richiede e che la pratica non ha */
     public function missing(Pratica $pratica, PdfModule $module): array
     {
-        $missing = $this->generator->missingByModule($pratica, $this->client($pratica), [$module->load('fields')]);
+        $missing = $this->generator->missingByModule($pratica, $this->client($pratica), [$module->load('pdfModuleFields')]);
 
-        return array_map(fn ($key) => $key->value, $missing[$module->getKey()] ?? []);
+        return $missing[$module->getKey()] ?? [];
     }
 
     /** Contenuto del modulo vuoto, così come è nello storage. @throws AgentIntakeException */
@@ -72,7 +72,7 @@ class AgentDocumentFunctions
     public function fill(Pratica $pratica, PdfModule $module): Document
     {
         try {
-            return $this->generator->generate($pratica, $this->client($pratica), [$module->load('fields')], null)->first();
+            return $this->generator->generate($pratica, $this->client($pratica), [$module->load('pdfModuleFields')], null)->first();
         } catch (PdfFormException) {
             throw new AgentIntakeException('compilazione_non_riuscita', 'Il modulo non è stato compilato.', 422);
         }

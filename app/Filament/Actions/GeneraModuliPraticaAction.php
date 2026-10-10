@@ -8,7 +8,7 @@ use App\Models\PdfModule;
 use App\Models\PROFORMA\Pratica;
 use App\Services\ModuleDataResolver;
 use App\Services\ModuleSuggester;
-use App\Services\PdfFormException;
+use Unico\Core\Pdf\PdfFormException;
 use App\Services\PraticaModuleGenerator;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
@@ -65,7 +65,7 @@ class GeneraModuliPraticaAction extends Action
             return [];
         }
 
-        $modules = PdfModule::query()->active()->with('fields')->orderBy('name')->get();
+        $modules = PdfModule::query()->active()->with('pdfModuleFields')->orderBy('name')->get();
         $missing = app(PraticaModuleGenerator::class)->missingByModule($pratica, $client, $modules);
 
         return [
@@ -75,7 +75,7 @@ class GeneraModuliPraticaAction extends Action
                 ->descriptions($modules->mapWithKeys(fn (PdfModule $module) => [
                     $module->getKey() => $missing[$module->getKey()] === []
                         ? 'Dati completi'
-                        : 'Dati mancanti: '.collect($missing[$module->getKey()])->map->getLabel()->implode(', '),
+                        : 'Dati mancanti: '.collect($missing[$module->getKey()])->map(fn (string $key) => \App\Enums\ModuleSourceKey::tryFrom($key)?->getLabel() ?? $key)->implode(', '),
                 ])->all())
                 ->default(app(ModuleSuggester::class)->suggest($pratica, $client)->pluck('id')->all())
                 ->required()
@@ -100,7 +100,7 @@ class GeneraModuliPraticaAction extends Action
             return;
         }
 
-        $modules = PdfModule::query()->active()->whereKey($moduleIds)->with('fields')->orderBy('name')->get();
+        $modules = PdfModule::query()->active()->whereKey($moduleIds)->with('pdfModuleFields')->orderBy('name')->get();
 
         try {
             $documents = app(PraticaModuleGenerator::class)->generate($pratica, $client, $modules, auth()->user());

@@ -11,7 +11,7 @@ use App\Models\KycQuestionnaire;
 use App\Models\PROFORMA\Pratica;
 use App\Services\Agenti\ClientForPraticaCreator;
 use App\Services\Kyc\KycQavGenerator;
-use App\Services\PdfFormException;
+use Unico\Core\Pdf\PdfFormException;
 use App\Services\Signature\Exceptions\SignatureRequestException;
 use App\Services\Signature\SignatureRequestService;
 use App\Services\Signature\SignerInput;

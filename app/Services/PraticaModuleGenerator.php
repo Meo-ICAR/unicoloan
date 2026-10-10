@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use Unico\Core\Pdf\PdfFormFiller;
+use Unico\Core\Pdf\PdfFormException;
+
 use Unico\Core\Enums\DocumentStatus;
-use App\Enums\ModuleSourceKey;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\PdfModule;
@@ -29,7 +31,7 @@ class PraticaModuleGenerator
      * Chiavi dati senza valore, per ogni modulo (indicizzato per id modulo): serve all'anteprima.
      *
      * @param  iterable<PdfModule>  $modules
-     * @return array<int, array<int, ModuleSourceKey>>
+     * @return array<int, array<int, string>>
      */
     public function missingByModule(Pratica $pratica, Client $client, iterable $modules): array
     {
@@ -37,7 +39,7 @@ class PraticaModuleGenerator
         $missing = [];
 
         foreach ($modules as $module) {
-            $keys = $module->fields
+            $keys = $module->pdfModuleFields
                 ->flatMap(fn (PdfModuleField $field) => $field->referencedKeys())
                 ->all();
 

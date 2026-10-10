@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Unico\Core\Pdf\ResolvedModuleData;
+
 use App\Enums\ModuleSourceKey as Key;
 use App\Models\Branch;
 use App\Models\Client;

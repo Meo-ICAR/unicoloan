@@ -44,9 +44,6 @@ return [
         'url' => env('BPM_API_URL', 'https://unicobpm.hassisto.com'), // Il secondo parametro è un fallback
     ],
 
-    'pdftk' => [
-        'binary' => env('PDFTK_BINARY', 'pdftk'),
-    ],
 
     'aml' => [
         'api_key' => env('AML_API_KEY'),

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class FieldsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'fields';
+    protected static string $relationship = 'pdfModuleFields';
 
     protected static ?string $title = 'Campi del modulo';
 

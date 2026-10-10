@@ -4,8 +4,8 @@ namespace App\Filament\Resources\PdfModules\Pages;
 
 use App\Filament\Resources\PdfModules\PdfModuleResource;
 use App\Models\PdfModule;
-use App\Services\PdfFormException;
-use App\Services\PdfFormFiller;
+use Unico\Core\Pdf\PdfFormException;
+use Unico\Core\Pdf\PdfFormFiller;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -24,7 +24,7 @@ class EditPdfModule extends EditRecord
                 ->color('gray')
                 ->action(function (PdfModule $record): void {
                     try {
-                        $path = app(PdfFormFiller::class)->storeDiagnostic($record->load('fields'));
+                        $path = app(PdfFormFiller::class)->storeDiagnostic($record->load('pdfModuleFields'));
                     } catch (PdfFormException $exception) {
                         report($exception);
 

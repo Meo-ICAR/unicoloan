@@ -9,8 +9,8 @@ use App\Models\KycQuestionnaire;
 use App\Models\PdfModule;
 use App\Models\User;
 use App\Services\ModuleDataResolver;
-use App\Services\PdfFormException;
-use App\Services\PdfFormFiller;
+use Unico\Core\Pdf\PdfFormException;
+use Unico\Core\Pdf\PdfFormFiller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -106,7 +106,7 @@ class KycQavGenerator
     private function renderWith(KycQuestionnaire $questionnaire, PdfModule $module): string
     {
         return $this->filler->fill(
-            $module->loadMissing('fields'),
+            $module->loadMissing('pdfModuleFields'),
             $this->resolver->resolveForClient($questionnaire->client, $questionnaire),
         );
     }

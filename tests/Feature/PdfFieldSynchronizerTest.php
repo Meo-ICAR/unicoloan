@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;
 use App\Services\PdfFieldSynchronizer;
-use App\Services\PdfFormException;
+use Unico\Core\Pdf\PdfFormException;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\ReadsPdfFields;
@@ -74,7 +74,7 @@ class PdfFieldSynchronizerTest extends TestCase
         $this->assertSame(4, PdfModuleField::count());
 
         $field = PdfModuleField::where('pdf_field_name', 'cliente')->sole();
-        $this->assertSame('client.name', $field->source_key->value);
+        $this->assertSame('client.name', $field->source_key);
         $this->assertSame('upper', $field->formatter->value);
     }
 

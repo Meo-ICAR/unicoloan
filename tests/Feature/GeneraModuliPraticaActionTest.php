@@ -57,8 +57,8 @@ class GeneraModuliPraticaActionTest extends TestCase
         Storage::disk('public')->put($path, $this->fixturePdfContents());
 
         $module = PdfModule::factory()->create(['name' => $name, 'file_path' => $path, 'tipi_prodotto' => $tipi]);
-        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'cliente', 'source_key' => Key::ClienteNominativo]);
-        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'importo', 'source_key' => Key::ClienteIban]);
+        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'cliente', 'source_key' => Key::ClienteNominativo->value]);
+        PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'pdf_field_name' => 'importo', 'source_key' => Key::ClienteIban->value]);
 
         return $module;
     }

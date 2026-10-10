@@ -120,20 +120,20 @@ class ModuleDataResolverTest extends TestCase
     {
         $data = $this->resolve($this->pratica(), $this->client());
 
-        $this->assertSame('P-2026-001', $data->get(Key::PraticaCodice));
-        $this->assertEquals(15000, $data->get(Key::PraticaImporto));
-        $this->assertSame(72, $data->get(Key::PraticaNumeroRate));
-        $this->assertSame('Banca Test', $data->get(Key::PraticaBanca));
-        $this->assertSame('03069', $data->get(Key::PraticaAbi));
-        $this->assertSame('2026-10-06', $data->get(Key::PraticaOggi)->toDateString());
-        $this->assertSame('2026-09-01', $data->get(Key::PraticaDataInserimento)->toDateString());
+        $this->assertSame('P-2026-001', $data->get(Key::PraticaCodice->value));
+        $this->assertEquals(15000, $data->get(Key::PraticaImporto->value));
+        $this->assertSame(72, $data->get(Key::PraticaNumeroRate->value));
+        $this->assertSame('Banca Test', $data->get(Key::PraticaBanca->value));
+        $this->assertSame('03069', $data->get(Key::PraticaAbi->value));
+        $this->assertSame('2026-10-06', $data->get(Key::PraticaOggi->value)->toDateString());
+        $this->assertSame('2026-09-01', $data->get(Key::PraticaDataInserimento->value)->toDateString());
 
-        $this->assertSame('Rossi', $data->get(Key::ClienteCognome));
-        $this->assertSame('Mario', $data->get(Key::ClienteNome));
-        $this->assertSame('Rossi Mario', $data->get(Key::ClienteNominativo));
-        $this->assertSame('RSSMRA80A01H501U', $data->get(Key::ClienteCodiceFiscale));
-        $this->assertSame('IT60X0542811101000000123456', $data->get(Key::ClienteIban));
-        $this->assertTrue($data->get(Key::ClientePersonaFisica));
+        $this->assertSame('Rossi', $data->get(Key::ClienteCognome->value));
+        $this->assertSame('Mario', $data->get(Key::ClienteNome->value));
+        $this->assertSame('Rossi Mario', $data->get(Key::ClienteNominativo->value));
+        $this->assertSame('RSSMRA80A01H501U', $data->get(Key::ClienteCodiceFiscale->value));
+        $this->assertSame('IT60X0542811101000000123456', $data->get(Key::ClienteIban->value));
+        $this->assertTrue($data->get(Key::ClientePersonaFisica->value));
     }
 
     public function test_sums_only_active_client_compensations_and_picks_the_proforma_number(): void
@@ -147,16 +147,16 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($pratica, $this->client());
 
-        $this->assertEquals(1500.5, $data->get(Key::CompensoClienteImporto));
-        $this->assertSame('147', $data->get(Key::CompensoClienteProforma));
+        $this->assertEquals(1500.5, $data->get(Key::CompensoClienteImporto->value));
+        $this->assertSame('147', $data->get(Key::CompensoClienteProforma->value));
     }
 
     public function test_client_compensation_is_empty_without_client_commissions(): void
     {
         $data = $this->resolve($this->pratica()->setRelation('provvigioni', collect()), $this->client());
 
-        $this->assertNull($data->get(Key::CompensoClienteImporto));
-        $this->assertNull($data->get(Key::CompensoClienteProforma));
+        $this->assertNull($data->get(Key::CompensoClienteImporto->value));
+        $this->assertNull($data->get(Key::CompensoClienteProforma->value));
     }
 
     public function test_resolves_birth_data_and_legal_representative(): void
@@ -167,12 +167,12 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $client);
 
-        $this->assertSame('1980-01-01', $data->get(Key::ClienteDataNascita)->toDateString());
-        $this->assertSame('Roma (RM)', $data->get(Key::ClienteLuogoNascita));
-        $this->assertSame('M', $data->get(Key::ClienteSesso));
-        $this->assertSame('Italiana', $data->get(Key::ClienteCittadinanza));
-        $this->assertSame('Amministratore di Acme Spa', $data->get(Key::RappresentanteNominativo));
-        $this->assertFalse($this->resolve($this->pratica(), $this->client())->has(Key::RappresentanteNominativo));
+        $this->assertSame('1980-01-01', $data->get(Key::ClienteDataNascita->value)->toDateString());
+        $this->assertSame('Roma (RM)', $data->get(Key::ClienteLuogoNascita->value));
+        $this->assertSame('M', $data->get(Key::ClienteSesso->value));
+        $this->assertSame('Italiana', $data->get(Key::ClienteCittadinanza->value));
+        $this->assertSame('Amministratore di Acme Spa', $data->get(Key::RappresentanteNominativo->value));
+        $this->assertFalse($this->resolve($this->pratica(), $this->client())->has(Key::RappresentanteNominativo->value));
     }
 
     public function test_resolves_agent_third_party_financing_and_company_data(): void
@@ -184,33 +184,33 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(agent: $agent), $client);
 
-        $this->assertSame('Agenzia Verdi', $data->get(Key::AgenteNominativo));
-        $this->assertSame('Via Milano 5, 20100 Milano (MI)', $data->get(Key::AgenteIndirizzo));
-        $this->assertSame('verdi@example.test', $data->get(Key::AgenteEmail));
-        $this->assertSame('021234567', $data->get(Key::AgenteTelefono));
-        $this->assertSame('VRDGNN70A01F205X', $data->get(Key::AgenteCodiceFiscale));
+        $this->assertSame('Agenzia Verdi', $data->get(Key::AgenteNominativo->value));
+        $this->assertSame('Via Milano 5, 20100 Milano (MI)', $data->get(Key::AgenteIndirizzo->value));
+        $this->assertSame('verdi@example.test', $data->get(Key::AgenteEmail->value));
+        $this->assertSame('021234567', $data->get(Key::AgenteTelefono->value));
+        $this->assertSame('VRDGNN70A01F205X', $data->get(Key::AgenteCodiceFiscale->value));
 
-        $this->assertSame('Finanziaria Terza', $data->get(Key::TerziBanca));
-        $this->assertSame('Cessione del quinto', $data->get(Key::TerziProdotto));
-        $this->assertEquals(300, $data->get(Key::TerziRata));
+        $this->assertSame('Finanziaria Terza', $data->get(Key::TerziBanca->value));
+        $this->assertSame('Cessione del quinto', $data->get(Key::TerziProdotto->value));
+        $this->assertEquals(300, $data->get(Key::TerziRata->value));
 
-        $this->assertSame('acme@pec.example.test', $data->get(Key::ClientePec));
-        $this->assertSame('62.01.00', $data->get(Key::ClienteAteco));
-        $this->assertSame('RM-123', $data->get(Key::ClienteCciaa));
-        $this->assertSame('rep@example.test', $data->get(Key::RappresentanteEmail));
-        $this->assertSame('3330000000', $data->get(Key::RappresentanteTelefono));
+        $this->assertSame('acme@pec.example.test', $data->get(Key::ClientePec->value));
+        $this->assertSame('62.01.00', $data->get(Key::ClienteAteco->value));
+        $this->assertSame('RM-123', $data->get(Key::ClienteCciaa->value));
+        $this->assertSame('rep@example.test', $data->get(Key::RappresentanteEmail->value));
+        $this->assertSame('3330000000', $data->get(Key::RappresentanteTelefono->value));
 
         $empty = $this->resolve($this->pratica(), $this->client());
-        $this->assertFalse($empty->has(Key::AgenteNominativo));
-        $this->assertFalse($empty->has(Key::TerziBanca));
+        $this->assertFalse($empty->has(Key::AgenteNominativo->value));
+        $this->assertFalse($empty->has(Key::TerziBanca->value));
     }
 
     public function test_company_nominativo_is_just_the_business_name(): void
     {
         $data = $this->resolve($this->pratica(), $this->client(['name' => 'Acme Spa', 'first_name' => null, 'is_person' => false]));
 
-        $this->assertSame('Acme Spa', $data->get(Key::ClienteNominativo));
-        $this->assertFalse($data->get(Key::ClientePersonaFisica));
+        $this->assertSame('Acme Spa', $data->get(Key::ClienteNominativo->value));
+        $this->assertFalse($data->get(Key::ClientePersonaFisica->value));
     }
 
     public function test_main_branch_is_the_most_recent_flagged_one_and_builds_the_full_address(): void
@@ -220,9 +220,9 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(branches: [$old, $recent]));
 
-        $this->assertSame('Via Roma', $data->get(Key::SedeIndirizzo));
-        $this->assertSame('10', $data->get(Key::SedeCivico));
-        $this->assertSame('Via Roma 10, 80100 Napoli (NA)', $data->get(Key::SedeIndirizzoCompleto));
+        $this->assertSame('Via Roma', $data->get(Key::SedeIndirizzo->value));
+        $this->assertSame('10', $data->get(Key::SedeCivico->value));
+        $this->assertSame('Via Roma 10, 80100 Napoli (NA)', $data->get(Key::SedeIndirizzoCompleto->value));
     }
 
     public function test_a_single_branch_not_flagged_as_main_office_is_used_as_fallback(): void
@@ -231,7 +231,7 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(branches: [$branch]));
 
-        $this->assertSame('Via Roma 10, 80100 Napoli (NA)', $data->get(Key::SedeIndirizzoCompleto));
+        $this->assertSame('Via Roma 10, 80100 Napoli (NA)', $data->get(Key::SedeIndirizzoCompleto->value));
     }
 
     public function test_dismissed_branches_are_ignored(): void
@@ -240,8 +240,8 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(branches: [$dismissed]));
 
-        $this->assertFalse($data->has(Key::SedeIndirizzo));
-        $this->assertContains(Key::SedeIndirizzoCompleto, $data->missingAmong([Key::SedeIndirizzoCompleto]));
+        $this->assertFalse($data->has(Key::SedeIndirizzo->value));
+        $this->assertContains(Key::SedeIndirizzoCompleto->value, $data->missingAmong([Key::SedeIndirizzoCompleto->value]));
     }
 
     public function test_identity_document_prefers_a_valid_recent_one_and_skips_expired_and_other_types(): void
@@ -252,11 +252,11 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(documents: [$expired, $other, $valid]));
 
-        $this->assertSame('VALIDO', $data->get(Key::DocumentoNumero));
-        $this->assertSame("Carta d'Identità", $data->get(Key::DocumentoTipo));
-        $this->assertSame('Comune di Napoli', $data->get(Key::DocumentoRilasciatoDa));
-        $this->assertSame('2023-01-01', $data->get(Key::DocumentoRilasciatoIl)->toDateString());
-        $this->assertSame('2033-01-01', $data->get(Key::DocumentoScadenza)->toDateString());
+        $this->assertSame('VALIDO', $data->get(Key::DocumentoNumero->value));
+        $this->assertSame("Carta d'Identità", $data->get(Key::DocumentoTipo->value));
+        $this->assertSame('Comune di Napoli', $data->get(Key::DocumentoRilasciatoDa->value));
+        $this->assertSame('2023-01-01', $data->get(Key::DocumentoRilasciatoIl->value)->toDateString());
+        $this->assertSame('2033-01-01', $data->get(Key::DocumentoScadenza->value)->toDateString());
     }
 
     public function test_driving_licence_is_accepted_by_type_name(): void
@@ -265,7 +265,7 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(documents: [$licence]));
 
-        $this->assertSame('PAT-1', $data->get(Key::DocumentoNumero));
+        $this->assertSame('PAT-1', $data->get(Key::DocumentoNumero->value));
     }
 
     public function test_the_combined_identity_document_type_used_by_the_app_is_accepted(): void
@@ -274,7 +274,7 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(documents: [$document]));
 
-        $this->assertSame('CIE-1', $data->get(Key::DocumentoNumero));
+        $this->assertSame('CIE-1', $data->get(Key::DocumentoNumero->value));
     }
 
     public function test_a_residence_certificate_sharing_the_identity_type_is_not_used_as_identity_document(): void
@@ -285,7 +285,7 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(documents: [$certificate, $card]));
 
-        $this->assertSame('CI-1', $data->get(Key::DocumentoNumero));
+        $this->assertSame('CI-1', $data->get(Key::DocumentoNumero->value));
     }
 
     public function test_only_expired_identity_document_yields_no_values_and_is_reported_missing(): void
@@ -294,10 +294,10 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(documents: [$expired]));
 
-        $this->assertFalse($data->has(Key::DocumentoNumero));
+        $this->assertFalse($data->has(Key::DocumentoNumero->value));
         $this->assertSame(
-            [Key::DocumentoNumero, Key::DocumentoScadenza],
-            $data->missingAmong([Key::DocumentoNumero, Key::ClienteNome, Key::DocumentoScadenza]),
+            [Key::DocumentoNumero->value, Key::DocumentoScadenza->value],
+            $data->missingAmong([Key::DocumentoNumero->value, Key::ClienteNome->value, Key::DocumentoScadenza->value]),
         );
     }
 
@@ -310,9 +310,9 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(), $this->client(employer: $employer));
 
-        $this->assertSame('Acme Spa', $data->get(Key::DatoreNome));
-        $this->assertSame('01234567890', $data->get(Key::DatorePartitaIva));
-        $this->assertSame('Corso Italia 5, 20100 Milano (MI)', $data->get(Key::DatoreIndirizzo));
+        $this->assertSame('Acme Spa', $data->get(Key::DatoreNome->value));
+        $this->assertSame('01234567890', $data->get(Key::DatorePartitaIva->value));
+        $this->assertSame('Corso Italia 5, 20100 Milano (MI)', $data->get(Key::DatoreIndirizzo->value));
     }
 
     public function test_missing_values_are_reported_but_false_and_zero_count_as_present(): void
@@ -321,12 +321,12 @@ class ModuleDataResolverTest extends TestCase
 
         $data = $this->resolve($this->pratica(['rata' => null]), $client);
 
-        $this->assertTrue($data->has(Key::ClientePersonaFisica));
-        $this->assertFalse($data->isTruthy(Key::ClientePersonaFisica));
-        $this->assertTrue($data->has(Key::ClienteStipendio));
+        $this->assertTrue($data->has(Key::ClientePersonaFisica->value));
+        $this->assertFalse($data->isTruthy(Key::ClientePersonaFisica->value));
+        $this->assertTrue($data->has(Key::ClienteStipendio->value));
         $this->assertSame(
-            [Key::ClienteIban, Key::ClienteEmail, Key::PraticaRata, Key::DatoreNome],
-            $data->missingAmong([Key::ClienteIban, Key::ClienteEmail, Key::PraticaRata, Key::DatoreNome, Key::ClienteNome]),
+            [Key::ClienteIban->value, Key::ClienteEmail->value, Key::PraticaRata->value, Key::DatoreNome->value],
+            $data->missingAmong([Key::ClienteIban->value, Key::ClienteEmail->value, Key::PraticaRata->value, Key::DatoreNome->value, Key::ClienteNome->value]),
         );
     }
 }

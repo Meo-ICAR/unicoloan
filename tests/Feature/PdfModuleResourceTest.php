@@ -45,7 +45,7 @@ class PdfModuleResourceTest extends TestCase
 
         Livewire::test(ListPdfModules::class)
             ->assertCanSeeTableRecords($modules)
-            ->assertTableColumnStateSet('fields_count', 3, $modules[0]);
+            ->assertTableColumnStateSet('pdf_module_fields_count', 3, $modules[0]);
     }
 
     public function test_edit_form_updates_scope_products_and_active_flag(): void
@@ -87,7 +87,7 @@ class PdfModuleResourceTest extends TestCase
     public function test_fields_relation_manager_filters_unmapped_fields(): void
     {
         $module = PdfModule::factory()->create();
-        $mapped = PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'source_key' => ModuleSourceKey::ClienteNome]);
+        $mapped = PdfModuleField::factory()->create(['pdf_module_id' => $module->id, 'source_key' => ModuleSourceKey::ClienteNome->value]);
         $unmapped = PdfModuleField::factory()->create(['pdf_module_id' => $module->id]);
 
         Livewire::test(FieldsRelationManager::class, ['ownerRecord' => $module, 'pageClass' => EditPdfModule::class])

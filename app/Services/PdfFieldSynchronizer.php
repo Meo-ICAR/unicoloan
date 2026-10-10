@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use Unico\Core\Pdf\PdfFormFiller;
+use Unico\Core\Pdf\PdfFormException;
+
 use App\Models\DocumentType;
 use App\Models\PdfModule;
 use Illuminate\Support\Arr;
@@ -83,7 +86,7 @@ class PdfFieldSynchronizer
                 ? Arr::first($states, fn (string $state) => strcasecmp($state, 'Off') !== 0)
                 : null;
 
-            $row = $module->fields()->firstOrCreate(
+            $row = $module->pdfModuleFields()->firstOrCreate(
                 ['pdf_field_name' => $name],
                 ['pdf_field_type' => $isCheckbox ? 'checkbox' : 'text', 'checkbox_on_value' => $onValue],
             );
@@ -95,7 +98,7 @@ class PdfFieldSynchronizer
             $found[] = $name;
         }
 
-        $removed = $module->fields()
+        $removed = $module->pdfModuleFields()
             ->whereNotIn('pdf_field_name', $found)
             ->pluck('pdf_field_name')
             ->all();

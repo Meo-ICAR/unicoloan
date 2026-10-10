@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Services\PdfFieldSynchronizer;
-use App\Services\PdfFormException;
-use App\Services\PdfFormFiller;
+use Unico\Core\Pdf\PdfFormException;
+use Unico\Core\Pdf\PdfFormFiller;
 use Illuminate\Console\Command;
 
 class SyncPdfModuleFields extends Command
@@ -54,7 +54,7 @@ class SyncPdfModuleFields extends Command
             }
 
             if ($this->option('diagnostic')) {
-                $this->line('  diagnostico: storage/app/public/'.$filler->storeDiagnostic($module->load('fields')));
+                $this->line('  diagnostico: storage/app/public/'.$filler->storeDiagnostic($module->load('pdfModuleFields')));
             }
         }
 

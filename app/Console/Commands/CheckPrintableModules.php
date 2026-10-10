@@ -6,8 +6,8 @@ use App\Models\PdfModuleField;
 use App\Models\PROFORMA\Pratica;
 use App\Services\ModuleDataResolver;
 use App\Services\ModuleSuggester;
-use App\Services\PdfFormException;
-use App\Services\PdfFormFiller;
+use Unico\Core\Pdf\PdfFormException;
+use Unico\Core\Pdf\PdfFormFiller;
 use Illuminate\Console\Command;
 
 class CheckPrintableModules extends Command
@@ -60,12 +60,12 @@ class CheckPrintableModules extends Command
             $feasible = true;
 
             foreach ($modules as $module) {
-                $module->loadMissing('fields');
+                $module->loadMissing('pdfModuleFields');
 
-                $keys = $module->fields->flatMap(fn (PdfModuleField $field) => $field->referencedKeys())->all();
+                $keys = $module->pdfModuleFields->flatMap(fn (PdfModuleField $field) => $field->referencedKeys())->all();
 
                 foreach ($data->missingAmong($keys) as $key) {
-                    $missing[$module->name][$key->value][] = $pratica->codice_pratica;
+                    $missing[$module->name][$key][] = $pratica->codice_pratica;
                     $feasible = false;
                 }
 

@@ -28,9 +28,9 @@ class PdfModulesTable
                     ->label('Prodotti')
                     ->badge()
                     ->placeholder('Tutti'),
-                TextColumn::make('fields_count')
+                TextColumn::make('pdf_module_fields_count')
                     ->label('Campi')
-                    ->counts('fields'),
+                    ->counts('pdfModuleFields'),
                 IconColumn::make('is_active')
                     ->label('Attivo')
                     ->boolean(),
