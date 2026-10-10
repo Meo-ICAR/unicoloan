@@ -63,8 +63,9 @@ esistono, come si compilano e con quale provider si firma; unicoagent chiede sol
 - **`GET /richieste/{riferimento}/documenti/{documento}/firma`** stato dell'ultima richiesta di firma (`404 firma_assente`). Il provider avvisa unicoloan col webhook;
   unicoagent legge lo stato quando serve.
 
+Quando la firma è completata (webhook del provider o `signature:sync`) il PDF firmato sostituisce il file del documento: `GET …/file` restituisce
+quindi quello firmato, senza un endpoint a parte.
+
 ## Da fare
 
-Scaricare il PDF firmato con un endpoint dedicato e la notifica a unicoagent quando un documento viene respinto o firmato.
-Lato unicoagent il driver `unicoloan` consegna richiesta e documenti; mancano le capacità `ProvidesTemplates`, `FillsForms`, `RequestsSignature`
-(vedi `docs/crm-drivers.md` di unicoagent).
+La notifica a unicoagent quando un documento viene respinto o firmato (oggi unicoagent legge lo stato quando serve).
