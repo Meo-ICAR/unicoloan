@@ -63,8 +63,8 @@ esistono, come si compilano e con quale provider si firma; unicoagent chiede sol
 - **`GET /richieste/{riferimento}/documenti/{documento}/firma`** stato dell'ultima richiesta di firma (`404 firma_assente`). Il provider avvisa unicoloan col webhook;
   unicoagent legge lo stato quando serve.
 
-Quando la firma è completata (webhook del provider o `signature:sync`) il PDF firmato sostituisce il file del documento: `GET …/file` restituisce
-quindi quello firmato, senza un endpoint a parte.
+Quando la firma è completata (webhook del provider o `signature:sync`) la firma crea un nuovo documento e archivia l’originale; l’id già in mano a unicoagent continua a valere (si segue la sostituzione) e `GET …/file` restituisce
+quindi il PDF firmato, senza un endpoint a parte.
 
 ## Da fare
 

@@ -197,4 +197,20 @@ class AgentDocumentApiTest extends TestCase
 
         $this->signedJson('POST', "{$base}/documenti/{$document['id']}/firma", ['firmatari' => ['cliente' => ['email' => 'non-una-mail']]])->assertStatus(422);
     }
+
+    public function test_dopo_la_firma_lo_stesso_id_da_il_documento_firmato(): void
+    {
+        $base = $this->base();
+        $document = $this->signedJson('POST', "{$base}/moduli/{$this->module->id}/compilato", [])->json();
+        $signature = $this->signedJson('POST', "{$base}/documenti/{$document['id']}/firma", [
+            'firmatari' => ['cliente' => ['telefono' => '+393331234567'], 'collaboratore' => ['telefono' => '+393339876543', 'email' => 'agente@example.com']],
+        ])->assertCreated()->json();
+
+        $request = \App\Models\SignatureRequest::findOrFail($signature['id']);
+        app(\App\Services\Signature\SignatureProviderManager::class)->provider('fake')->completeAll($request->provider_ref);
+        app(\App\Services\Signature\SignatureRequestService::class)->reconcile($request);
+
+        $this->signedJson('GET', "{$base}/documenti/{$document['id']}/firma")->assertOk()->assertJsonPath('firmata', true)->assertJsonPath('stato', 'signed');
+        $this->assertStringEndsWith('%FAKE-SIGNED', rtrim($this->signedJson('GET', "{$base}/documenti/{$document['id']}/file")->assertOk()->getContent()));
+    }
 }

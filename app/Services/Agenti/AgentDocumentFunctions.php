@@ -78,11 +78,22 @@ class AgentDocumentFunctions
         }
     }
 
-    /** Documento della richiesta (pratica o cliente) con quell'id. @throws AgentIntakeException */
+    /**
+     * Documento della richiesta (pratica o cliente) con quell'id. Se è stato sostituito dal firmato (la firma crea un nuovo
+     * documento e archivia l'originale) si segue la sostituzione: l'id dato in precedenza continua a funzionare.
+     *
+     * @throws AgentIntakeException
+     */
     public function document(Pratica $pratica, string $id): Document
     {
-        return $this->intake->documents($pratica)->first(fn (Document $d): bool => (string) $d->getKey() === $id)
-            ?? throw new AgentIntakeException('documento_non_trovato', 'Documento non trovato.', 404);
+        $all = $pratica->documents()->withTrashed()->get()->merge($this->intake->clientOf($pratica)->documents()->withTrashed()->get());
+        $document = $all->first(fn (Document $d): bool => (string) $d->getKey() === $id);
+
+        for ($hops = 0; $document !== null && $document->replaced_by_id !== null && $hops < 5; $hops++) {
+            $document = $all->first(fn (Document $d): bool => (string) $d->getKey() === (string) $document->replaced_by_id);
+        }
+
+        return $document ?? throw new AgentIntakeException('documento_non_trovato', 'Documento non trovato.', 404);
     }
 
     /** Contenuto del file del documento, o null se non ancora caricato. */

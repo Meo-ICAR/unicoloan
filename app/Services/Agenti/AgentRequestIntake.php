@@ -165,7 +165,7 @@ class AgentRequestIntake
             ?? throw new AgentIntakeException('tipo_documento_sconosciuto', "Tipo documento «{$type}» non riconosciuto.");
     }
 
-    private function clientOf(Pratica $pratica): Client
+    public function clientOf(Pratica $pratica): Client
     {
         return Client::query()->where('tax_code', Str::upper(trim((string) $pratica->codice_fiscale)))->firstOrFail();
     }
