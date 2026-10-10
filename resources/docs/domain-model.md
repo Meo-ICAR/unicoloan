@@ -1,6 +1,6 @@
 # Manuale tecnico — Modello di dominio Unicoloan
 
-> Documento di riferimento per chi lavora sul codice (umano o AI). Descrive cosa fa l'app, come sono organizzati i modelli Eloquent, le due connessioni al database e gli errori ricorrenti già incontrati in questo repository.
+> Per l'elenco delle funzioni dell'app vedi anche `funzioni.md` (`/manuali/funzioni`). Documento di riferimento per chi lavora sul codice (umano o AI). Descrive cosa fa l'app, come sono organizzati i modelli Eloquent, le due connessioni al database e gli errori ricorrenti già incontrati in questo repository.
 
 ## 1. Cosa fa l'app
 
@@ -20,7 +20,7 @@ L'app scrive su **due database MySQL distinti**, sullo stesso host:
 
 | Connessione | Database | Proprietà | Contenuto |
 |---|---|---|---|
-| `mysql` (default) | `unicooam` | **Di questa app** | Employee, Document, Company, User, tabelle di workflow interno (pratica_stati, pratica_requisiti, requisito_tipo_finanziamento, provvigioni_rules, tipoprodotto_sub_constraints, client_types, client_relations, client_mandates, lead_sources, resources, task*, email_templates, ecc.) |
+| `mysql` (default) | `unicoloan` | **Di questa app** | Employee, Document, Company, User, tabelle di workflow interno (pratica_stati, pratica_requisiti, requisito_tipo_finanziamento, provvigioni_rules, tipoprodotto_sub_constraints, client_types, client_relations, client_mandates, lead_sources, resources, task*, email_templates, ecc.) |
 | `mysql_proforma` | `proforma` | **Di un'altra app legacy** | `Clienti` (banche), `Fornitore` (agenti), `Pratica`, `Provvigione`, `Client` (clienti finali), `Compenso`, `Tipoprodotto`/`TipoprodottoSub`, blacklist, `PraticaStatusHistory` |
 
 Le due connessioni condividono lo stesso server MySQL, quindi **join cross-database con nome tabella qualificato funzionano** (es. `Clienti::oamCodes()` joina `unicooam.clienti_oam`), ma **non ci sono FK a livello di database tra le due connessioni** — solo relazioni Eloquent.

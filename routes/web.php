@@ -15,6 +15,7 @@ Route::get('/manuali/{manual}', function (string $manual) {
         'utente' => 'manuale-utente.html',
         'admin' => 'manuale-admin.html',
         'tecnico' => 'domain-model.md',
+        'funzioni' => 'funzioni.md',
     ];
 
     if (! isset($allowed[$manual])) {

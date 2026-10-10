@@ -64,6 +64,11 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-code-bracket')
                     ->group('Settings')
                     ->sort(12),
+                NavigationItem::make('Manuale Funzioni')
+                    ->url(url('/manuali/funzioni'), shouldOpenInNewTab: true)
+                    ->icon('heroicon-o-squares-2x2')
+                    ->group('Settings')
+                    ->sort(13),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

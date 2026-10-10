@@ -305,6 +305,9 @@ class Task extends Model implements HasMedia
             $actual = $actual->value;
         }
 
+        // I booleani si confrontano come 1/0 (un campo falso vale "0", non stringa vuota).
+        $actual = is_bool($actual) ? (int) $actual : $actual;
+
         return mb_strtolower(trim((string) $actual)) === mb_strtolower(trim((string) $expected));
     }
 
