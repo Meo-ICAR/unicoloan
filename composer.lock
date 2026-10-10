@@ -4563,12 +4563,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Meo-ICAR/unico-core.git",
-                "reference": "f5a95adcd4ba7d0571c141dd72786c9472329f99"
+                "reference": "21edf22e1ab54c4f2d19da4a29c3d67a7bf6686c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Meo-ICAR/unico-core/zipball/f5a95adcd4ba7d0571c141dd72786c9472329f99",
-                "reference": "f5a95adcd4ba7d0571c141dd72786c9472329f99",
+                "url": "https://api.github.com/repos/Meo-ICAR/unico-core/zipball/21edf22e1ab54c4f2d19da4a29c3d67a7bf6686c",
+                "reference": "21edf22e1ab54c4f2d19da4a29c3d67a7bf6686c",
                 "shasum": ""
             },
             "require": {
@@ -4629,7 +4629,7 @@
                 "source": "https://github.com/Meo-ICAR/unico-core/tree/main",
                 "issues": "https://github.com/Meo-ICAR/unico-core/issues"
             },
-            "time": "2026-10-10T15:41:46+00:00"
+            "time": "2026-10-10T16:37:18+00:00"
         },
         {
             "name": "mikehaertl/php-pdftk",

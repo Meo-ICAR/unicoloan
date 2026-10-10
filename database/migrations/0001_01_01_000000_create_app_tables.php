@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Tabelle proprie di unicoloan. Tutte le altre (utenti, aziende, documenti, audit...) sono del pacchetto
- * meo-icar/unico-core e si creano con `php artisan unico-core:migrate`.
+ * Tabelle proprie di unicoloan. Tutte le altre (utenti, aziende, documenti, audit, siti web...) sono del pacchetto
+ * meo-icar/unico-core, caricate da AppServiceProvider: si creano con il normale `php artisan migrate`.
  */
 return new class extends Migration
 {
@@ -94,43 +94,11 @@ return new class extends Migration
 
             $table->index(['subject_type', 'subject_id']);
         });
-
-        // Siti web e landing page con il tracciamento della conformità legale. Il soggetto (`websiteable`) può essere
-        // un'azienda del pacchetto (id intero) o un'anagrafica Proforma (UUID): per questo l'id è una stringa.
-        Schema::create('websites', function (Blueprint $table) {
-            $table->comment('Registro dei siti web e delle landing page gestite dal network con tracciamento conformità legale');
-
-            $table->id()->comment('ID univoco del sito');
-            $table->unsignedBigInteger('company_id')->nullable()->index()->comment('Company proprietaria (companies è del pacchetto: nessun vincolo, per non dipendere dall\'ordine delle migration)');
-            $table->string('name')->comment('Nome del sito');
-            $table->string('type')->nullable()->comment('Tipologia sito (es. vetrina, e-commerce, landing)');
-            $table->unsignedInteger('clienti_id')->nullable()->comment('Mandante di riferimento / ID cliente esterno');
-            $table->boolean('is_active')->default(true)->comment('Stato di attivazione del sito (1 = Attivo, 0 = Inattivo)');
-            $table->string('domain')->comment('Dominio o sottodominio principale (es. www.races.it)');
-            $table->boolean('is_typical')->default(true)->comment('Sito utilizzato per attività tipica aziendale (1 = Sì, 0 = No)');
-            $table->date('privacy_date')->nullable()->comment('Data ultimo aggiornamento privacy policy');
-            $table->date('transparency_date')->nullable()->comment('Data ultimo aggiornamento trasparenza');
-            $table->date('privacy_prior_date')->nullable()->comment('Data precedente aggiornamento privacy policy');
-            $table->date('transparency_prior_date')->nullable()->comment('Data precedente aggiornamento trasparenza');
-            $table->string('url_privacy')->nullable()->comment('URL completo alla pagina privacy policy');
-            $table->string('url_cookies')->nullable()->comment('URL completo alla pagina cookie policy');
-            $table->boolean('is_footercompilant')->default(false)->comment('Indica se il footer contiene i dati legali ed è conforme GDPR (1 = Sì)');
-            $table->string('url_transparency')->nullable()->comment('URL completo alla pagina di trasparenza / dati societari');
-            $table->boolean('is_iso27001_certified')->default(false)->comment('Indica se il sito risiede su infrastruttura certificata ISO 27001');
-            $table->string('websiteable_type')->comment('Tipo del soggetto proprietario (alias morph)');
-            $table->string('websiteable_id', 36)->comment('ID del soggetto proprietario: intero (core) o UUID (Proforma)');
-            $table->timestamps();
-            $table->softDeletes()->comment('Data e ora di eliminazione logica');
-
-            $table->index(['websiteable_type', 'websiteable_id']);
-            $table->index('is_active', 'websites_is_active_index');
-            $table->index('domain', 'websites_domain_index');
-        });
     }
 
     public function down(): void
     {
-        foreach (['api_calls', 'websites', 'failed_jobs', 'job_batches', 'jobs', 'cache_locks', 'cache', 'sessions', 'password_reset_tokens'] as $table) {
+        foreach (['api_calls', 'failed_jobs', 'job_batches', 'jobs', 'cache_locks', 'cache', 'sessions', 'password_reset_tokens'] as $table) {
             Schema::dropIfExists($table);
         }
     }
