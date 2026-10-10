@@ -31,6 +31,7 @@ Le tabelle condivise (utenti, aziende, documenti, audit, firma, moduli PDF, siti
 - Stati dei documenti: `Unico\Core\Enums\DocumentStatus` (valori italiani); `Document::status` è un enum, quindi si confronta con `DocumentStatus::X`, non con `->value`. Rinnovo/sostituzione: `replaced_by_id` (non più `renewed_by_id`).
 - Requisiti documentali: `PraticaRequisito` = `document_types`, `RequisitoTipoFinanziamento` e documenti dei task = `document_requirements`, `PraticaRequisitoOperativo` = `document_requests` (`requestable_type = 'pratica'`).
 - **Da fare:** `app/Services/Signature/*`, `PdfFormFiller`/`ResolvedModuleData` e `DocumentVerifier` sono ancora le versioni locali (il pacchetto ha le sue in `Unico\Core\Signature`, `Unico\Core\Pdf`, `Unico\Core\Documents`). Nel pacchetto il PDF firmato resta nel documento (collection `signed`); qui un nuovo documento sostituisce il vecchio: sono comportamenti diversi, da riconciliare prima di passare alle versioni del pacchetto.
+- **API in ingresso per unicoagent** (`/api/agente/v1`, token e firma della richiesta; vedi `docs/agent-api.md`): `AgentRequestIntake` riusa `ClientForPraticaCreator`, la creazione della pratica del portale agenti e `Task::applyPlichiTo`. Gli invii sono idempotenti per `riferimento` (pratica `WA-<riferimento>`).
 - Mai `migrate:fresh` su un database condiviso con altre app; in sviluppo qui i database sono `unicoloan_core` (app) e `unicoloan_test` (test).
 
 ## Skills Activation

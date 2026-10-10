@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // utenti non autenticati alla login del pannello admin di Filament,
         // dato che l'app non espone una rotta 'login' propria.
         $middleware->redirectGuestsTo(fn () => route('filament.admin.auth.login'));
+
+        // API in ingresso per le app esterne (unicoagent): token Bearer e firma della richiesta.
+        $middleware->alias(['api.client' => \App\Http\Middleware\AuthenticateApiClient::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

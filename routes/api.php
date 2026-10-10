@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AgentRequestController;
 use App\Http\Controllers\Api\ModelFieldsApiController;
 use App\Http\Controllers\Api\ModelFieldValueApiController;
 use App\Http\Controllers\Api\PraticaApiController;
@@ -25,3 +26,12 @@ Route::get('/users/lookup', [UserLookupApiController::class, 'show'])->name('api
 Route::post('/signature/webhook/{provider}', SignatureWebhookController::class)
     ->middleware('throttle:120,1')
     ->name('api.signature.webhook');
+
+// Richieste di finanziamento consegnate da app esterne (unicoagent): cliente, pratica e documenti. Token Bearer e firma
+// della richiesta (vedi config/agent_api.php e php artisan agent-api:client). Gli invii sono idempotenti per «riferimento».
+Route::prefix('agente/v1')->middleware(['api.client', 'throttle:120,1'])->group(function () {
+    Route::post('/richieste', [AgentRequestController::class, 'store'])->name('api.agente.richieste.store');
+    Route::get('/richieste/{riferimento}', [AgentRequestController::class, 'show'])->name('api.agente.richieste.show');
+    Route::post('/richieste/{riferimento}/documenti', [AgentRequestController::class, 'upload'])->name('api.agente.richieste.documenti');
+    Route::get('/tipi-documento', [AgentRequestController::class, 'documentTypes'])->name('api.agente.tipi-documento');
+});

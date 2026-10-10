@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * API in ingresso per le app che consegnano richieste a unicoloan (oggi unicoagent, l'agente WhatsApp).
+ * Ogni app ha un token e un segreto (php artisan agent-api:client "nome"); le richieste sono firmate.
+ */
+return [
+    // Firma HMAC-SHA256 obbligatoria su ogni richiesta (intestazioni X-Timestamp e X-Signature).
+    'require_signature' => (bool) env('AGENT_API_REQUIRE_SIGNATURE', true),
+
+    // Scarto massimo tra l'ora della richiesta e quella del server, in secondi (protegge dal replay).
+    'timestamp_tolerance' => (int) env('AGENT_API_TIMESTAMP_TOLERANCE', 300),
+
+    // Prefisso del codice pratica creato da una richiesta (WA-FIN-2026-0001): serve anche a riconoscere i nuovi invii.
+    'pratica_prefix' => 'WA-',
+
+    // File dei documenti: dimensione massima (KB) ed estensioni accettate.
+    'max_file_kb' => 15360,
+    'mimes' => ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic'],
+
+    // Codice prodotto della richiesta → tipo prodotto di Proforma (deve esistere in `tipoprodotto`). Senza voce si cerca un tipo
+    // con la stessa etichetta del prodotto, altrimenti si usa il tipo di ripiego.
+    'default_tipo_prodotto' => 'Altro',
+
+    'product_map' => [
+        // 'quinto' => 'Cessione',
+    ],
+
+    // Codice documento della richiesta → slug (o codice) del tipo documento di unicoloan. Senza voce si cerca per slug o codice uguale.
+    'document_map' => [
+        'documento_identita' => 'carta-identita',
+    ],
+];
