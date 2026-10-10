@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AgentDocumentController;
 use App\Http\Controllers\Api\AgentRequestController;
 use App\Http\Controllers\Api\ModelFieldsApiController;
 use App\Http\Controllers\Api\ModelFieldValueApiController;
@@ -34,4 +35,12 @@ Route::prefix('agente/v1')->middleware(['api.client', 'throttle:120,1'])->group(
     Route::get('/richieste/{riferimento}', [AgentRequestController::class, 'show'])->name('api.agente.richieste.show');
     Route::post('/richieste/{riferimento}/documenti', [AgentRequestController::class, 'upload'])->name('api.agente.richieste.documenti');
     Route::get('/tipi-documento', [AgentRequestController::class, 'documentTypes'])->name('api.agente.tipi-documento');
+
+    // Funzioni documentali centralizzate in unicoloan: moduli, template, modulo compilato, file e firma OTP.
+    Route::get('/richieste/{riferimento}/moduli', [AgentDocumentController::class, 'modules'])->name('api.agente.moduli');
+    Route::get('/richieste/{riferimento}/moduli/{modulo}/template', [AgentDocumentController::class, 'template'])->name('api.agente.moduli.template');
+    Route::post('/richieste/{riferimento}/moduli/{modulo}/compilato', [AgentDocumentController::class, 'fill'])->name('api.agente.moduli.compila');
+    Route::get('/richieste/{riferimento}/documenti/{documento}/file', [AgentDocumentController::class, 'file'])->name('api.agente.documenti.file');
+    Route::post('/richieste/{riferimento}/documenti/{documento}/firma', [AgentDocumentController::class, 'requestSignature'])->name('api.agente.documenti.firma');
+    Route::get('/richieste/{riferimento}/documenti/{documento}/firma', [AgentDocumentController::class, 'signature'])->name('api.agente.documenti.firma.stato');
 });

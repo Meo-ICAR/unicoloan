@@ -37,7 +37,7 @@ class SignatureRequestService
      *
      * @throws SignatureRequestException
      */
-    public function send(Document $document, array $signers, User $user): SignatureRequest
+    public function send(Document $document, array $signers, ?User $user): SignatureRequest
     {
         $media = $document->getFirstMedia('documents');
 
@@ -86,7 +86,7 @@ class SignatureRequestService
                 'provider' => $provider->name(),
                 'status' => SignatureRequestStatus::Pending,
                 'expires_at' => now()->addDays((int) config('signature.ttl_days')),
-                'requested_by' => $user->getKey(),
+                'requested_by' => $user?->getKey(),
             ]);
 
             foreach ($envelopeSigners as $signer) {

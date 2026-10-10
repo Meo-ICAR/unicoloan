@@ -44,7 +44,27 @@ File: pdf, jpg, jpeg, png, webp, heic, fino a 15 MB.
 
 **`GET /tipi-documento`** i tipi documento accettati in `tipo`, con gli alias configurati in `agent_api.document_map`.
 
+## Funzioni documentali
+
+Tutte riferite a una richiesta già consegnata (`{riferimento}`), con le stesse credenziali. unicoloan resta l'unico posto che sa quali moduli
+esistono, come si compilano e con quale provider si firma; unicoagent chiede soltanto. Gli errori hanno `message` e `codice`.
+
+- **`GET /richieste/{riferimento}/moduli`** moduli attivi pertinenti al prodotto e al tipo di cliente: `{id, nome, versione, tipo_documento, firma[riquadri], dati_mancanti[]}`.
+  `dati_mancanti` elenca le chiavi dati che il modulo richiede e che la pratica non ha ancora.
+- **`GET /richieste/{riferimento}/moduli/{modulo}/template`** il PDF vuoto (`application/pdf`, intestazione `X-Content-Sha256`). `404 modulo_non_trovato`, `404 template_non_disponibile`.
+- **`POST /richieste/{riferimento}/moduli/{modulo}/compilato`** compila il modulo con i dati della pratica e lo archivia come documento della pratica
+  (uno nuovo a ogni chiamata). `201 {id, tipo, nome, ricevuto}`. `422 cliente_mancante`, `422 compilazione_non_riuscita`.
+- **`GET /richieste/{riferimento}/documenti/{documento}/file`** il PDF del documento (anche quello appena compilato) da stampare. `404 file_mancante`, `404 documento_non_trovato`
+  (solo documenti della pratica e del suo cliente).
+- **`POST /richieste/{riferimento}/documenti/{documento}/firma`** chiede la firma elettronica con OTP. Corpo facoltativo
+  `{"firmatari": {"cliente": {"telefono": "+39…", "email": "…"}, "collaboratore": {…}}}`: i firmatari sono quelli proposti dal portale (cliente della pratica,
+  agente), l'app può solo indicare telefono/email per riquadro. `201 {id, stato, firmata, inviata_il, firmata_il, scade_il, firmatari[{riquadro, stato}]}`.
+  `422 firmatario_mancante`, `422 firma_non_richiesta` (es. firma già aperta, PDF assente, riquadri non configurati).
+- **`GET /richieste/{riferimento}/documenti/{documento}/firma`** stato dell'ultima richiesta di firma (`404 firma_assente`). Il provider avvisa unicoloan col webhook;
+  unicoagent legge lo stato quando serve.
+
 ## Da fare
 
-Template, stampa del modulo compilato e firma con OTP (già presenti in unicoloan: `PdfFormFiller`, `SignatureRequestService`) come nuovi endpoint,
-e la notifica a unicoagent quando un documento viene respinto. Lato unicoagent manca il driver `unicoloan` (vedi `docs/crm-drivers.md` di unicoagent).
+Scaricare il PDF firmato con un endpoint dedicato e la notifica a unicoagent quando un documento viene respinto o firmato.
+Lato unicoagent il driver `unicoloan` consegna richiesta e documenti; mancano le capacità `ProvidesTemplates`, `FillsForms`, `RequestsSignature`
+(vedi `docs/crm-drivers.md` di unicoagent).
