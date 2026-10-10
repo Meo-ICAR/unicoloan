@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\ModuleFormatter as Fmt;
+use Unico\Core\Pdf\ModuleFormatter as Fmt;
 use App\Enums\ModuleSourceKey as Key;
 use App\Models\PdfModule;
 use Illuminate\Database\Seeder;

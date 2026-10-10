@@ -183,7 +183,10 @@ class Task extends CoreTask implements HasMedia
                 [
                     'document_type_id' => $documentType->getKey(),
                     'status' => DocumentStatus::PENDING->value,
-                    'company_id' => $owner->company_id ?? null,
+                    // I proprietari letti da Proforma hanno un company_id UUID di quel database: non è un'azienda del pacchetto.
+                    'company_id' => is_numeric($owner->company_id ?? null)
+                        ? (int) $owner->company_id
+                        : \App\Models\Company::query()->value('id'),
                 ],
             ));
             $created++;

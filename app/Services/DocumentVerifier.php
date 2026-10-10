@@ -76,8 +76,8 @@ class DocumentVerifier
 
         $document->metadata = array_merge((array) $document->metadata, ['verifica' => $result]);
 
-        if ($document->status === DocumentStatus::PENDING->value) {
-            $document->status = DocumentStatus::UPLOADED->value;
+        if ($document->status === DocumentStatus::PENDING) {
+            $document->status = DocumentStatus::UPLOADED;
         }
 
         $document->save();

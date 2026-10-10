@@ -128,9 +128,9 @@ class DocumentSchedulesTable
         $document = $record->document;
 
         return match (true) {
-            $document?->status === DocumentStatus::REJECTED->value => self::REASON_ANOMALY,
-            $document?->status === DocumentStatus::UPLOADED->value && count((array) ($document->metadata['verifica']['anomalie'] ?? [])) > 0 => self::REASON_ANOMALY,
-            $document?->status === DocumentStatus::PENDING->value && $record->expires_at === null => self::REASON_MISSING,
+            $document?->status === DocumentStatus::REJECTED => self::REASON_ANOMALY,
+            $document?->status === DocumentStatus::UPLOADED && count((array) ($document->metadata['verifica']['anomalie'] ?? [])) > 0 => self::REASON_ANOMALY,
+            $document?->status === DocumentStatus::PENDING && $record->expires_at === null => self::REASON_MISSING,
             default => self::REASON_EXPIRING,
         };
     }

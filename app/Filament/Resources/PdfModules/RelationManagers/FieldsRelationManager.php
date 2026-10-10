@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\PdfModules\RelationManagers;
 
-use App\Enums\ModuleFormatter;
+use Unico\Core\Pdf\ModuleFormatter;
 use App\Enums\ModuleSourceKey;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\SelectColumn;

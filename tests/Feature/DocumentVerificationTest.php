@@ -58,7 +58,7 @@ class DocumentVerificationTest extends TestCase
     {
         $document = $this->upload($this->document(false));
 
-        $this->assertSame('caricato', $document->status);
+        $this->assertSame(\Unico\Core\Enums\DocumentStatus::UPLOADED, $document->status);
         $this->assertSame(64, strlen($document->file_hash));
         $this->assertSame('non_richiesta', $document->metadata['verifica']['signature']);
         $this->assertSame([], $document->metadata['verifica']['anomalie']);
@@ -156,7 +156,7 @@ class DocumentVerificationTest extends TestCase
             ->assertNotified('Documento accettato');
 
         $toCheck->refresh();
-        $this->assertSame('approvato', $toCheck->status);
+        $this->assertSame(\Unico\Core\Enums\DocumentStatus::APPROVED, $toCheck->status);
         $this->assertSame(auth()->id(), (int) $toCheck->verified_by);
         $this->assertNotNull($toCheck->verified_at);
     }
@@ -168,12 +168,12 @@ class DocumentVerificationTest extends TestCase
         Livewire::test(ListDocumentVerifications::class)
             ->callAction(TestAction::make('accetta')->table($document), [])
             ->assertHasFormErrors(['firma_verificata']);
-        $this->assertSame('caricato', $document->fresh()->status);
+        $this->assertSame(\Unico\Core\Enums\DocumentStatus::UPLOADED, $document->fresh()->status);
 
         Livewire::test(ListDocumentVerifications::class)
             ->callAction(TestAction::make('accetta')->table($document), ['firma_verificata' => true])
             ->assertHasNoFormErrors();
-        $this->assertSame('approvato', $document->fresh()->status);
+        $this->assertSame(\Unico\Core\Enums\DocumentStatus::APPROVED, $document->fresh()->status);
     }
 
     public function test_reject_records_the_anomaly_and_the_note(): void
@@ -185,7 +185,7 @@ class DocumentVerificationTest extends TestCase
             ->assertNotified('Documento rifiutato');
 
         $document->refresh();
-        $this->assertSame('respinto', $document->status);
+        $this->assertSame(\Unico\Core\Enums\DocumentStatus::REJECTED, $document->status);
         $this->assertSame('Documento non conforme: Manca la seconda pagina', $document->rejection_note);
         $this->assertSame('non_conforme', $document->metadata['verifica']['rifiuto']);
         $this->assertNotNull($document->verified_at);
@@ -198,7 +198,7 @@ class DocumentVerificationTest extends TestCase
         Livewire::test(ListDocumentVerifications::class)
             ->callAction(TestAction::make('rifiuta')->table($document), ['nota' => 'x'])
             ->assertHasFormErrors(['anomalia' => 'required']);
-        $this->assertSame('caricato', $document->fresh()->status);
+        $this->assertSame(\Unico\Core\Enums\DocumentStatus::UPLOADED, $document->fresh()->status);
     }
 
     public function test_filter_keeps_only_documents_with_anomalies_or_a_signature_to_check(): void

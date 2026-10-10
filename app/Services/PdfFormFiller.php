@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\ModuleFormatter;
+use Unico\Core\Pdf\ModuleFormatter;
 use App\Enums\ModuleSourceKey;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;

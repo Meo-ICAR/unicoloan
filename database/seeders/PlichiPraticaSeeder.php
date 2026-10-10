@@ -204,7 +204,7 @@ class PlichiPraticaSeeder extends Seeder
                 continue;
             }
 
-            $sync[$type->getKey()] = ['is_required' => $required, 'slug' => Str::slug($name.' '.$type->name)];
+            $sync[$type->getKey()] = ['is_required' => $required];
         }
 
         $task->documentTypes()->sync($sync);

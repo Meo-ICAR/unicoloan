@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\ModuleFormatter;
+use Unico\Core\Pdf\ModuleFormatter;
 use App\Enums\ModuleSourceKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

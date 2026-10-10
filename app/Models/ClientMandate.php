@@ -2,14 +2,39 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Unico\Core\Models\ClientMandate as CoreClientMandate;
 
-class ClientMandate extends CoreClientMandate
+class ClientMandate extends Model
 {
     use SoftDeletes;
+
+    protected $connection = 'mysql_proforma';
+
+    /**
+     * I campi che possono essere assegnati massivamente.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'client_id',
+        'numero_mandato',
+        'data_firma_mandato',
+        'data_scadenza_mandato',
+        'importo_richiesto_mandato',
+        'scopo_finanziamento',
+        'data_consegna_trasparenza',
+        'stato',
+        'ruolo',
+        'name',
+        'notes',
+        'purpose_of_relationship',
+        'funds_origin',
+        'oam_delivered',
+        'role_risk_level',
+    ];
 
     /**
      * Il cast degli attributi ai tipi nativi di PHP/Carbon.

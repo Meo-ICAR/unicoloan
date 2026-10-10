@@ -113,7 +113,7 @@ class SignatureReconcileTest extends TestCase
 
     private function signedDocument(Document $document): Document
     {
-        $renewedById = Document::withTrashed()->findOrFail($document->getKey())->renewed_by_id;
+        $renewedById = Document::withTrashed()->findOrFail($document->getKey())->replaced_by_id;
 
         return Document::query()->findOrFail($renewedById);
     }
@@ -151,7 +151,7 @@ class SignatureReconcileTest extends TestCase
         $this->assertCount(1, $document->getMedia('documents'));
         $this->assertSame('qav-rossi-firmato.pdf', $document->getFirstMedia('documents')->file_name);
         $this->assertTrue($original->trashed());
-        $this->assertSame($document->getKey(), $original->renewed_by_id);
+        $this->assertSame($document->getKey(), $original->replaced_by_id);
         $this->assertSame('qav.pdf', $original->getFirstMedia('documents')->file_name);
         $this->assertFalse((bool) $original->is_signed);
 
@@ -196,7 +196,7 @@ class SignatureReconcileTest extends TestCase
         $this->assertNotNull($questionnaire->fresh()->document);
         $this->assertSame($document->name, $signed->name);
         $this->assertSame($document->document_type_id, $signed->document_type_id);
-        $this->assertSame($document->getKey(), Document::withTrashed()->where('renewed_by_id', $signed->getKey())->value('id'));
+        $this->assertSame($document->getKey(), Document::withTrashed()->where('replaced_by_id', $signed->getKey())->value('id'));
     }
 
     public function test_reconcile_is_idempotent(): void

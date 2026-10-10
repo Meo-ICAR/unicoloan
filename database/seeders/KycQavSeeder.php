@@ -15,7 +15,7 @@ use App\Enums\KycLegalNature;
 use App\Enums\KycPepStatus;
 use App\Enums\KycPersonPurpose;
 use App\Enums\KycWealthBand;
-use App\Enums\ModuleFormatter as Fmt;
+use Unico\Core\Pdf\ModuleFormatter as Fmt;
 use App\Enums\ModuleSourceKey as Key;
 use App\Models\PdfModule;
 use App\Services\Kyc\KycModuleValues;

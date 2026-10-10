@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Enums\ModuleFormatter;
+use Unico\Core\Pdf\ModuleFormatter;
 use App\Enums\ModuleSourceKey as Key;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;

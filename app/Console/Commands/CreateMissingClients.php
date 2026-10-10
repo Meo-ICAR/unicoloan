@@ -780,7 +780,7 @@ class CreateMissingClients extends Command
         return $clients->count();
     }
 
-    private function companyId(): string
+    private function companyId(): int
     {
         return $this->companyId ??= app(CompanyResolver::class)->resolveId();
     }

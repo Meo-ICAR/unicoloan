@@ -36,7 +36,7 @@ class SignatureWebhookTest extends TestCase
             'provider' => 'fake',
             'provider_ref' => $ref,
             'status' => SignatureRequestStatus::Sent,
-            'document_id' => (string) Str::uuid(),
+            'document_id' => \App\Models\Document::create(['documentable_type' => 'company', 'documentable_id' => 1, 'name' => 'Documento'])->id,
         ]);
     }
 

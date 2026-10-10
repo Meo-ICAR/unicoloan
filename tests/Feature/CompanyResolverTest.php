@@ -23,7 +23,7 @@ class CompanyResolverTest extends TestCase
         $this->assertSame('Races Finance SRL', $resolved->name);
     }
 
-    public function test_resolve_id_returns_uuid_string(): void
+    public function test_resolve_id_returns_the_integer_id(): void
     {
         $company = Company::factory()->create();
 
@@ -31,7 +31,7 @@ class CompanyResolverTest extends TestCase
         $id = $resolver->resolveId();
 
         $this->assertSame($company->id, $id);
-        $this->assertIsString($id);
+        $this->assertIsInt($id);
     }
 
     public function test_resolver_throws_when_no_company_exists(): void

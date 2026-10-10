@@ -34,8 +34,9 @@ class BranchFactory extends Factory
                 'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia', 'Toscana',
                 'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto',
             ]),
-            'branchable_type' => null,
-            'branchable_id' => null,
+            // Nel pacchetto la filiale appartiene sempre a un soggetto: qui l'azienda stessa.
+            'branchable_type' => 'company',
+            'branchable_id' => fn (array $attributes) => $attributes['company_id'],
             'is_main_office' => false,
             'manager_first_name' => fake()->firstName(),
             'manager_last_name' => fake()->lastName(),

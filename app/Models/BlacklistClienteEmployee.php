@@ -4,20 +4,42 @@ namespace App\Models;
 
 use App\Models\PROFORMA\Clienti;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Unico\Core\Models\BlacklistClienteEmployee as CoreBlacklistClienteEmployee;
 
-class BlacklistClienteEmployee extends CoreBlacklistClienteEmployee
+class BlacklistClienteEmployee extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
+
+    protected $connection = 'mysql_proforma';
+
+    protected $table = 'blacklist_clienti_employees';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    /**
+     * Gli attributi assegnabili in massa.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'cliente_id',
+        'employee_id',
+        'motivo',
+        'data_inizio',
+        'data_fine',
+    ];
 
     protected function casts(): array
     {
-        return array_merge(parent::casts(), [
+        return [
             'data_inizio' => 'date',
             'data_fine' => 'date',
-        ]);
+        ];
     }
 
     /*

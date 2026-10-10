@@ -37,7 +37,7 @@ class OpenApiCompanyTest extends TestCase
         parent::setUp();
 
         // La sede usa company_id di default (schema di branches): in test la societa' va creata.
-        Company::factory()->create(['id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9']);
+        Company::factory()->create();
 
         config([
             'services.openapi.token' => 'tok', 'services.openapi.company_url' => 'https://company.test',

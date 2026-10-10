@@ -355,18 +355,18 @@ class SignatureRequestService
 
     /**
      * Il PDF firmato diventa un nuovo documento che sostituisce l'originale: il vecchio resta in archivio
-     * (soft delete) con `renewed_by_id` che punta al nuovo.
+     * (soft delete) con `replaced_by_id` che punta al nuovo.
      */
     private function completeRequest(SignatureRequest $request, string $pdf): void
     {
         $original = Document::query()->whereKey($request->document_id)->firstOrFail();
         $signedAt = now();
 
-        $signed = $original->replicate(['renewed_by_id', 'deleted_at', 'deleted_by', 'file_hash', 'last_sent_at', 'reminders_count']);
+        $signed = $original->replicate(['replaced_by_id', 'deleted_at', 'deleted_by', 'file_hash', 'last_sent_at', 'reminders_count']);
         $signed->forceFill(['is_signed' => true, 'signed_at' => $signedAt])->save();
 
         $request->forceFill(['status' => SignatureRequestStatus::Signed, 'signed_at' => $signedAt, 'failure_reason' => null, 'document_id' => $signed->getKey()])->save();
-        $original->forceFill(['renewed_by_id' => $signed->getKey()])->save();
+        $original->forceFill(['replaced_by_id' => $signed->getKey()])->save();
         $original->delete();
 
         $this->approveSignedKyc($request, $original, $signed, $signedAt);

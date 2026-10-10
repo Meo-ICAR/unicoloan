@@ -34,8 +34,8 @@ class CompanyResolver
      *
      * @throws RuntimeException
      */
-    public function resolveId(): string
+    public function resolveId(): int
     {
-        return $this->resolve()->id;
+        return (int) $this->resolve()->id;
     }
 }

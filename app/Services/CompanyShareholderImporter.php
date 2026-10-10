@@ -111,6 +111,8 @@ class CompanyShareholderImporter
         $branch->fill(array_filter($office, fn ($value) => filled($value)))->forceFill([
             'branchable_type' => $company->getMorphClass(),
             'branchable_id' => $company->getKey(),
+            // Il tenant non ha più un valore predefinito nel database: una sede nuova prende l'azienda dell'app.
+            'company_id' => $branch->company_id ?? app(CompanyResolver::class)->resolveId(),
         ])->save();
     }
 
