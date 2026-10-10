@@ -9,6 +9,7 @@ use App\Models\Document;
 use App\Models\DocumentType;
 use App\Models\PROFORMA\Fornitore;
 use App\Models\PROFORMA\Pratica;
+use App\Models\PROFORMA\Provvigione;
 use App\Services\ModuleDataResolver;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -135,6 +136,29 @@ class ModuleDataResolverTest extends TestCase
         $this->assertTrue($data->get(Key::ClientePersonaFisica));
     }
 
+    public function test_sums_only_active_client_compensations_and_picks_the_proforma_number(): void
+    {
+        $pratica = $this->pratica()->setRelation('provvigioni', collect([
+            new Provvigione(['tipo' => 'Cliente', 'importo' => 1000, 'annullato' => false, 'n_fattura' => '147']),
+            new Provvigione(['tipo' => 'Cliente', 'importo' => 500.5, 'annullato' => false, 'n_fattura' => '']),
+            new Provvigione(['tipo' => 'Cliente', 'importo' => 300, 'annullato' => true, 'n_fattura' => '999']),
+            new Provvigione(['tipo' => 'Agente', 'importo' => 700, 'annullato' => false, 'n_fattura' => '1']),
+        ]));
+
+        $data = $this->resolve($pratica, $this->client());
+
+        $this->assertEquals(1500.5, $data->get(Key::CompensoClienteImporto));
+        $this->assertSame('147', $data->get(Key::CompensoClienteProforma));
+    }
+
+    public function test_client_compensation_is_empty_without_client_commissions(): void
+    {
+        $data = $this->resolve($this->pratica()->setRelation('provvigioni', collect()), $this->client());
+
+        $this->assertNull($data->get(Key::CompensoClienteImporto));
+        $this->assertNull($data->get(Key::CompensoClienteProforma));
+    }
+
     public function test_resolves_birth_data_and_legal_representative(): void
     {
         $rep = new Client(['name' => 'Amministratore di Acme Spa', 'is_person' => true]);
@@ -229,6 +253,7 @@ class ModuleDataResolverTest extends TestCase
         $data = $this->resolve($this->pratica(), $this->client(documents: [$expired, $other, $valid]));
 
         $this->assertSame('VALIDO', $data->get(Key::DocumentoNumero));
+        $this->assertSame("Carta d'Identità", $data->get(Key::DocumentoTipo));
         $this->assertSame('Comune di Napoli', $data->get(Key::DocumentoRilasciatoDa));
         $this->assertSame('2023-01-01', $data->get(Key::DocumentoRilasciatoIl)->toDateString());
         $this->assertSame('2033-01-01', $data->get(Key::DocumentoScadenza)->toDateString());

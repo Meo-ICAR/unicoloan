@@ -2,12 +2,15 @@
 
 namespace App\Support;
 
+use App\Models\Client;
 use App\Models\Company;
 use App\Models\Document;
 use App\Models\Employee;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
+use App\Models\PROFORMA\Pratica;
 use App\Models\User;
+use App\Services\ModuleDataResolver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -31,6 +34,11 @@ class DocumentRecipientResolver
                 'name' => (string) ($documentable->nome ?: $documentable->name),
                 'email' => $documentable->email ?: $documentable->privacy_contact_email ?: $documentable->dpo_email,
             ],
+            Client::class => [
+                'name' => trim($documentable->name.' '.$documentable->first_name),
+                'email' => $documentable->email ?: $documentable->pec,
+            ],
+            Pratica::class => $this->resolvePraticaClient($documentable),
             Company::class => [
                 'name' => (string) $documentable->name,
                 'email' => null,
@@ -43,6 +51,35 @@ class DocumentRecipientResolver
                 'name' => $this->modelLabel($documentable),
                 'email' => null,
             ],
+        };
+    }
+
+    /**
+     * Destinatario dei documenti di una pratica: il cliente collegato dal codice fiscale / P.IVA.
+     *
+     * @return array{name: string, email: ?string}
+     */
+    private function resolvePraticaClient(Pratica $pratica): array
+    {
+        $client = app(ModuleDataResolver::class)->findClient($pratica);
+
+        return $client === null
+            ? ['name' => trim($pratica->nome_cliente.' '.$pratica->cognome_cliente), 'email' => null]
+            : $this->resolve($client);
+    }
+
+    /**
+     * Nome leggibile del soggetto a cui appartiene il documento (per lo scadenziario).
+     */
+    public function entityName(Document $document): string
+    {
+        $documentable = $document->documentable;
+
+        return match (true) {
+            $documentable === null => '-',
+            $documentable instanceof Pratica => trim($documentable->codice_pratica.' - '.$documentable->nome_cliente.' '.$documentable->cognome_cliente, ' -'),
+            $documentable instanceof Client => trim($documentable->name.' '.$documentable->first_name),
+            default => (string) ($documentable->name ?? $documentable->protocol_number ?? $documentable->summary ?? '-'),
         };
     }
 

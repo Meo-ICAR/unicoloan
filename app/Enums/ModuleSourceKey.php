@@ -21,6 +21,8 @@ enum ModuleSourceKey: string implements HasLabel
     case PraticaProdotto = 'pratica.denominazione_prodotto';
     case PraticaDataInserimento = 'pratica.data_inserimento_pratica';
     case PraticaOggi = 'pratica.oggi';
+    case CompensoClienteImporto = 'compenso_cliente.importo';
+    case CompensoClienteProforma = 'compenso_cliente.proforma';
     case ClienteCognome = 'client.name';
     case ClienteNome = 'client.first_name';
     case ClienteNominativo = 'client.nominativo';
@@ -62,6 +64,7 @@ enum ModuleSourceKey: string implements HasLabel
     case SedeCap = 'branch.zip_code';
     case SedeProvincia = 'branch.province';
     case SedeIndirizzoCompleto = 'branch.indirizzo_completo';
+    case DocumentoTipo = 'document.identity.type';
     case DocumentoNumero = 'document.identity.docnumber';
     case DocumentoRilasciatoDa = 'document.identity.emitted_by';
     case DocumentoRilasciatoIl = 'document.identity.emitted_at';
@@ -162,6 +165,8 @@ enum ModuleSourceKey: string implements HasLabel
             self::PraticaProdotto => 'Pratica: prodotto',
             self::PraticaDataInserimento => 'Pratica: data inserimento',
             self::PraticaOggi => 'Data odierna',
+            self::CompensoClienteImporto => 'Compenso da cliente: importo (somma)',
+            self::CompensoClienteProforma => 'Compenso da cliente: n. proforma/fattura',
             self::ClienteCognome => 'Cliente: cognome / ragione sociale',
             self::ClienteNome => 'Cliente: nome',
             self::ClienteNominativo => 'Cliente: cognome e nome',
@@ -199,6 +204,7 @@ enum ModuleSourceKey: string implements HasLabel
             self::SedeCap => 'Sede cliente: CAP',
             self::SedeProvincia => 'Sede cliente: provincia',
             self::SedeIndirizzoCompleto => 'Sede cliente: indirizzo completo',
+            self::DocumentoTipo => 'Documento identità: tipologia',
             self::DocumentoNumero => 'Documento identità: numero',
             self::DocumentoRilasciatoDa => 'Documento identità: rilasciato da',
             self::DocumentoRilasciatoIl => 'Documento identità: data rilascio',

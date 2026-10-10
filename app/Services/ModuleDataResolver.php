@@ -56,7 +56,8 @@ class ModuleDataResolver
      */
     public function resolveForClient(Client $client, ?KycQuestionnaire $kyc = null, ?Pratica $pratica = null): ResolvedModuleData
     {
-        $pratica?->loadMissing('agente');
+        $pratica?->loadMissing(['agente', 'provvigioni']);
+        $compensi = $pratica === null ? collect() : $pratica->provvigioni->where('tipo', 'Cliente')->where('annullato', false);
         $kyc ??= $client->currentKyc() ?? $client->kycQuestionnaires()->latest('id')->first();
         $client->loadMissing(['branches', 'documents.documentType', 'employer.branches', 'legalRepresentative', 'thirdPartyFinancings']);
 
@@ -78,6 +79,8 @@ class ModuleDataResolver
             Key::PraticaProdotto->value => $pratica?->denominazione_prodotto,
             Key::PraticaDataInserimento->value => $pratica?->data_inserimento_pratica,
             Key::PraticaOggi->value => now(),
+            Key::CompensoClienteImporto->value => $compensi->isEmpty() ? null : $compensi->sum('importo'),
+            Key::CompensoClienteProforma->value => $compensi->map(fn ($compenso) => $compenso->proforma_id ?: $compenso->n_fattura ?: $compenso->invoice_number)->filter()->first(),
 
             Key::ClienteCognome->value => $client->name,
             Key::ClienteNome->value => $client->first_name,
@@ -123,6 +126,7 @@ class ModuleDataResolver
             Key::SedeProvincia->value => $branch?->province,
             Key::SedeIndirizzoCompleto->value => $branch ? $this->fullAddress($branch) : null,
 
+            Key::DocumentoTipo->value => $identity?->documentType?->name,
             Key::DocumentoNumero->value => $identity?->docnumber,
             Key::DocumentoRilasciatoDa->value => $identity?->emitted_by,
             Key::DocumentoRilasciatoIl->value => $identity?->emitted_at,

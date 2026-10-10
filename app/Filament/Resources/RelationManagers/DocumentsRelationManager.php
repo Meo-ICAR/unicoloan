@@ -7,9 +7,20 @@ use App\Enums\SignatureRequestStatus;
 use App\Filament\Actions\SendForSignatureAction;
 use App\Filament\Exports\DynamicGroupExport;
 use App\Filament\Traits\HasRelationPlanAccess;
+use App\Models\Client;
+use App\Models\Company;
 use App\Models\Document;
 use App\Models\DocumentType;
+use App\Models\Employee;
+use App\Models\PROFORMA\Clienti;
+use App\Models\PROFORMA\Fornitore;
+use App\Models\PROFORMA\Pratica;
 use App\Models\SignatureRequest;
+use App\Models\Task;
+use App\Services\ModuleDataResolver;
+use App\Services\PdfFormException;
+use App\Services\PdfFormFiller;
+use App\Services\ResolvedModuleData;
 use App\Services\Signature\Exceptions\SignatureRequestException;
 use App\Services\Signature\SignatureRequestService;
 use Filament\Actions\Action;
@@ -19,6 +30,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -37,8 +49,10 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 // CORRETTO
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use pxlrbt\FilamentExcel\Actions\ExportAction; // <-- Importa il trait
 
 class DocumentsRelationManager extends RelationManager
@@ -53,6 +67,54 @@ class DocumentsRelationManager extends RelationManager
 
     protected static ?string $pluralModelLabel = 'Documenti';
 
+    /**
+     * Plichi (task) attivi che corrispondono al tipo e allo stato del record su cui siamo.
+     *
+     * @return Collection<int, Task>
+     */
+    private function applicablePlichi(): Collection
+    {
+        return Task::getAvailableFor($this->getOwnerRecord())->load('documentTypes')->values();
+    }
+
+    /**
+     * Flag di DocumentType che abilita il tipo per il modello su cui il relation manager e' montato.
+     *
+     * @var array<class-string<Model>, string>
+     */
+    private const OWNER_TYPE_FLAGS = [
+        Client::class => 'is_client',
+        Pratica::class => 'is_practice',
+        Clienti::class => 'is_principal',
+        Fornitore::class => 'is_agent',
+        Employee::class => 'is_employee',
+        Company::class => 'is_company',
+    ];
+
+    /**
+     * Tipi documento proponibili per il modello corrente (tutti se il modello non e' mappato).
+     * Nel form sono esclusi i tipi gia' presenti sui documenti del record (tranne quello del documento in modifica); nel filtro restano anche quelli gia' usati.
+     *
+     * @return array<int, string>
+     */
+    private function documentTypeOptions(bool $includeUsed = false, mixed $currentId = null, bool $excludeUsed = false): array
+    {
+        $flag = self::OWNER_TYPE_FLAGS[$this->getOwnerRecord()::class] ?? null;
+
+        return DocumentType::query()
+            ->when($flag !== null, fn (Builder $query) => $query->where(function (Builder $query) use ($flag, $includeUsed, $currentId): void {
+                $query->where($flag, true)
+                    ->when($currentId, fn (Builder $query) => $query->orWhereKey($currentId))
+                    ->when($includeUsed, fn (Builder $query) => $query->orWhereIn('id', $this->getOwnerRecord()->documents()->withTrashed()->select('document_type_id')));
+            }))
+            ->when($excludeUsed, fn (Builder $query) => $query
+                ->whereNotIn('id', $this->getOwnerRecord()->documents()->whereNotNull('document_type_id')->select('document_type_id'))
+                ->when($currentId, fn (Builder $query) => $query->orWhereKey($currentId)))
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -63,7 +125,7 @@ class DocumentsRelationManager extends RelationManager
                     Select::make('document_type_id')
 
                         ->label('Tipo documento')
-                        ->options(DocumentType::orderBy('name')->pluck('name', 'id'))
+                        ->options(fn (?Document $record): array => $this->documentTypeOptions(currentId: $record?->document_type_id, excludeUsed: true))
                         ->searchable()
                         ->live()
                         ->afterStateUpdated(function ($state, callable $set, $get): void {
@@ -183,24 +245,6 @@ class DocumentsRelationManager extends RelationManager
                     ->date('d/m/y')
                     //  ->visible(fn($record) => $record?->is_monitored)
                     ->sortable(),
-                TextColumn::make('expires_at')
-                    ->label('Scadenza')
-                    ->date('d/m/y')
-                    ->sortable()
-                  //  ->visible(fn ($record) => $record?->is_monitored ?? false)
-                    ->color(fn ($record) => $record?->expires_at?->isPast() ? 'danger' : 'gray')
-                    ->weight(fn ($record) => $record?->expires_at?->isPast() ? 'bold' : 'normal'),
-                TextColumn::make('doctype')
-                    ->sortable()
-                    ->label('Tipo documento')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'modulo' => 'info',
-                        'procedura' => 'warning',
-                        'template' => 'success',
-                        default => 'gray',
-                    })
-                    ->toggleable(),
                 TextColumn::make('signature_state')
                     ->label('Firma')
                     ->badge()
@@ -211,13 +255,22 @@ class DocumentsRelationManager extends RelationManager
                         'Rifiutata', 'Scaduta' => 'warning',
                         default => 'gray',
                     }),
+                TextColumn::make('otp')
+                    ->label('OTP')
+                    ->badge()
+                    ->state(fn (Document $record): ?string => self::otpState($record))
+                    ->color(fn (?string $state): string => $state === 'Invia OTP' ? 'primary' : 'info')
+                    ->icon(fn (?string $state): ?string => $state === 'Invia OTP' ? 'heroicon-o-device-phone-mobile' : null)
+                    ->action(SendForSignatureAction::make(
+                        onlyForSignedTypes: true,
+                        preflight: fn (Document $document): ?string => self::missingSignerContacts($document),
+                    )),
             ])
             ->filters([
                 SelectFilter::make('document_type_id')
                     ->label('Tipo documento')
-                    ->relationship('documentType', 'name')
-                    ->searchable()
-                    ->preload(),
+                    ->options(fn (): array => $this->documentTypeOptions(includeUsed: true))
+                    ->searchable(),
                 SelectFilter::make('status')
                     ->label('Stato')
                     ->multiple()
@@ -231,6 +284,13 @@ class DocumentsRelationManager extends RelationManager
                         'informativa' => 'Informativa',
                         'template' => 'Template',
                     ]),
+                Filter::make('plico_attuale')
+                    ->label('Plico dello stato attuale')
+                    ->toggle()
+                    ->query(fn (Builder $query) => $query->whereIn(
+                        'document_type_id',
+                        $this->applicablePlichi()->flatMap(fn (Task $task) => $task->documentTypes->pluck('id'))->unique()->values()->all(),
+                    )),
                 Filter::make('is_monitored')
                     ->label('Monitorato')
                     ->query(fn ($query) => $query->where('is_monitored', true)),
@@ -244,6 +304,46 @@ class DocumentsRelationManager extends RelationManager
                 TrashedFilter::make(),
             ])
             ->headerActions([
+                Action::make('generaPlico')
+                    ->label('Genera plico')
+                    ->icon('heroicon-o-rectangle-stack')
+                    ->color('gray')
+                    ->modalHeading('Genera plico documentale')
+                    ->modalDescription('Vengono creati, in stato "richiesto", i documenti dei plichi applicabili che non sono ancora presenti.')
+                    ->modalSubmitActionLabel('Genera')
+                    ->mountUsing(function (Action $action): void {
+                        if ($this->applicablePlichi()->isEmpty()) {
+                            Notification::make()->title('Nessun plico applicabile')->body('Per lo stato attuale di questo record non ci sono plichi documentali.')->warning()->send();
+
+                            $action->cancel();
+                        }
+                    })
+                    ->schema(fn (): array => [
+                        CheckboxList::make('plichi')
+                            ->label('Plichi')
+                            ->options(fn (): array => $this->applicablePlichi()->mapWithKeys(fn (Task $task): array => [$task->getKey() => $task->name])->all())
+                            ->descriptions(fn (): array => $this->applicablePlichi()->mapWithKeys(fn (Task $task): array => [$task->getKey() => $task->documentTypes->count().' documenti ('.$task->documentTypes->filter(fn ($type) => $type->pivot->is_required)->count().' obbligatori)'])->all())
+                            ->default(fn (): array => $this->applicablePlichi()->pluck('id')->all())
+                            ->required()
+                            ->columns(1),
+                    ])
+                    ->action(function (array $data): void {
+                        $owner = $this->getOwnerRecord();
+                        $created = 0;
+                        $existing = 0;
+
+                        foreach ($this->applicablePlichi()->whereIn('id', $data['plichi'] ?? []) as $task) {
+                            $result = $task->generateDocumentsFor($owner);
+                            $created += $result['created'];
+                            $existing += $result['existing'];
+                        }
+
+                        Notification::make()
+                            ->title($created.' documenti richiesti creati')
+                            ->body($existing > 0 ? $existing.' erano già presenti.' : null)
+                            ->success()
+                            ->send();
+                    }),
                 CreateAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['company_id'] = $this->getOwnerRecord()->company_id
@@ -260,7 +360,6 @@ class DocumentsRelationManager extends RelationManager
             ])
             ->recordActions([
                 EditAction::make(),
-                SendForSignatureAction::make(),
                 Action::make('refreshSignature')
                     ->label('Aggiorna stato')
                     ->icon('heroicon-o-arrow-path')
@@ -311,6 +410,11 @@ class DocumentsRelationManager extends RelationManager
 
                         Notification::make()->success()->title('Richiesta di firma annullata')->send();
                     }),
+                Action::make('downloadDocument')
+                    ->label('Scarica')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn (Document $record): bool => ! $record->is_signed && self::downloadKind($record) !== null)
+                    ->action(fn (Document $record) => self::download($record)),
                 Action::make('downloadSigned')
                     ->label('Scarica firmato')
                     ->icon('heroicon-o-arrow-down-tray')
@@ -397,6 +501,86 @@ class DocumentsRelationManager extends RelationManager
     }
 
     /**
+     * 'module' se il tipo ha un nostro modulo PDF attivo compilabile per il proprietario,
+     * 'template' se e' un template con un file scaricabile, altrimenti null.
+     */
+    private static function downloadKind(Document $document): ?string
+    {
+        $type = $document->documentType;
+
+        if ($type === null) {
+            return null;
+        }
+
+        if ($type->pdfModule?->is_active && self::canPrintModule($document)) {
+            return 'module';
+        }
+
+        if (($type->is_template || $document->is_template) && ($document->getFirstMedia('documents') !== null || filled($document->document_url))) {
+            return 'template';
+        }
+
+        return null;
+    }
+
+    private static function moduleDataFor(Document $document): ?ResolvedModuleData
+    {
+        $owner = $document->documentable;
+        $resolver = app(ModuleDataResolver::class);
+
+        if ($owner instanceof Client) {
+            return $resolver->resolveForClient($owner);
+        }
+
+        $client = $owner instanceof Pratica ? $resolver->findClient($owner) : null;
+
+        return $client === null ? null : $resolver->resolve($owner, $client);
+    }
+
+    /**
+     * Il modulo si stampa solo sul modello a cui il tipo documento e' destinato:
+     * cliente (is_client) o pratica (is_practice, con cliente collegato).
+     */
+    private static function canPrintModule(Document $document): bool
+    {
+        $owner = $document->documentable;
+        $type = $document->documentType;
+
+        return match (true) {
+            $owner instanceof Client => (bool) $type?->is_client,
+            $owner instanceof Pratica => (bool) $type?->is_practice && app(ModuleDataResolver::class)->findClient($owner) !== null,
+            default => false,
+        };
+    }
+
+    private static function download(Document $document): mixed
+    {
+        if (self::downloadKind($document) === 'module') {
+            $module = $document->documentType->pdfModule;
+            $data = self::moduleDataFor($document);
+
+            try {
+                $content = app(PdfFormFiller::class)->fill($module, $data);
+            } catch (PdfFormException $e) {
+                report($e);
+                Notification::make()->danger()->title('Stampa non disponibile')->body($e->getMessage())->send();
+
+                return null;
+            }
+
+            return response()->streamDownload(fn () => print ($content), Str::slug($module->name).'.pdf', ['Content-Type' => 'application/pdf']);
+        }
+
+        $media = $document->getFirstMedia('documents');
+
+        if ($media !== null) {
+            return response()->download($media->getPath(), $media->file_name);
+        }
+
+        return redirect()->away($document->document_url);
+    }
+
+    /**
      * Usa la relazione gia' caricata dalla query della tabella (niente N+1).
      */
     private static function latestSignatureRequest(Document $document): ?SignatureRequest
@@ -409,6 +593,39 @@ class DocumentsRelationManager extends RelationManager
         $request = self::latestSignatureRequest($document);
 
         return $request?->isOpen() ? $request : null;
+    }
+
+    /**
+     * 'Invia OTP' se il documento (tipo con firma) e' ancora da firmare, 'OTP inviato' con richiesta aperta.
+     */
+    private static function otpState(Document $document): ?string
+    {
+        if ($document->is_signed || ! $document->documentType?->is_signed) {
+            return null;
+        }
+
+        return self::openSignatureRequest($document) !== null ? 'OTP inviato' : 'Invia OTP';
+    }
+
+    /**
+     * Avviso se il cliente del documento non ha cellulare ed email: l'OTP (SMS + email) non puo' partire.
+     */
+    private static function missingSignerContacts(Document $document): ?string
+    {
+        $owner = $document->documentable;
+        $client = $owner instanceof Pratica ? app(ModuleDataResolver::class)->findClient($owner) : $owner;
+
+        if (! $client instanceof Client) {
+            return null;
+        }
+
+        $missing = collect(['phone' => 'cellulare', 'email' => 'email'])
+            ->filter(fn (string $label, string $field): bool => blank($client->{$field}))
+            ->values();
+
+        return $missing->isEmpty()
+            ? null
+            : 'Mancano '.$missing->implode(' ed ').' del cliente: completare l\'anagrafica prima di inviare l\'OTP.';
     }
 
     private static function signatureState(Document $document): string

@@ -33,7 +33,7 @@ class FornitoreResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Produttori';
 

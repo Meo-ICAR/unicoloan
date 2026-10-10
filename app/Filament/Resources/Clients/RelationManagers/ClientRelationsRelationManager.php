@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Clients\RelationManagers;
 
+use App\Filament\Resources\Clients\ClientResource;
 use App\Filament\Traits\HasRelationPlanAccess;
+use App\Models\ClientRelation;
 use App\Models\ClientType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -42,8 +44,12 @@ class ClientRelationsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('client.name')
                     ->label('Persona')
+                    ->url(fn (ClientRelation $record): string => ClientResource::getUrl('edit', ['record' => $record->client_id]))
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('client.tax_code')
+                    ->label('Cod. fiscale / P.IVA')
+                    ->searchable(),
                 TextColumn::make('clientType.name')
                     ->label('Ruolo')
                     ->searchable()

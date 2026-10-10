@@ -82,4 +82,23 @@ class CodiceFiscaleDecoderTest extends TestCase
     {
         $this->assertSame('M', (new CodiceFiscaleDecoder)->decode(' rssmra80a01h501u ')['sex']);
     }
+
+    public function test_checksum_is_verified(): void
+    {
+        $decoder = new CodiceFiscaleDecoder;
+
+        $this->assertTrue($decoder->hasValidChecksum('RSSMRA80A01H501U'));
+        $this->assertTrue($decoder->hasValidChecksum(' meopgs64d04f839i '));
+        $this->assertFalse($decoder->hasValidChecksum('RSSMRA80A01H501X'));
+        $this->assertFalse($decoder->hasValidChecksum('12345678901'));
+        $this->assertFalse($decoder->hasValidChecksum(null));
+    }
+
+    public function test_decode_verified_returns_data_only_with_a_correct_checksum(): void
+    {
+        $decoder = new CodiceFiscaleDecoder;
+
+        $this->assertSame('1964-04-04', $decoder->decodeVerified('MEOPGS64D04F839I')['birth_date']->toDateString());
+        $this->assertNull($decoder->decodeVerified('MEOPGS64D04F839X'));
+    }
 }

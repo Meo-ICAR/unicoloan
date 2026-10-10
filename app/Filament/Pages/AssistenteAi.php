@@ -19,7 +19,7 @@ class AssistenteAi extends Page
 
     protected string $view = 'filament.pages.assistente-ai';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Documentazione';
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Assistente AI';
 

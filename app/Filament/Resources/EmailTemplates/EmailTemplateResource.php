@@ -36,7 +36,7 @@ class EmailTemplateResource extends Resource
 
     // protected static bool $shouldRegisterNavigation = false;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 6;
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Praticas;
 use App\Filament\Resources\Praticas\Pages\CreatePratica;
 use App\Filament\Resources\Praticas\Pages\EditPratica;
 use App\Filament\Resources\Praticas\Pages\ListPraticas;
+use App\Filament\Resources\Praticas\RelationManagers\PraticaClientsRelationManager;
 use App\Filament\Resources\Praticas\RelationManagers\ProvvigioniRelationManager;
 use App\Filament\Resources\Praticas\RelationManagers\RequisitiOperativiRelationManager;
 use App\Filament\Resources\Praticas\RelationManagers\StatusHistoryRelationManager;
@@ -53,6 +54,7 @@ class PraticaResource extends Resource
     public static function getRelations(): array
     {
         return [
+            PraticaClientsRelationManager::class,
             RequisitiOperativiRelationManager::class,
             StatusHistoryRelationManager::class,
             DocumentsRelationManager::class,

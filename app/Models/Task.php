@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentStatus;
 use App\Events\TaskActivated;
-use Filament\Facades\Filament; // <-- Add this line!
+use App\Models\PROFORMA\Pratica; // <-- Add this line!
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,11 +13,11 @@ use Illuminate\Database\Eloquent\Pivot;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Spatie\MediaLibrary\HasMedia;
 /*
      * 1. GLOBAL SCOPE ISOLAMENTO E TASK COMUNI
      * Caricato automaticamente su tutte le query dell'applicazione.
 */
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Task extends Model implements HasMedia
@@ -28,7 +30,7 @@ class Task extends Model implements HasMedia
 
     protected $orderDirection = 'asc';
 
-    protected $fillable = ['name', 'description', 'taskable', 'trigger_field', 'trigger_state', 'trigger_value', 'exclude_field', 'exclude_state',
+    protected $fillable = ['name', 'description', 'taskable', 'trigger_field', 'trigger_state', 'trigger_value', 'trigger_subfield', 'trigger_subvalue', 'exclude_field', 'exclude_state',
         'exclude_value', 'is_active', 'parent_id', 'app_identifier'];
 
     /**
@@ -95,7 +97,6 @@ class Task extends Model implements HasMedia
                     'description',
                     'emitted_by',
                     'is_template',
-                    'is_signed',
                     'is_monitored',
                     'doctype',
                 ])
@@ -135,15 +136,76 @@ class Task extends Model implements HasMedia
     }
 
     /**
+     * Campi del record che governano i plichi attivi del suo tipo (trigger, secondo campo ed esclusione).
+     *
+     * @return array<int, string>
+     */
+    public static function watchedFieldsFor(Model $record): array
+    {
+        return self::query()
+            ->where('is_active', true)
+            ->whereIn('taskable', array_unique([$record->getMorphClass(), strtolower(class_basename($record))]))
+            ->get(['trigger_field', 'trigger_subfield', 'exclude_field'])
+            ->flatMap(fn (Task $task): array => [$task->trigger_field, $task->trigger_subfield, $task->exclude_field])
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Crea sul record i documenti mancanti di tutti i plichi applicabili al suo stato attuale.
+     *
+     * @return int numero di documenti creati
+     */
+    public static function applyPlichiTo(Model $record): int
+    {
+        return self::getAvailableFor($record)->load('documentTypes')->sum(fn (Task $task): int => $task->generateDocumentsFor($record)['created']);
+    }
+
+    /**
+     * Crea sul record i documenti richiesti da questo plico che non ci sono ancora (stato "richiesto").
+     * Non si tocca nulla di quanto esiste gia'.
+     *
+     * @return array{created: int, existing: int}
+     */
+    public function generateDocumentsFor(Model $owner): array
+    {
+        $created = 0;
+        $existing = 0;
+
+        foreach ($this->documentTypes as $documentType) {
+            if ($owner->documents()->where('document_type_id', $documentType->getKey())->exists()) {
+                $existing++;
+
+                continue;
+            }
+
+            $owner->documents()->create(array_merge(
+                collect($documentType->only(['name', 'description', 'emitted_by', 'is_template', 'is_monitored', 'doctype']))->all(),
+                [
+                    'document_type_id' => $documentType->getKey(),
+                    'status' => DocumentStatus::PENDING->value,
+                    'company_id' => $owner->company_id ?? null,
+                ],
+            ));
+            $created++;
+        }
+
+        return ['created' => $created, 'existing' => $existing];
+    }
+
+    /**
      * 1. METODO ESISTENTE AGGIORNATO
      * Sfrutta il refactoring e pesca solo i task "Radice" (senza padre).
      */
     public static function getAvailableFor($record)
     {
-        $taskableType = strtolower(class_basename($record));
+        // taskable e' l'alias del morphMap ('client', 'pratica', 'fornitore'...) o, in alternativa, il nome breve del modello
+        $taskableTypes = array_unique([$record->getMorphClass(), strtolower(class_basename($record))]);
 
         // Prendiamo solo i task attivi che NON hanno un padre (i task figli aspetteranno il loro turno)
-        $rootTasks = self::where('taskable', $taskableType)
+        $rootTasks = self::whereIn('taskable', $taskableTypes)
             ->where('is_active', true)
             ->whereNull('parent_id')
             ->get();
@@ -195,34 +257,55 @@ class Task extends Model implements HasMedia
                 return false;
             }
 
-            if ($this->exclude_state === 'equals' && $excludeValue == $this->exclude_value) {
+            if ($this->exclude_state === 'equals' && self::sameValue($excludeValue, $this->exclude_value)) {
                 return false;
             }
         }
 
-        // Se il task non ha condizioni di attivazione particolari, è valido
+        return $this->matchesTrigger($record) && $this->matchesSubfield($record);
+    }
+
+    /**
+     * Condizione principale (trigger_field): senza campo il task e' sempre valido.
+     */
+    private function matchesTrigger(Model $record): bool
+    {
         if (empty($this->trigger_field)) {
             return true;
         }
 
         $fieldValue = $record->{$this->trigger_field};
 
-        // Condizione: il campo deve essere valorizzato (NOT NULL)
-        if ($this->trigger_state === 'filled') {
-            return ! empty($fieldValue);
+        return match ($this->trigger_state) {
+            'filled' => ! empty($fieldValue),
+            'empty' => empty($fieldValue),
+            'equals' => self::sameValue($fieldValue, $this->trigger_value),
+            default => true,
+        };
+    }
+
+    /**
+     * Seconda condizione (trigger_subfield = trigger_subvalue), es. lo stato della pratica.
+     */
+    private function matchesSubfield(Model $record): bool
+    {
+        if (empty($this->trigger_subfield)) {
+            return true;
         }
 
-        // Condizione: il campo deve essere vuoto (NULL)
-        if ($this->trigger_state === 'empty') {
-            return empty($fieldValue);
+        return self::sameValue($record->{$this->trigger_subfield}, $this->trigger_subvalue);
+    }
+
+    /**
+     * Confronto di valori testuali senza distinguere maiuscole/minuscole (es. "Mutuo" / "MUTUO").
+     */
+    private static function sameValue(mixed $actual, mixed $expected): bool
+    {
+        if ($actual instanceof \BackedEnum) {
+            $actual = $actual->value;
         }
 
-        // Condizione: il campo deve essere uguale a un valore specifico
-        if ($this->trigger_state === 'equals') {
-            return $fieldValue == $this->trigger_value;
-        }
-
-        return true;
+        return mb_strtolower(trim((string) $actual)) === mb_strtolower(trim((string) $expected));
     }
 
     /**

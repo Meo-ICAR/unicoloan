@@ -43,8 +43,14 @@ class DocumentReminderService
                                 ->orWhere('last_sent_at', '<', now()->subDays(5));
                         });
                 })
-                // Opzione 2: OPPURE qualsiasi documento che sia semplicemente PENDING
-                    ->orWhere('status', DocumentStatus::PENDING->value);
+                // Opzione 2: OPPURE qualsiasi documento che sia semplicemente PENDING (assente)
+                    ->orWhere('status', DocumentStatus::PENDING->value)
+                // Opzione 3: OPPURE documenti con anomalia (respinti o caricati con anomalie rilevate)
+                    ->orWhere('status', DocumentStatus::REJECTED->value)
+                    ->orWhere(function (Builder $anomalies) {
+                        $anomalies->where('status', DocumentStatus::UPLOADED->value)
+                            ->whereJsonLength('metadata->verifica->anomalie', '>', 0);
+                    });
             })
             ->orderBy('expires_at');
     }
@@ -134,6 +140,13 @@ class DocumentReminderService
     public function shouldRemind(Document $document, bool $onlyDueToday = true): bool
     {
         $daysUntilExpiry = $this->daysUntilExpiry($document);
+
+        // Documenti assenti o con anomalia (senza scadenza): sollecito ripetuto finche' non sono a posto.
+        if ($document->expires_at === null) {
+            return ! $onlyDueToday
+                || $document->last_sent_at === null
+                || $document->last_sent_at->lt(now()->subDays((int) config('documents.missing_reminder_days', 7)));
+        }
 
         if ($onlyDueToday) {
             if (! in_array($daysUntilExpiry, $this->notifyThresholds($document), true)) {
@@ -235,11 +248,12 @@ class DocumentReminderService
         );
 
         // 2. Aggiorna contatori e stato sul documento principale in una sola query atomica
-        $document->update([
+        $document->update(array_filter([
             'reminders_count' => $document->reminders_count + 1,
             'last_sent_at' => now(),
-            'status' => DocumentStatus::PROVISIONAL->value, // Impostato a provvisorio/in attesa dopo il sollecito
-        ]);
+            // Provvisorio/in attesa dopo il sollecito; non per i documenti assenti o con anomalia, che restano da risolvere.
+            'status' => $document->expires_at !== null ? DocumentStatus::PROVISIONAL->value : null,
+        ], fn ($value) => $value !== null));
     }
 
     protected function recordFailedReminder(Document $document, int $daysBefore, string $email, string $message): void

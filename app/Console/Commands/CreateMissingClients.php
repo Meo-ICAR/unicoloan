@@ -168,7 +168,7 @@ class CreateMissingClients extends Command
             ->get();
 
         $withBranches = Branch::query()
-            ->where('branchable_type', Client::class)
+            ->where('branchable_type', (new Client)->getMorphClass())
             ->whereIn('branchable_id', $clients->modelKeys())
             ->pluck('branchable_id')
             ->map(fn ($id) => (int) $id)
@@ -376,7 +376,7 @@ class CreateMissingClients extends Command
             });
 
         $branches = Branch::query()
-            ->where('branchable_type', Client::class)
+            ->where('branchable_type', (new Client)->getMorphClass())
             ->where('address', 'da inserire')
             ->where(fn ($query) => $query->whereNull('street_number')->orWhere('street_number', ''));
 
@@ -416,13 +416,13 @@ class CreateMissingClients extends Command
         if (! $this->option('dry-run')) {
             // Il documento segnaposto della prima versione si chiamava "(segnaposto)".
             Document::query()
-                ->where('documentable_type', Client::class)
+                ->where('documentable_type', (new Client)->getMorphClass())
                 ->where('name', "Carta d'Identità (segnaposto)")
                 ->update(['name' => "Carta d'Identità"]);
         }
 
         $existing = Document::query()
-            ->where('documentable_type', Client::class)
+            ->where('documentable_type', (new Client)->getMorphClass())
             ->whereIn('documentable_id', $persons->modelKeys())
             ->whereIn('name', array_keys(self::PLACEHOLDER_DOCUMENTS))
             ->get(['documentable_id', 'name'])
@@ -764,13 +764,13 @@ class CreateMissingClients extends Command
                     'salary' => null,
                 ]);
 
-                $branches = Branch::query()->where('branchable_type', Client::class)->where('branchable_id', $client->getKey());
+                $branches = Branch::query()->where('branchable_type', (new Client)->getMorphClass())->where('branchable_id', $client->getKey());
 
                 (clone $branches)->where('name', 'Residenza')->where('address', 'da inserire')->delete();
                 (clone $branches)->where('name', 'Domicilio')->update(['is_main_office' => true]);
 
                 Document::query()
-                    ->where('documentable_type', Client::class)
+                    ->where('documentable_type', (new Client)->getMorphClass())
                     ->where('documentable_id', $client->getKey())
                     ->whereIn('name', array_keys(self::PLACEHOLDER_DOCUMENTS))
                     ->delete();

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\KycCoverage;
+use App\Models\Concerns\GeneratesPlichi;
 use App\Models\PROFORMA\Pratica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Client extends Model
 {
+    use GeneratesPlichi;
+
     /**
      * I campi che possono essere assegnati massivamente.
      * Excluded: id, created_at, updated_at
@@ -73,6 +76,16 @@ class Client extends Model
         'pec',
         'ateco_code',
         'cciaa_registration',
+        'legal_form',
+        'sdi_code',
+        'activity_status',
+        'company_started_at',
+        'share_capital',
+        'employees',
+        'turnover',
+        'net_worth',
+        'balance_year',
+        'registry_updated_at',
     ];
 
     /**
@@ -103,6 +116,11 @@ class Client extends Model
         'salary' => 'decimal:2',
         'salary_quote' => 'decimal:2',
         'birth_date' => 'date',
+        'company_started_at' => 'date',
+        'share_capital' => 'decimal:2',
+        'turnover' => 'decimal:2',
+        'net_worth' => 'decimal:2',
+        'registry_updated_at' => 'datetime',
 
         // Date e Timestamp
         'general_consent_at' => 'datetime',

@@ -42,25 +42,7 @@ class ClientMandatesRelationManager extends RelationManager
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255)
-                    ->default(function () {
-                        // Genera automaticamente: MAND-PROGRESSIVO-ANNO
-                        $year = date('Y');
-
-                        // Trova l'ultimo progressivo per questo anno
-                        $lastProgressive = ClientMandate::whereYear('created_at', '=', $year)
-                            ->orderBy('numero_mandato', 'desc')
-                            ->first();
-
-                        if ($lastProgressive) {
-                            // Estrai il numero progressivo (es: MAND-000001-2026 -> 000001)
-                            preg_match('/MAND-(\d{6})-\d{4}/', $lastProgressive->numero_mandato, $matches);
-                            $progressive = ($matches[1] ?? '000001') + 1;
-                        } else {
-                            $progressive = 1;
-                        }
-
-                        return 'MAND-'.str_pad($progressive, 6, '0', STR_PAD_LEFT)."-{$year}";
-                    }),
+                    ->default(fn () => ClientMandate::nextNumber()),
                 TextInput::make('importo_richiesto_mandato')
                     ->label('Importo Richiesto')
                     ->numeric()

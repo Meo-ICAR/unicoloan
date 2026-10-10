@@ -24,6 +24,8 @@ class FormHelper
                     'cliente' => 'Mandante',
                     'fornitore' => 'Produttore',
                     'branch' => 'Filiale',
+                    'client' => 'Cliente',
+                    'pratica' => 'Pratica',
                 ];
 
                 return collect(Relation::morphMap())->mapWithKeys(fn ($className, $alias) => [

@@ -52,11 +52,11 @@ class BranchesRelationManager extends RelationManager
         return static::planCanViewForRecord($ownerRecord, $pageClass);
     }
 
-    protected static ?string $title = 'Sedi';
+    protected static ?string $title = 'Indirizzi';
 
-    protected static ?string $modelLabel = 'Sede';
+    protected static ?string $modelLabel = 'Indirizzo';
 
-    protected static ?string $pluralModelLabel = 'Sedi';
+    protected static ?string $pluralModelLabel = 'Indirizzi';
 
     public function form(Schema $schema): Schema
     {

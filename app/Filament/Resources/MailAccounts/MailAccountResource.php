@@ -16,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class MailAccountResource extends Resource
 {
@@ -28,6 +29,8 @@ class MailAccountResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static bool $shouldRegisterNavigation = false;
+
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     public static function form(Schema $schema): Schema
     {

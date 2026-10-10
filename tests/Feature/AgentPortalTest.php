@@ -19,6 +19,7 @@ use App\Filament\Agenti\Resources\Pratiche\Pages\ListPraticheAgente;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\AdeguataVerificaRelationManager;
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiFirmabiliRelationManager;
+use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiRelationManager;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;
@@ -348,6 +349,23 @@ class AgentPortalTest extends TestCase
             ]);
 
         $this->assertSame(0, Document::query()->where('documentable_id', $pratica->getKey())->count());
+    }
+
+    public function test_all_documents_manager_accepts_any_type_and_lists_the_pratica_documents(): void
+    {
+        $pratica = $this->pratica();
+        $free = $this->documentType(false);
+
+        $component = Livewire::test(DocumentiRelationManager::class, ['ownerRecord' => $pratica, 'pageClass' => ViewPraticaAgente::class])
+            ->callAction(TestAction::make('create')->table(), [
+                'document_type_id' => $free->getKey(),
+                'attachments' => UploadedFile::fake()->create('doc.pdf', 20, 'application/pdf'),
+            ])
+            ->assertHasNoFormErrors();
+
+        $document = Document::query()->where('documentable_id', $pratica->getKey())->sole();
+        $this->assertSame($free->getKey(), $document->document_type_id);
+        $component->assertCanSeeTableRecords([$document]);
     }
 
     /**

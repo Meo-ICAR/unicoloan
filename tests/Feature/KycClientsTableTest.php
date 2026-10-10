@@ -120,10 +120,11 @@ class KycClientsTableTest extends TestCase
     {
         Livewire::test(EditClient::class, ['record' => $this->missing->getKey()])
             ->assertSuccessful()
-            ->assertSee('Adeguata verifica');
+            ->assertSee('KYC (adeguata verifica)');
 
         Livewire::test(EditClient::class, ['record' => $this->complete->getKey()])
             ->assertSuccessful()
-            ->assertSee('Completo');
+            ->assertSee('KYC (adeguata verifica)')
+            ->assertDontSee('Ultimo questionario di adeguata verifica approvato');
     }
 }

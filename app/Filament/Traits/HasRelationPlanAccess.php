@@ -2,7 +2,6 @@
 
 namespace App\Filament\Traits;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -13,18 +12,10 @@ trait HasRelationPlanAccess
      */
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        $featureKey = static::getFeatureKey();
-
-        // 1. Verifica Piano
-        if (! \checkPiano($featureKey, static::class)) {
-            return false;
-        }
-
-        // 2. Verifica Permessi Utente/Employee
-        /** @var User|null $user */
-        $user = auth()->user();
-
-        return $user ? $user->hasPermission($featureKey, 'viewAny') : false;
+        // Piano e permessi per EmployeeType sono gia' valutati da checkPiano(),
+        // come per le Resource (HasPlanAccess): un utente senza profilo Employee
+        // non deve perdere le schede di un record che puo' aprire.
+        return \checkPiano(static::getFeatureKey(), static::class);
     }
 
     public static function getFeatureKey(): string

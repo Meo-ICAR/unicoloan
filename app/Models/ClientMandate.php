@@ -11,6 +11,8 @@ class ClientMandate extends Model
 {
     use SoftDeletes;
 
+    protected $connection = 'mysql_proforma';
+
     /**
      * I campi che possono essere assegnati massivamente.
      *
@@ -56,6 +58,19 @@ class ClientMandate extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    /**
+     * Prossimo numero mandato: MAND-PROGRESSIVO-ANNO (es. MAND-000001-2026).
+     */
+    public static function nextNumber(): string
+    {
+        $year = date('Y');
+        $last = static::query()->whereYear('created_at', $year)->orderBy('numero_mandato', 'desc')->first();
+
+        preg_match('/MAND-(\d{6})-\d{4}/', (string) $last?->numero_mandato, $matches);
+
+        return 'MAND-'.str_pad((string) (((int) ($matches[1] ?? 0)) + 1), 6, '0', STR_PAD_LEFT)."-{$year}";
+    }
 
     // =========================================================================
     // RELAZIONI

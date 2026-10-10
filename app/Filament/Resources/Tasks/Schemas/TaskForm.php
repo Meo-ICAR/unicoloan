@@ -98,6 +98,16 @@ class TaskForm
                                     ->placeholder('es. esterno, attivo')
                                     ->visible(fn (Get $get) => $get('trigger_state') === 'equals')
                                     ->required(fn (Get $get) => $get('trigger_state') === 'equals'),
+                                TextInput::make('trigger_subfield')
+                                    ->label('Secondo campo (deve essere uguale a)')
+                                    ->placeholder('es. stato_pratica')
+                                    ->helperText('Facoltativo, in aggiunta al campo sopra: per le pratiche, ad esempio tipo_prodotto + stato_pratica.')
+                                    ->live(onBlur: true),
+                                TextInput::make('trigger_subvalue')
+                                    ->label('Valore del secondo campo')
+                                    ->placeholder('es. DELIBERATA')
+                                    ->visible(fn (Get $get) => filled($get('trigger_subfield')))
+                                    ->required(fn (Get $get) => filled($get('trigger_subfield'))),
                             ])
                             ->columns(3),
 

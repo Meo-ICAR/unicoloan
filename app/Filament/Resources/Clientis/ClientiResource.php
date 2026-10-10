@@ -29,7 +29,7 @@ class ClientiResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Istituti';
 

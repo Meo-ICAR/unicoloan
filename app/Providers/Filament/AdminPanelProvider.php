@@ -45,29 +45,24 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->navigationGroups([
-                NavigationGroup::make('Anagrafiche')
+                NavigationGroup::make('Settings')
                     ->collapsed(),
-                NavigationGroup::make('Catalogo Prodotti'),
-                NavigationGroup::make('Conformità'),
-                NavigationGroup::make('Sistema')
-                    ->collapsed(),
-                NavigationGroup::make('Documentazione'),
             ])
             ->navigationItems([
                 NavigationItem::make('Manuale Utente')
                     ->url(url('/manuali/utente'), shouldOpenInNewTab: true)
                     ->icon('heroicon-o-book-open')
-                    ->group('Documentazione')
+                    ->group('Settings')
                     ->sort(10),
                 NavigationItem::make('Manuale Admin')
                     ->url(url('/manuali/admin'), shouldOpenInNewTab: true)
                     ->icon('heroicon-o-wrench-screwdriver')
-                    ->group('Documentazione')
+                    ->group('Settings')
                     ->sort(11),
                 NavigationItem::make('Manuale Tecnico')
                     ->url(url('/manuali/tecnico'), shouldOpenInNewTab: true)
                     ->icon('heroicon-o-code-bracket')
-                    ->group('Documentazione')
+                    ->group('Settings')
                     ->sort(12),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
@@ -109,7 +104,7 @@ class AdminPanelProvider extends PanelProvider
                 ActivityLogPlugin::make()
                     ->label('Log')
                     ->pluralLabel('Logs')
-                    ->navigationGroup('Sistema')
+                    ->navigationGroup('Settings')
             )
             ->authMiddleware([
                 Authenticate::class,

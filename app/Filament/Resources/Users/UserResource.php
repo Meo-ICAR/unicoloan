@@ -32,7 +32,7 @@ class UserResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Utenti';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static ?string $recordTitleAttribute = 'name';
 

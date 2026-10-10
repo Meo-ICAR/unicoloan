@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ProvvigioniRuleResource extends Resource
 {
@@ -22,6 +23,8 @@ class ProvvigioniRuleResource extends Resource
     protected static ?string $model = ProvvigioniRule::class;
 
     protected static bool $shouldRegisterNavigation = false;
+
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

@@ -4,9 +4,11 @@ namespace App\Models\PROFORMA;
 
 use App\Enums\UserRole;
 use App\Models\Client;
+use App\Models\Concerns\GeneratesPlichi;
 use App\Models\Document;
 use App\Models\KycQuestionnaire;
 use App\Models\OamCode;
+use App\Models\PraticaClient;
 use App\Models\PraticaRequisitoOperativo;
 use App\Models\PraticaStati;
 use App\Models\PraticaStato;
@@ -19,6 +21,8 @@ use Illuminate\Support\Str;
 
 class Pratica extends Model
 {
+    use GeneratesPlichi;
+
     /**
      * The table associated with the model.
      *
@@ -170,6 +174,22 @@ class Pratica extends Model
         $stato = trim((string) $this->stato_pratica);
 
         return $stato !== '' && PraticaStati::query()->where('stato_pratica', $stato)->where('isrejected', true)->exists();
+    }
+
+    /**
+     * Soggetti della pratica (richiedente, coobbligati, garanti), usati per i prodotti diversi da cessione/delega.
+     */
+    public function praticaClients(): HasMany
+    {
+        return $this->hasMany(PraticaClient::class, 'pratica_id', 'id');
+    }
+
+    /**
+     * Cessione del quinto e delega di pagamento hanno un solo debitore (il cliente della pratica).
+     */
+    public function isCessioneDelega(): bool
+    {
+        return (bool) preg_match('/cession|deleg/i', (string) $this->tipo_prodotto);
     }
 
     /**

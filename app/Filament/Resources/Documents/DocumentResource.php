@@ -29,7 +29,7 @@ class DocumentResource extends Resource
 
     protected static ?string $navigationLabel = 'Elenco Documenti';
 
-    //      protected static UnitEnum|string|null $navigationGroup = 'Conformità';
+    //      protected static UnitEnum|string|null $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 40;
 
     protected static ?string $recordTitleAttribute = 'name';

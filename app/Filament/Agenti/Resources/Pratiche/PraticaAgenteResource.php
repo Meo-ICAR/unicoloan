@@ -7,6 +7,7 @@ use App\Filament\Agenti\Resources\Pratiche\Pages\ListPraticheAgente;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\AdeguataVerificaRelationManager;
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiFirmabiliRelationManager;
+use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiRelationManager;
 use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
 use App\Models\PROFORMA\Pratica;
@@ -171,6 +172,7 @@ class PraticaAgenteResource extends Resource
     {
         return [
             AdeguataVerificaRelationManager::class,
+            DocumentiRelationManager::class,
             DocumentiFirmabiliRelationManager::class,
         ];
     }

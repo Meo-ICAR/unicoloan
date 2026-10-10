@@ -24,6 +24,10 @@ class Tipoprodotto extends Model
         'is_active',
         'oam',
         'tipo_provvigioni',
+        'for_person',
+        'for_company',
+        'requires_mandate',
+        'is_third_party',
     ];
 
     /**
@@ -35,6 +39,10 @@ class Tipoprodotto extends Model
         'is_external' => 'boolean',
         'is_oneclient' => 'boolean',
         'is_active' => 'boolean',
+        'for_person' => 'boolean',
+        'for_company' => 'boolean',
+        'requires_mandate' => 'boolean',
+        'is_third_party' => 'boolean',
     ];
 
     /**

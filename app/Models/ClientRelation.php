@@ -23,6 +23,8 @@ class ClientRelation extends Model
 {
     use HasFactory;
 
+    protected $connection = 'mysql_proforma';
+
     protected $table = 'client_relations';
 
     protected $fillable = [

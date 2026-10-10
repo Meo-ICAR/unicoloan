@@ -28,6 +28,18 @@ class TipoprodottosTable
                 IconColumn::make('is_external')
                     ->label('Esterno')
                     ->boolean(),
+                IconColumn::make('for_person')
+                    ->label('Pers. fisica')
+                    ->boolean(),
+                IconColumn::make('for_company')
+                    ->label('Pers. giuridica')
+                    ->boolean(),
+                IconColumn::make('requires_mandate')
+                    ->label('Mandato')
+                    ->boolean(),
+                IconColumn::make('is_third_party')
+                    ->label('Di terzi')
+                    ->boolean(),
                 IconColumn::make('is_oneclient')
                     ->label('Mono-Cliente')
                     ->boolean(),

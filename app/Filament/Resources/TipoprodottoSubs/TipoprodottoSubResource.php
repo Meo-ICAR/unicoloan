@@ -43,7 +43,7 @@ class TipoprodottoSubResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Sub Prodotti';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Catalogo Prodotti';
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static bool $shouldRegisterNavigation = false;
 

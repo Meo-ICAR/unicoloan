@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 class SyncDocumentSchedules extends Command
 {
     protected $signature = 'documents:sync-schedule';
+
     protected $description = 'Sincronizza la tabella  dello scadenziario documenti';
 
     public function handle()
@@ -23,15 +24,11 @@ class SyncDocumentSchedules extends Command
         $rows = [];
 
         foreach ($documents as $doc) {
-            // Estraiamo il nome dell'entità polimorfica una volta sola qui nel backend
-            $entityName = $doc->documentable?->name
-                ?? $doc->documentable?->protocol_number
-                ?? $doc->documentable?->summary
-                ?? '-';
+            $entityName = $recipientResolver->entityName($doc);
 
             $rows[] = [
                 'document_id' => $doc->id,
-                'documentable_group_key' => $doc->documentable_type . '|' . $doc->documentable_id,
+                'documentable_group_key' => $doc->documentable_type.'|'.$doc->documentable_id,
                 'document_name' => $doc->name,
                 'document_type_name' => $doc->documentType?->name ?? '-',
                 'entity_name' => $entityName,

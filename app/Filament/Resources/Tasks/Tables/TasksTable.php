@@ -78,6 +78,11 @@ class TasksTable
                     ->badge()
                     ->color('gray')
                     ->visible(fn ($record) => $record?->trigger_state === 'equals'),  // Nasconde la cella se non serve
+                TextColumn::make('trigger_subfield')
+                    ->label('Secondo campo')
+                    ->placeholder('-')
+                    ->description(fn ($record): ?string => filled($record?->trigger_subvalue) ? '= '.$record->trigger_subvalue : null)
+                    ->toggleable(isToggledHiddenByDefault: false),
                 // ==========================================
                 // NUOVE COLONNE PER LE REGOLE DI ESCLUSIONE
                 // ==========================================

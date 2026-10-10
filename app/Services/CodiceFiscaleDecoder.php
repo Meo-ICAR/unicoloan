@@ -23,6 +23,40 @@ class CodiceFiscaleDecoder
      */
     private static ?array $municipalities = null;
 
+    private const ODD_VALUES = [1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8, 12, 14, 16, 10, 22, 25, 24, 23];
+
+    /**
+     * Verifica il carattere di controllo (16° carattere) del codice fiscale.
+     */
+    public function hasValidChecksum(?string $code): bool
+    {
+        $code = strtoupper(trim((string) $code));
+
+        if (! preg_match(self::PATTERN, $code)) {
+            return false;
+        }
+
+        $sum = 0;
+
+        foreach (str_split(substr($code, 0, 15)) as $index => $char) {
+            $value = ctype_digit($char) ? (int) $char : ord($char) - ord('A');
+
+            $sum += $index % 2 === 0 ? self::ODD_VALUES[$value] : $value;
+        }
+
+        return chr(ord('A') + $sum % 26) === $code[15];
+    }
+
+    /**
+     * Come decode(), ma restituisce null anche se il carattere di controllo non e' corretto.
+     *
+     * @return array{birth_date: CarbonImmutable, sex: string, birth_place: string}|null
+     */
+    public function decodeVerified(?string $code): ?array
+    {
+        return $this->hasValidChecksum($code) ? $this->decode($code) : null;
+    }
+
     /**
      * @return array{birth_date: CarbonImmutable, sex: string, birth_place: string}|null null se il codice non e' valido
      */

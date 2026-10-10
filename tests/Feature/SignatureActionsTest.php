@@ -78,6 +78,7 @@ class SignatureActionsTest extends TestCase
             'is_monitored' => true,
             'duration' => 12,
             'duration_unit' => 'months',
+            'is_signed' => true,
         ]);
         PdfModule::factory()->create(['name' => 'QAV', 'document_type_id' => $type->id, 'signature_slots' => $slots]);
 
@@ -129,6 +130,37 @@ class SignatureActionsTest extends TestCase
         $document = $this->document();
 
         $this->manager()->assertActionVisible(TestAction::make('sendForSignature')->table($document));
+    }
+
+    public function test_send_action_is_hidden_when_the_type_does_not_require_signature(): void
+    {
+        $document = $this->document();
+        $document->documentType->forceFill(['is_signed' => false])->save();
+
+        $this->manager()->assertActionHidden(TestAction::make('sendForSignature')->table($document->fresh()));
+    }
+
+    public function test_otp_is_blocked_with_a_warning_when_the_client_has_no_mobile_or_email(): void
+    {
+        $document = $this->document();
+        $this->client->forceFill(['phone' => null, 'email' => null])->save();
+
+        $this->manager()
+            ->mountAction(TestAction::make('sendForSignature')->table($document))
+            ->assertNotified('Firma OTP non possibile')
+            ->assertActionNotMounted();
+
+        $this->assertSame(0, SignatureRequest::query()->count());
+    }
+
+    public function test_otp_modal_opens_when_the_client_has_mobile_and_email(): void
+    {
+        $document = $this->document();
+
+        $this->manager()
+            ->mountAction(TestAction::make('sendForSignature')->table($document))
+            ->assertNotNotified('Firma OTP non possibile')
+            ->assertActionMounted(TestAction::make('sendForSignature')->table($document));
     }
 
     public function test_send_action_is_hidden_without_signature_slots(): void

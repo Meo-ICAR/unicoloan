@@ -27,7 +27,7 @@ class OrganizationResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Sistema';
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Organismi';
 

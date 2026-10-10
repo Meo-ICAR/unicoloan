@@ -9,6 +9,7 @@ use App\Services\Signature\SignatureProviderManager;
 use App\Services\Signature\SignatureRequestService;
 use App\Services\Signature\SignerDefaults;
 use App\Services\Signature\SignerInput;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -20,7 +21,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class SendForSignatureAction
 {
-    public static function make(?string $name = 'sendForSignature'): Action
+    /**
+     * @param  bool  $onlyForSignedTypes  mostra l'azione solo se il tipo documento richiede la firma (document_types.is_signed)
+     * @param  (Closure(Document): ?string)|null  $preflight  ritorna un avviso se l'invio non e' possibile: l'azione non si apre
+     */
+    public static function make(?string $name = 'sendForSignature', bool $onlyForSignedTypes = false, ?Closure $preflight = null): Action
     {
         return Action::make($name)
             ->label('Invia per firma')
@@ -28,10 +33,24 @@ class SendForSignatureAction
             ->color('primary')
             ->modalHeading('Invia per firma')
             ->modalSubmitActionLabel('Invia')
-            ->visible(function (Action $action, $record): bool {
+            ->beforeFormFilled(function (Action $action, $record) use ($preflight): void {
+                $document = self::resolveDocument($record);
+                $warning = ($preflight !== null && $document !== null) ? $preflight($document) : null;
+
+                if ($warning !== null) {
+                    Notification::make()->warning()->title('Firma OTP non possibile')->body($warning)->send();
+
+                    $action->cancel();
+                }
+            })
+            ->visible(function (Action $action, $record) use ($onlyForSignedTypes): bool {
                 $document = self::resolveDocument($record);
 
                 if ($document === null || ! \checkPiano('firma', $action->getLivewire()::class)) {
+                    return false;
+                }
+
+                if ($onlyForSignedTypes && ! $document->documentType?->is_signed) {
                     return false;
                 }
 
