@@ -22,6 +22,17 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - phpunit/phpunit (PHPUNIT) - v12
 - tailwindcss (TAILWINDCSS) - v4
 
+## Pacchetto unico-core
+Le tabelle condivise (utenti, aziende, documenti, audit, firma, moduli PDF, siti web...) sono del pacchetto `meo-icar/unico-core` (vedi il suo README e CLAUDE.md).
+- I modelli locali in `app/Models` sono **sottoclassi** di `Unico\Core\Models\*`: contengono solo ciò che è proprio di unicoloan (scope, relazioni verso le classi dell'app, `booted`/`casts` che chiamano `parent::`). Non ridefinire `$table`, `$connection`, `$fillable` e **non ridichiarare il trait `InteractsWithMedia`** su `Document`: il suo `registerMediaCollections()` vuoto nasconde le collection `documents` e `signed` del pacchetto.
+- Le migration del pacchetto sono caricate da `AppServiceProvider` (`loadMigrationsFrom`): `php artisan migrate` crea tutto, in un database solo (`UNICO_CORE_DB_CONNECTION=mysql`). Qui restano solo le tabelle di framework, `api_calls` e `kyc_*` (migration `2026_10_11_*`, dopo quelle del pacchetto perché hanno chiavi esterne su `documents`). Le vecchie migration sono in `database/migrations-legacy/` solo come riferimento.
+- **Restano sul database Proforma** (connessione `mysql_proforma`, come prima) i modelli `Client`, `ClientMandate`, `ClientRelation`, `PraticaClient`, `PraticaStatusHistory`, `Tipoprodotto`, `TipoprodottoSub`, `FornitoriRole`, `BlacklistCliente*`, `Compenso`, `PraticaStati`, `PraticaDocumentRequest` e tutto `app/Models/PROFORMA/*`. Gli id che puntano a quei record sono `varchar(36)` senza chiave esterna nelle tabelle del pacchetto.
+- ID **interi** per le tabelle locali, niente `HasUuids`. Il `company_id` dei proprietari letti da Proforma è un UUID di quel database: per i documenti si usa l'azienda dell'app (`CompanyResolver`), mai quel valore.
+- Stati dei documenti: `Unico\Core\Enums\DocumentStatus` (valori italiani); `Document::status` è un enum, quindi si confronta con `DocumentStatus::X`, non con `->value`. Rinnovo/sostituzione: `replaced_by_id` (non più `renewed_by_id`).
+- Requisiti documentali: `PraticaRequisito` = `document_types`, `RequisitoTipoFinanziamento` e documenti dei task = `document_requirements`, `PraticaRequisitoOperativo` = `document_requests` (`requestable_type = 'pratica'`).
+- **Da fare:** `app/Services/Signature/*`, `PdfFormFiller`/`ResolvedModuleData` e `DocumentVerifier` sono ancora le versioni locali (il pacchetto ha le sue in `Unico\Core\Signature`, `Unico\Core\Pdf`, `Unico\Core\Documents`). Nel pacchetto il PDF firmato resta nel documento (collection `signed`); qui un nuovo documento sostituisce il vecchio: sono comportamenti diversi, da riconciliare prima di passare alle versioni del pacchetto.
+- Mai `migrate:fresh` su un database condiviso con altre app; in sviluppo qui i database sono `unicoloan_core` (app) e `unicoloan_test` (test).
+
 ## Skills Activation
 
 This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.

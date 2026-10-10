@@ -65,12 +65,6 @@ class DocumentsTable
                 TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'approvato', 'attivo' => 'success',
-                        'bozza' => 'gray',
-                        'scaduto' => 'danger',
-                        default => 'warning',
-                    })
                     ->searchable(),
 
             ])
