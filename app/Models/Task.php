@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Events\TaskActivated;
 use App\Models\PROFORMA\Pratica; // <-- Add this line!
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Pivot;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,19 +18,16 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 */
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Model;
+use Unico\Core\Models\Task as CoreTask;
 
-class Task extends Model implements HasMedia
+class Task extends CoreTask implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
-
-    protected $connection = 'mysql';
 
     protected $orderBy = 'name';
 
     protected $orderDirection = 'asc';
-
-    protected $fillable = ['name', 'description', 'taskable', 'trigger_field', 'trigger_state', 'trigger_value', 'trigger_subfield', 'trigger_subvalue', 'exclude_field', 'exclude_state',
-        'exclude_value', 'is_active', 'parent_id', 'app_identifier'];
 
     /**
      * Get the parent taskable model (Project, User, etc.).
@@ -43,6 +39,7 @@ class Task extends Model implements HasMedia
 
     protected static function booted(): void
     {
+        parent::booted();
         static::addGlobalScope('app_isolation', function (Builder $builder) {
 
             // Evita crash se esegui codice fuori dal contesto HTTP di Filament (es. php artisan db:seed)
@@ -70,9 +67,9 @@ class Task extends Model implements HasMedia
     public function documentTypes()
     {
         return $this
-            ->belongsToMany(DocumentType::class, 'task_document_types')
+            ->belongsToMany(DocumentType::class, 'document_requirements')
             ->using(TaskDocumentType::class)  // <-- Usa il nuovo modello Pivot
-            ->withPivot('slug', 'is_required')
+            ->withPivot('is_required')
             ->withTimestamps();
     }
 
@@ -113,7 +110,7 @@ class Task extends Model implements HasMedia
             }
             // 3. Uniamo lo stato iniziale richiesto
             $creationData = array_merge($templateData, [
-                'status' => 'pending',
+                'status' => DocumentStatus::PENDING->value,
             ]);
 
             // 4. Eseguiamo il firstOrCreate in sicurezza

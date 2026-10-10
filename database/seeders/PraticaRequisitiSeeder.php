@@ -64,8 +64,8 @@ class PraticaRequisitiSeeder extends Seeder
 
         foreach ($requisiti as $req) {
             PraticaRequisito::updateOrCreate(
-                ['codice' => $req['codice']],
-                $req
+                ['code' => $req['codice']],
+                ['name' => $req['name'], 'description' => $req['descrizione']]
             );
         }
     }

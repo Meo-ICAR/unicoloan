@@ -5,29 +5,12 @@ namespace App\Models;
 use App\Enums\ModuleFormatter;
 use App\Enums\ModuleSourceKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\PdfModuleField as CorePdfModuleField;
 
-class PdfModuleField extends Model
+class PdfModuleField extends CorePdfModuleField
 {
     use HasFactory;
-
-    protected $connection = 'mysql';
-
-    protected $table = 'pdf_module_fields';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'pdf_module_id',
-        'pdf_field_name',
-        'pdf_field_type',
-        'source_key',
-        'formatter',
-        'checkbox_on_value',
-        'checkbox_when',
-    ];
 
     /**
      * @var array<string, string>

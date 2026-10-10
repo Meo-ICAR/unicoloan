@@ -213,7 +213,7 @@ class DocumentTypeSeeder extends Seeder
             ],
             [
                 'name' => 'Foglio informativo',
-                'code' => 'TRASPARENZA',
+                'codegroup' => 'TRASPARENZA',
                 'slug' => 'foglio-informativo',
                 'doctype' => 'modulo',
                 'is_template' => 1,
@@ -229,7 +229,7 @@ class DocumentTypeSeeder extends Seeder
             ],
             [
                 'name' => 'Trasparenza Sito Web',
-                'code' => 'TRASPARENZA',
+                'codegroup' => 'TRASPARENZA',
                 'slug' => 'trasparenza-web',
                 'priority' => 1,
                 'is_person' => 0,
@@ -410,7 +410,7 @@ class DocumentTypeSeeder extends Seeder
             ],
             [
                 'name' => 'Trasparenza TEGM su Web',
-                'code' => 'TRASPARENZA',
+                'codegroup' => 'TRASPARENZA',
                 'slug' => 'transparency-doc',
                 'priority' => 1,
                 'is_person' => 0,

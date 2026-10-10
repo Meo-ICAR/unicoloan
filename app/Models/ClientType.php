@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Unico\Core\Models\ClientType as CoreClientType;
 
 /**
  * @property int $id ID univoco tipo cliente
@@ -22,36 +22,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at Data di creazione
  * @property Carbon $updated_at Ultima modifica
  */
-class ClientType extends Model
+class ClientType extends CoreClientType
 {
     use HasFactory;
-
-    /**
-     * Il nome della tabella associata al modello.
-     * Laravel lo indovinerebbe da solo (client_types), ma definirlo esplicitamente è una buona pratica.
-     *
-     * @var string
-     */
-    protected $table = 'client_types';
-
-    /**
-     * Gli attributi che sono assegnabili in modo massivo (Mass Assignable).
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'is_person',
-        'is_company',
-        'privacy_role',
-        'purpose',
-        'data_subjects',
-        'data_categories',
-        'retention_period',
-        'extra_eu_transfer',
-        'security_measures',
-        'privacy_data',
-    ];
 
     /**
      * Gli attributi che devono essere convertiti in tipi nativi (Casting).

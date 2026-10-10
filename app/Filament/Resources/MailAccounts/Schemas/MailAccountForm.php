@@ -23,26 +23,26 @@ class MailAccountForm
                 Toggle::make('is_pec')
                     ->label('PEC')
                     ->required(),
-                Select::make('incoming_protocol')
+                Select::make('protocol')
                     ->label('Protocollo in entrata')
                     ->options(['pop3' => 'POP3', 'imap' => 'IMAP'])
                     ->default('pop3')
                     ->required(),
-                TextInput::make('incoming_host')
+                TextInput::make('imap_host')
                     ->label('Host in entrata')
                     ->required(),
-                TextInput::make('incoming_port')
+                TextInput::make('imap_port')
                     ->label('Porta in entrata')
                     ->required()
                     ->numeric(),
-                TextInput::make('incoming_username')
+                TextInput::make('imap_username')
                     ->label('Username in entrata')
                     ->required(),
-                Textarea::make('incoming_password')
+                Textarea::make('imap_password')
                     ->label('Password in entrata')
                     ->required()
                     ->columnSpanFull(),
-                Select::make('incoming_encryption')
+                Select::make('imap_encryption')
                     ->label('Crittografia in entrata')
                     ->options(['none' => 'Nessuna', 'ssl' => 'SSL', 'tls' => 'TLS'])
                     ->default('ssl')

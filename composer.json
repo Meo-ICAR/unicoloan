@@ -17,6 +17,7 @@
         "laravel/framework": "^13.8",
         "laravel/socialite": "^5.28",
         "laravel/tinker": "^3.0",
+        "meo-icar/unico-core": "dev-main",
         "mikehaertl/php-pdftk": "^0.14.4",
         "neuron-core/neuron-ai": "^3.16",
         "owenvoke/blade-fontawesome": "^3.3",
@@ -106,5 +107,10 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [{
+        "name": "unico-core",
+        "type": "vcs",
+        "url": "https://github.com/Meo-ICAR/unico-core"
+    }]
 }

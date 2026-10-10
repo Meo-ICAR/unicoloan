@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Unico\Core\Models\ClientRelation as CoreClientRelation;
 
 /**
  * @property int $id
@@ -19,23 +19,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-class ClientRelation extends Model
+class ClientRelation extends CoreClientRelation
 {
     use HasFactory;
-
-    protected $connection = 'mysql_proforma';
-
-    protected $table = 'client_relations';
-
-    protected $fillable = [
-        'company_id',
-        'client_id',
-        'shares_percentage',
-        'is_titolare',
-        'client_type_id',
-        'data_inizio_ruolo',
-        'data_fine_ruolo',
-    ];
 
     protected $casts = [
         'shares_percentage' => 'decimal:2',

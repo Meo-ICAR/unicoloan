@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\KycStatus;
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 use App\Enums\UserRole;
 use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Clients\RelationManagers\KycQuestionnairesRelationManager;

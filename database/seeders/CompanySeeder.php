@@ -14,7 +14,6 @@ class CompanySeeder extends Seeder
     public function run(): void
     {
         DB::table('companies')->insert([
-            'id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',
             'name' => 'Races Finance S.r.l.',
             'vat_number' => '05822361007',
             'vat_name' => 'Races Finance',

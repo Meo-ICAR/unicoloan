@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\DocumentVerifications\Tables;
 
 use App\Enums\DocumentAnomaly;
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Services\DocumentVerifier;
 use Carbon\Carbon;

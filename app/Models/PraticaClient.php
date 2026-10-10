@@ -5,8 +5,8 @@ namespace App\Models;
 use App\Enums\PraticaClientRole;
 use App\Models\PROFORMA\Pratica;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\PraticaClient as CorePraticaClient;
 
 /**
  * Soggetto (client) collegato a una pratica con un ruolo: richiedente, coobbligato o garante.
@@ -16,31 +16,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $client_id
  * @property PraticaClientRole $role
  */
-class PraticaClient extends Model
+class PraticaClient extends CorePraticaClient
 {
     use HasFactory;
-
-    protected $connection = 'mysql_proforma';
-
-    protected $table = 'pratica_clients';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'pratica_id',
-        'client_id',
-        'role',
-    ];
 
     /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
+        return array_merge(parent::casts(), [
             'role' => PraticaClientRole::class,
-        ];
+        ]);
     }
 
     public function pratica(): BelongsTo

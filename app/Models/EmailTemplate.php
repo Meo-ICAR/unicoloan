@@ -5,35 +5,11 @@ namespace App\Models;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Unico\Core\Models\EmailTemplate as CoreEmailTemplate;
 
-class EmailTemplate extends Model
+class EmailTemplate extends CoreEmailTemplate
 {
     use HasFactory;
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $connection = 'mysql';
-
-    protected $table = 'email_templates';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'code',
-        'name',
-        'subject',
-        'body',
-        'placeholders',
-        'is_active',
-        'app_identifier',
-    ];
 
     /**
      * The attributes that should be cast.
@@ -47,6 +23,7 @@ class EmailTemplate extends Model
 
     protected static function booted(): void
     {
+        parent::booted();
         static::addGlobalScope('app_isolation', function (Builder $builder) {
 
             // Evita crash se esegui codice fuori dal contesto HTTP di Filament (es. php artisan db:seed)

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\DocumentVerifications;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Filament\Resources\DocumentVerifications\Pages\ListDocumentVerifications;
 use App\Filament\Resources\DocumentVerifications\Tables\DocumentVerificationsTable;
 use App\Filament\Traits\HasPlanAccess;

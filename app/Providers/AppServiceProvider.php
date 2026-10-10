@@ -34,6 +34,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // unicoloan possiede il proprio database: le tabelle del pacchetto si creano con il normale `php artisan migrate`
+        // (e quindi anche con `migrate:fresh`, nei test), registrate nella tabella `migrations` dell'app.
+        $this->loadMigrationsFrom(\Unico\Core\UnicoCoreServiceProvider::migrationsPath());
+
         Relation::morphMap([
             'branch' => Branch::class,
             'client' => Client::class,

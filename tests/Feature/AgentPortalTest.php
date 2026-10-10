@@ -12,7 +12,7 @@ use App\Enums\KycPersonPurpose;
 use App\Enums\KycRiskLevel;
 use App\Enums\KycStatus;
 use App\Enums\KycWealthBand;
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 use App\Enums\UserRole;
 use App\Filament\Agenti\Resources\Pratiche\Pages\CreatePraticaAgente;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ListPraticheAgente;

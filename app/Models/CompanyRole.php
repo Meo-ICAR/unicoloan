@@ -3,39 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\CompanyRole as CoreCompanyRole;
 
-class CompanyRole extends Model
+class CompanyRole extends CoreCompanyRole
 {
     use HasFactory;
-
-    // Definisce esplicitamente la tabella
-    protected $connection = 'mysql';
-
-    protected $table = 'company_roles';
-
-    // Campi compilabili tramite assegnazione di massa
-    protected $fillable = [
-        'company_id',
-        'name',
-        'funzione',
-        'is_external',
-        'dal',
-        'al',
-        'execution_method',
-        'expertName',
-        'n',
-    ];
 
     // Casting automatico dei tipi di dato
     protected function casts(): array
     {
-        return [
+        return array_merge(parent::casts(), [
             'is_external' => 'boolean',
             'dal' => 'date',
             'al' => 'date',
-        ];
+        ]);
     }
 
     /**

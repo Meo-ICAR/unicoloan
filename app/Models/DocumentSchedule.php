@@ -3,30 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Unico\Core\Models\DocumentSchedule as CoreDocumentSchedule;
 
-class DocumentSchedule extends Model
+class DocumentSchedule extends CoreDocumentSchedule
 {
-    protected $connection = 'mysql';
-
-    protected $fillable = [
-        'document_id',
-        'documentable_group_key',
-        'document_name',
-        'document_type_name',
-        'entity_name',
-        'documentable_type',
-        'documentable_id',
-        'expires_at',
-        'days_until_expiry',
-        'status',
-        'reminders_count',
-        'last_sent_at',
-    ];
-
     protected $casts = [
         'expires_at' => 'date',
         'last_sent_at' => 'datetime',

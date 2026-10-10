@@ -5,26 +5,14 @@ namespace App\Models;
 use App\Models\PROFORMA\Clienti;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\Pivot;  // <-- Usa Pivot invece di Model
+use Illuminate\Database\Eloquent\Relations\Pivot;
+use Unico\Core\Models\ClienteOam as CoreClienteOam;  // <-- Usa Pivot invece di Model
 
 // use Illuminate\Database\Eloquent\Model;
 
-class ClientiOam extends Pivot
+class ClientiOam extends CoreClienteOam
 {
     use HasFactory;
-
-    // Forza il nome della tabella visto che non segue la pluralizzazione inglese standard
-
-    protected $connection = 'mysql';
-
-    protected $table = 'clienti_oam';
-
-    protected $fillable = [
-        'clienti_id',
-        'oam_code_id',
-        'dal',
-        'al',
-    ];
 
     // Cast corretti per le date in modo che Filament le gestisca come oggetti Carbon
     protected $casts = [
@@ -37,6 +25,7 @@ class ClientiOam extends Pivot
      */
     protected static function booted(): void
     {
+        parent::booted();
         // L'evento 'creating' scatta PRIMA che la riga venga inserita nel DB (nuova spunta)
         static::creating(function (ClientiOam $pivotRecord) {
             // Se il campo 'dal' non è stato passato dal form, forziamo il default

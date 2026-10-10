@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 use App\Models\SignatureRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;

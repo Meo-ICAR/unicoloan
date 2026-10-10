@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 use App\Models\SignatureRequest;
 use App\Services\Signature\SignatureRequestService;
 use Illuminate\Console\Command;

@@ -17,7 +17,7 @@ trait LogsComplianceActivity
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logFillable()
+            ->logUnguarded()
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName($this->getTable());

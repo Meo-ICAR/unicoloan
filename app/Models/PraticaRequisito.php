@@ -2,40 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PraticaRequisito extends Model
+/**
+ * Requisito documentale di una pratica: nel pacchetto è un tipo di documento (`document_types`).
+ * I nomi italiani storici (`codice`, `descrizione`) restano come alias di `code` e `description`.
+ */
+class PraticaRequisito extends DocumentType
 {
-    /**
-     * Connessione esplicita: senza di essa, quando questo modello viene caricato
-     * tramite una relazione da un modello PROFORMA (connessione mysql_proforma,
-     * es. Pratica), erediterebbe erroneamente quella connessione invece di
-     * usare 'mysql', dove vive realmente questa tabella.
-     */
-    protected $connection = 'mysql';
-
-    protected $table = 'pratica_requisiti';
-
-    protected $fillable = [
-        'codice',
-        'name',
-        'descrizione',
-    ];
-
-    /**
-     * Configurazione del requisito legato ai vari tipi di prodotto.
-     */
-    public function regoleProdotto(): HasMany
+    protected function codice(): Attribute
     {
-        return $this->hasMany(RequisitoTipoFinanziamento::class, 'pratica_requisito_id');
+        return Attribute::make(get: fn () => $this->code, set: fn ($value) => ['code' => $value]);
     }
 
-    /**
-     * Istanze operative create per le singole pratiche.
-     */
+    protected function descrizione(): Attribute
+    {
+        return Attribute::make(get: fn () => $this->description, set: fn ($value) => ['description' => $value]);
+    }
+
+    /** Regole che collegano il requisito ai sottotipi di prodotto. */
+    public function regoleProdotto(): HasMany
+    {
+        return $this->hasMany(RequisitoTipoFinanziamento::class, 'document_type_id');
+    }
+
+    /** Istanze operative del requisito sulle singole pratiche. */
     public function operativi(): HasMany
     {
-        return $this->hasMany(PraticaRequisitoOperativo::class, 'pratica_requisito_id');
+        return $this->hasMany(PraticaRequisitoOperativo::class, 'document_type_id')
+            ->where('requestable_type', 'pratica');
     }
 }

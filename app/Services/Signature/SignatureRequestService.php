@@ -3,8 +3,8 @@
 namespace App\Services\Signature;
 
 use App\Enums\KycStatus;
-use App\Enums\SignatureRequestStatus;
-use App\Enums\SignerStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignerStatus;
 use App\Models\Document;
 use App\Models\KycQuestionnaire;
 use App\Models\SignatureRequest;

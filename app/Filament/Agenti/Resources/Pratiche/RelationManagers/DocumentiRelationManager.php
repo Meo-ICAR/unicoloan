@@ -2,7 +2,7 @@
 
 namespace App\Filament\Agenti\Resources\Pratiche\RelationManagers;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
 use App\Models\DocumentType;
 use Filament\Actions\CreateAction;

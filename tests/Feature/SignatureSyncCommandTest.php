@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Enums\SignatureRequestStatus;
-use App\Enums\SignerRole;
+use Unico\Core\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignerRole;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;

@@ -51,7 +51,7 @@ class DocumentReminderServiceTest extends TestCase
             'documentable_type' => Employee::class,
             'documentable_id' => (string) $employee->id,
             'document_type_id' => $documentType->id,
-            'status' => 'verified',
+            'status' => \Unico\Core\Enums\DocumentStatus::APPROVED->value,
             'is_monitored' => true,
             'expires_at' => now()->addDays(7)->toDateString(),
         ];
@@ -104,7 +104,7 @@ class DocumentReminderServiceTest extends TestCase
             'documentable_type' => Employee::class,
             'documentable_id' => (string) $employee->id,
             'name' => 'Documento unico',
-            'status' => 'verified',
+            'status' => \Unico\Core\Enums\DocumentStatus::APPROVED->value,
             'is_monitored' => true,
             'expires_at' => now()->addDays(7)->toDateString(),
         ]);

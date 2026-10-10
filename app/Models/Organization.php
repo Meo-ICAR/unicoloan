@@ -3,27 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Unico\Core\Models\Organization as CoreOrganization;
 
-class Organization extends Model
+class Organization extends CoreOrganization
 {
     use HasFactory, SoftDeletes;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'acronym',
-        'name',
-        'description',
-        'reference_law',
-        'website',
-        'pec_email',
-        'is_active',
-    ];
 
     /**
      * The attributes that should be cast.

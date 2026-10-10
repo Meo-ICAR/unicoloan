@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Enums\DocumentAnomaly;
-use App\Enums\DocumentStatus;
-use App\Enums\SignatureRequestStatus;
-use App\Enums\SignerStatus;
+use Unico\Core\Enums\DocumentStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignerStatus;
 use App\Models\Document;
 use App\Models\SignatureRequest;
 use App\Models\SignatureRequestSigner;

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\SignerRole;
-use App\Enums\SignerStatus;
-use Illuminate\Database\Eloquent\Model;
+use Unico\Core\Enums\SignerRole;
+use Unico\Core\Enums\SignerStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\SignatureRequestSigner as CoreSignatureRequestSigner;
 
 /**
  * Firmatario di una richiesta di firma.
@@ -15,41 +15,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property SignerRole $role
  * @property SignerStatus $status
  */
-class SignatureRequestSigner extends Model
+class SignatureRequestSigner extends CoreSignatureRequestSigner
 {
-    protected $connection = 'mysql';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'signature_request_id',
-        'position',
-        'slot',
-        'role',
-        'name',
-        'first_name',
-        'last_name',
-        'tax_code',
-        'email',
-        'phone',
-        'signer_type',
-        'signer_ref',
-        'status',
-        'signed_at',
-        'provider_signer_ref',
-    ];
-
     /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
+        return array_merge(parent::casts(), [
             'role' => SignerRole::class,
             'status' => SignerStatus::class,
             'signed_at' => 'datetime',
-        ];
+        ]);
     }
 
     public function signatureRequest(): BelongsTo

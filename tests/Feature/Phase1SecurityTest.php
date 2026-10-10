@@ -62,7 +62,7 @@ class Phase1SecurityTest extends TestCase
             'documentable_type' => 'company',
             'documentable_id' => $company->id,
             'name' => 'Allegato riservato',
-            'status' => 'verified',
+            'status' => \Unico\Core\Enums\DocumentStatus::APPROVED->value,
         ]);
 
         $this->get(route('documents.download', $document))

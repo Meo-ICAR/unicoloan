@@ -2,7 +2,7 @@
 
 namespace App\Services\Signature\Dto;
 
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 
 final readonly class EnvelopeStatus
 {

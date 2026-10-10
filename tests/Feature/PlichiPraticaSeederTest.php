@@ -72,11 +72,11 @@ class PlichiPraticaSeederTest extends TestCase
     {
         $this->seed_plichi();
         $tasks = Task::query()->count();
-        $links = DB::table('task_document_types')->count();
+        $links = DB::table('document_requirements')->whereNotNull('task_id')->count();
 
         $this->seed(PlichiPraticaSeeder::class);
 
         $this->assertSame($tasks, Task::query()->count());
-        $this->assertSame($links, DB::table('task_document_types')->count());
+        $this->assertSame($links, DB::table('document_requirements')->whereNotNull('task_id')->count());
     }
 }

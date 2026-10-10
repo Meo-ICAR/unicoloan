@@ -3,7 +3,7 @@
 namespace App\Filament\Agenti\Resources\Pratiche\RelationManagers;
 
 use App\Enums\KycStatus;
-use App\Enums\SignerRole;
+use Unico\Core\Enums\SignerRole;
 use App\Filament\Actions\SendForSignatureAction;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
 use App\Filament\Resources\Clients\Schemas\KycQuestionnaireForm;

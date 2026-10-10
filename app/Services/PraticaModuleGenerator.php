@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Enums\ModuleSourceKey;
 use App\Models\Client;
 use App\Models\Document;

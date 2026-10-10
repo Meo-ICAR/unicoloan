@@ -127,7 +127,6 @@ class TaskDocumentTypeSeeder extends Seeder
             // 4. Prepariamo l'array per la tabella ponte con i dati dinamici appena pescati
             foreach ($documentTypes as $type) {
                 $pivotData[$type->id] = [
-                    'slug' => $type->slug,  // Eredita lo slug dal tipo di documento
                     'is_required' => true,  // Tutti obbligatori, o gestisci logiche specifiche
                 ];
             }

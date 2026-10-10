@@ -3,45 +3,16 @@
 namespace App\Models;
 
 use App\Models\PROFORMA\Clienti;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\TipoProdottoSubConstraint as CoreTipoProdottoSubConstraint;
 
-class TipoprodottoSubConstraint extends Model
+class TipoprodottoSubConstraint extends CoreTipoProdottoSubConstraint
 {
-    // protected $connection = 'mysql_proforma';
-
-    protected $table = 'tipoprodotto_sub_constraints';
-
     /**
      * Disabilitiamo i timestamps nativi di Laravel (created_at/updated_at)
      * poiché non sono presenti nello schema SQL fornito.
      */
     public $timestamps = false;
-
-    /**
-     * I campi assegnabili massivamente.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'tipoprodotto_id',
-        'tipoprodotto_sub_id',
-        'clienti_id',
-        'role_id',
-        'min_age',
-        'max_age_at_maturity',
-        'min_amount',
-        'max_amount',
-        'min_duration_months',
-        'max_duration_months',
-        'min_employment_months',
-        'max_debt_to_income_ratio',
-        'max_ltv_percentage',
-        'allowed_employment_types',
-        'additional_rules_json',
-        'additional_notes',
-        'is_active',
-    ];
 
     /**
      * Cast dei tipi di dato di Eloquent.

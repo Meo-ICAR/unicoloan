@@ -21,15 +21,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Unico\Core\Models\User as CoreUser;
 
 #[Fillable(['name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsActivity
+class User extends CoreUser implements FilamentUser, HasAvatar // , LogsActivity
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, LogsActivity, Notifiable;
-
-    protected $connection = 'mysql';
 
     protected $orderBy = 'name';
 
@@ -42,14 +41,15 @@ class User extends Authenticatable implements FilamentUser, HasAvatar // , LogsA
      */
     protected function casts(): array
     {
-        return [
+        return array_merge(parent::casts(), [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-        ];
+        ]);
     }
 
     protected static function booted(): void
     {
+        parent::booted();
         static::creating(function (User $user) {
             // Se l'utente in fase di creazione non ha una password impostata (es.
             // tramite Socialite) assegniamo una password casuale non indovinabile.

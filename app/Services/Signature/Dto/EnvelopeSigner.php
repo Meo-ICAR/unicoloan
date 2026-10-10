@@ -2,7 +2,7 @@
 
 namespace App\Services\Signature\Dto;
 
-use App\Enums\SignerRole;
+use Unico\Core\Enums\SignerRole;
 
 final readonly class EnvelopeSigner
 {

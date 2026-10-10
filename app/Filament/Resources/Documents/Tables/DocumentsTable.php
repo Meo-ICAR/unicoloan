@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Documents\Tables;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Filament\Exports\DynamicGroupExport;
 use App\Filament\Utils\TableHelper;
 use Filament\Actions\BulkAction;

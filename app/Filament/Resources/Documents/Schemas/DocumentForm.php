@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Documents\Schemas;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Models\DocumentType;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;

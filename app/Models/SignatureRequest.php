@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Unico\Core\Models\SignatureRequest as CoreSignatureRequest;
 
 /**
  * Richiesta di firma di un Document presso un provider.
@@ -16,43 +16,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $document_id
  * @property SignatureRequestStatus $status
  */
-class SignatureRequest extends Model
+class SignatureRequest extends CoreSignatureRequest
 {
     use HasFactory;
-
-    protected $connection = 'mysql';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'document_id',
-        'provider',
-        'provider_ref',
-        'status',
-        'sent_at',
-        'signed_at',
-        'expires_at',
-        'last_synced_at',
-        'last_event_at',
-        'failure_reason',
-        'requested_by',
-        'token',
-    ];
 
     /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return [
+        return array_merge(parent::casts(), [
             'status' => SignatureRequestStatus::class,
             'sent_at' => 'datetime',
             'signed_at' => 'datetime',
             'expires_at' => 'datetime',
             'last_synced_at' => 'datetime',
             'last_event_at' => 'datetime',
-        ];
+        ]);
     }
 
     public function document(): BelongsTo

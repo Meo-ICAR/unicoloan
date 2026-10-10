@@ -4,47 +4,18 @@ namespace App\Models;
 
 use App\Models\PROFORMA\Fornitore;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Unico\Core\Models\Branch as CoreBranch;
 
-class Branch extends Model
+class Branch extends CoreBranch
 {
     use HasFactory, SoftDeletes;
-
-    protected $connection = 'mysql';
-
-    protected $table = 'branches';
 
     protected $orderBy = 'name';
 
     protected $orderDirection = 'asc';
-
-    /**
-     * I campi assegnabili in massa.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'company_id',
-        'name',
-        'address',
-        'street_number',
-        'city',
-        'zip_code',
-        'province',
-        'region',
-        'branchable_type',
-        'branchable_id',
-        'is_main_office',
-        'manager_first_name',
-        'manager_last_name',
-        'manager_tax_code',
-        'founded_at',
-        'dismissed_at',
-        'is_active',
-    ];
 
     /**
      * I cast dei campi.

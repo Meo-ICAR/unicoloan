@@ -2,7 +2,7 @@
 
 namespace App\Services\Kyc;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\KycQuestionnaire;

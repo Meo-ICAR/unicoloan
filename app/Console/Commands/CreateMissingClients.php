@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Document;

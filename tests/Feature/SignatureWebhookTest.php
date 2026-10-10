@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 use App\Jobs\ReconcileSignatureRequest;
 use App\Models\SignatureRequest;
 use App\Services\Signature\SignatureRequestService;

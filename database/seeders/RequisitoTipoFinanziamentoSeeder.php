@@ -10,7 +10,7 @@ class RequisitoTipoFinanziamentoSeeder extends Seeder
 {
     public function run(): void
     {
-        $reqMap = PraticaRequisito::pluck('id', 'codice')->toArray();
+        $reqMap = PraticaRequisito::pluck('id', 'code')->toArray();
 
         $regole = [
             // Cessione del Quinto Stipendio (Sub ID: 1)
@@ -59,15 +59,16 @@ class RequisitoTipoFinanziamentoSeeder extends Seeder
 
                 if ($requisitoId) {
                     // SOSTITUITO updateOrCreate CON updateOrInsert
-                    DB::table('requisito_tipo_finanziamento')->updateOrInsert(
+                    DB::table('document_requirements')->updateOrInsert(
                         [
                             'tipoprodotto_sub_id' => $subId,
-                            'pratica_requisito_id' => $requisitoId,
+                            'document_type_id' => $requisitoId,
                         ],
                         [
                             'tipoprodotto_id' => null,
-                            'obbligatorio' => $item['obbligatorio'],
-                            'ordine' => $item['ordine'],
+                            'is_required' => $item['obbligatorio'],
+                            'sort_order' => $item['ordine'],
+                            'updated_at' => now(),
                         ]
                     );
                 }

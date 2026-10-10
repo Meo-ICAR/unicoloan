@@ -30,20 +30,20 @@ class MailAccountsTable
                 IconColumn::make('is_pec')
                     ->label('PEC')
                     ->boolean(),
-                TextColumn::make('incoming_protocol')
+                TextColumn::make('protocol')
                     ->label('Protocollo in entrata')
                     ->badge(),
-                TextColumn::make('incoming_host')
+                TextColumn::make('imap_host')
                     ->label('Host in entrata')
                     ->searchable(),
-                TextColumn::make('incoming_port')
+                TextColumn::make('imap_port')
                     ->label('Porta in entrata')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('incoming_username')
+                TextColumn::make('imap_username')
                     ->label('Username in entrata')
                     ->searchable(),
-                TextColumn::make('incoming_encryption')
+                TextColumn::make('imap_encryption')
                     ->label('Crittografia in entrata')
                     ->badge(),
                 TextColumn::make('smtp_host')

@@ -2,7 +2,7 @@
 
 namespace App\Services\Signature\Dto;
 
-use App\Enums\SignerStatus;
+use Unico\Core\Enums\SignerStatus;
 use Carbon\CarbonInterface;
 
 final readonly class SignerState

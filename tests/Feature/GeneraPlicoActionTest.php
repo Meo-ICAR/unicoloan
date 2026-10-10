@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Filament\Resources\Praticas\Pages\EditPratica;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Models\Client;

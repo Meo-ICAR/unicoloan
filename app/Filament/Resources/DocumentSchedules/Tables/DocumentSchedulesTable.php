@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\DocumentSchedules\Tables;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Models\DocumentSchedule;
 use App\Services\DocumentReminderService;

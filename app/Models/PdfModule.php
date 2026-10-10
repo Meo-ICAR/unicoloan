@@ -5,34 +5,16 @@ namespace App\Models;
 use App\Enums\PdfModuleClientScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Unico\Core\Models\PdfModule as CorePdfModule;
 
 /**
  * @property array<int, array{slot: string, role: string, page: int, x: float, y: float, width: float, height: float}>|null $signature_slots
  */
-class PdfModule extends Model
+class PdfModule extends CorePdfModule
 {
     use HasFactory;
-
-    protected $connection = 'mysql';
-
-    protected $table = 'pdf_modules';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'file_path',
-        'document_type_id',
-        'version',
-        'tipi_prodotto',
-        'client_scope',
-        'is_active',
-        'signature_slots',
-    ];
 
     /**
      * @var array<string, string>

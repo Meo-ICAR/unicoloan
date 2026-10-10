@@ -2,7 +2,7 @@
 
 namespace App\Services\Signature;
 
-use App\Enums\SignerRole;
+use Unico\Core\Enums\SignerRole;
 use App\Models\Client;
 use App\Models\PROFORMA\Fornitore;
 use App\Models\User;

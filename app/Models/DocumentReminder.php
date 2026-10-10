@@ -3,27 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Model;
+use Unico\Core\Models\DocumentReminder as CoreDocumentReminder;
 
-class DocumentReminder extends Model
+class DocumentReminder extends CoreDocumentReminder
 {
-    protected $connection = 'mysql';
-
-    protected $fillable = [
-        'document_id',
-        'days_before',
-        'recipient_email',
-        'status',
-        'error_message',
-        'sent_at',
-    ];
-
     protected function casts(): array
     {
-        return [
+        return array_merge(parent::casts(), [
             'days_before' => 'integer',
             'sent_at' => 'datetime',
-        ];
+        ]);
     }
 
     public function document(): BelongsTo

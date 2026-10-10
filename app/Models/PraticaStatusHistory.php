@@ -4,25 +4,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\PraticaStatusHistory as CorePraticaStatusHistory;
 
-class PraticaStatusHistory extends Model
+class PraticaStatusHistory extends CorePraticaStatusHistory
 {
-    protected $connection = 'mysql_proforma';
-
-    protected $table = 'proforma.pratica_status_history';
-
-    protected $fillable = [
-        'pratica_id',
-        'status_from',
-        'status_to',
-        'changed_at',
-        'source',
-        'notes',
-        'user_id',
-    ];
-
     protected $casts = [
         'changed_at' => 'datetime',
     ];

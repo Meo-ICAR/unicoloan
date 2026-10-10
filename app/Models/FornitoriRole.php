@@ -2,27 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Unico\Core\Models\FornitoriRole as CoreFornitoriRole;
 
-class FornitoriRole extends Model
+class FornitoriRole extends CoreFornitoriRole
 {
-    protected $connection = 'mysql_proforma';
-
-    protected $table = 'proforma.fornitoriroles';
-
-    /**
-     * I campi assegnabili massivamente.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'code',
-        'level',
-        'description',
-    ];
-
     /**
      * Cast dei tipi di dato.
      *

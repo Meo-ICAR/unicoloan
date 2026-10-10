@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Unico\Core\Models\LeadSource as CoreLeadSource;
 
 /**
  * Sorgente di provenienza di un lead/cliente (App\Models\Client::leadSource()).
@@ -16,19 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $utm_campaign Parametro UTM Campaign per lead da campagne web
  * @property bool $is_active Indica se la sorgente è attualmente attiva e selezionabile
  */
-class LeadSource extends Model
+class LeadSource extends CoreLeadSource
 {
-    protected $table = 'lead_sources';
-
-    protected $fillable = [
-        'name',
-        'type',
-        'description',
-        'utm_source',
-        'utm_campaign',
-        'is_active',
-    ];
-
     protected $casts = [
         'is_active' => 'boolean',
     ];

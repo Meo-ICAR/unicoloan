@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\DocumentAnomaly;
-use App\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
 use App\Filament\Resources\DocumentVerifications\Pages\ListDocumentVerifications;
 use App\Models\Client;
 use App\Models\Document;

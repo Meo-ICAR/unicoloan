@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\DocumentStatus;
+use Unico\Core\Enums\DocumentStatus;
 use App\Mail\DocumentReminderMail;
 use App\Models\Document;
 use App\Models\DocumentReminder;

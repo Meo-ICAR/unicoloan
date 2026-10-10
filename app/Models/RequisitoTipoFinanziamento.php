@@ -2,39 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\DocumentRequirement as CoreDocumentRequirement;
 
-class RequisitoTipoFinanziamento extends Model
+/**
+ * Quali requisiti servono per un sottotipo di prodotto. Nel pacchetto è `document_requirements`:
+ * `pratica_requisito_id` → `document_type_id`, `obbligatorio` → `is_required`, `ordine` → `sort_order`.
+ */
+class RequisitoTipoFinanziamento extends CoreDocumentRequirement
 {
-    /**
-     * Connessione esplicita: senza di essa, quando questo modello viene caricato
-     * tramite una relazione da un modello PROFORMA (connessione mysql_proforma,
-     * es. TipoprodottoSub), erediterebbe erroneamente quella connessione invece
-     * di usare 'mysql', dove vive realmente questa tabella.
-     */
-    protected $connection = 'mysql';
-
-    protected $table = 'requisito_tipo_finanziamento';
-
-    public $timestamps = false; // Tabella pivot personalizzata senza timestamps di default
-
-    protected $fillable = [
-        'tipoprodotto_id',
-        'tipoprodotto_sub_id',
-        'pratica_requisito_id',
-        'obbligatorio',
-        'ordine',
-    ];
-
-    protected $casts = [
-        'obbligatorio' => 'boolean',
-        'ordine' => 'integer',
-    ];
-
     public function requisito(): BelongsTo
     {
-        return $this->belongsTo(PraticaRequisito::class, 'pratica_requisito_id');
+        return $this->belongsTo(PraticaRequisito::class, 'document_type_id');
     }
 
     public function subTipoProdotto(): BelongsTo

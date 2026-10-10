@@ -274,7 +274,8 @@ class Pratica extends Model
      */
     public function requisitiOperativi(): HasMany
     {
-        return $this->hasMany(PraticaRequisitoOperativo::class, 'pratica_id');
+        return $this->hasMany(PraticaRequisitoOperativo::class, 'requestable_id')
+            ->withAttributes(['requestable_type' => 'pratica']);
     }
 
     /**
@@ -288,16 +289,17 @@ class Pratica extends Model
 
         // 1. Recupera le regole definite per questo sottotipo di prodotto
         $regole = RequisitoTipoFinanziamento::where('tipoprodotto_sub_id', $this->tipoprodotto_sub_id)
-            ->orderBy('ordine')
+            ->orderBy('sort_order')
             ->get();
 
         // 2. Crea i record operativi per la pratica
         foreach ($regole as $regola) {
             $this->requisitiOperativi()->firstOrCreate(
-                ['pratica_requisito_id' => $regola->pratica_requisito_id],
+                ['document_type_id' => $regola->document_type_id],
                 [
-                    'stato' => 'da_richiedere',
-                    'data_richiesta' => null,
+                    'status' => 'da_richiedere',
+                    'requested_at' => null,
+                    'is_required' => $regola->is_required,
                 ]
             );
         }
@@ -309,8 +311,8 @@ class Pratica extends Model
     public function haRequisitiObbligatoriIncompleti(): bool
     {
         return $this->requisitiOperativi()
-            ->where('is_obbligatorio', true)
-            ->where('stato', '!=', 'approvato') // o 'completato'
+            ->where('is_required', true)
+            ->where('status', '!=', 'approvato') // o 'completato'
             ->exists();
     }
 
@@ -321,8 +323,8 @@ class Pratica extends Model
     {
         return $this->requisitiOperativi()
             ->with('requisito')
-            ->where('is_obbligatorio', true)
-            ->where('stato', '!=', 'approvato')
+            ->where('is_required', true)
+            ->where('status', '!=', 'approvato')
             ->get();
     }
 
@@ -338,7 +340,7 @@ class Pratica extends Model
         }
 
         $completati = $this->requisitiOperativi()
-            ->where('stato', 'approvato')
+            ->where('status', 'approvato')
             ->count();
 
         return (int) round(($completati / $totale) * 100);

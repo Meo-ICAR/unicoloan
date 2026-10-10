@@ -2,19 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Unico\Core\Models\EmployeeTypePermission as CoreEmployeeTypePermission;
 
-class EmployeeTypePermission extends Model
+class EmployeeTypePermission extends CoreEmployeeTypePermission
 {
-    protected $connection = 'mysql_unicobpm';
-
-    protected $fillable = [
-        'employee_type_id',
-        'resource_id',
-        'action',
-    ];
-
     public function employeeType(): BelongsTo
     {
         return $this->belongsTo(EmployeeType::class);

@@ -2,8 +2,8 @@
 
 namespace App\Services\Signature;
 
-use App\Enums\SignatureRequestStatus;
-use App\Enums\SignerStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignerStatus;
 use App\Services\Signature\Dto\EnvelopeData;
 use App\Services\Signature\Dto\EnvelopeRef;
 use App\Services\Signature\Dto\EnvelopeSigner;

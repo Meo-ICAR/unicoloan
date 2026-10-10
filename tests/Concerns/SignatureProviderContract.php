@@ -2,9 +2,9 @@
 
 namespace Tests\Concerns;
 
-use App\Enums\SignatureRequestStatus;
-use App\Enums\SignerRole;
-use App\Enums\SignerStatus;
+use Unico\Core\Enums\SignatureRequestStatus;
+use Unico\Core\Enums\SignerRole;
+use Unico\Core\Enums\SignerStatus;
 use App\Services\Signature\Dto\EnvelopeData;
 use App\Services\Signature\Dto\EnvelopeSigner;
 use App\Services\Signature\Dto\SignaturePlacement;

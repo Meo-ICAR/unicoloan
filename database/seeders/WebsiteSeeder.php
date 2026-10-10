@@ -13,10 +13,11 @@ class WebsiteSeeder extends Seeder
      */
     public function run(): void
     {
+        $racesId = DB::table('companies')->where('vat_number', '05822361007')->value('id');
         DB::table('websites')->insert([
-            'company_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',  // Legato a Races Finance
+            'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
-            'websiteable_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',
+            'websiteable_id' => $racesId,
             'name' => 'Races Finance',
             'type' => 'istituzionale',
             'clienti_id' => 123,
@@ -37,9 +38,9 @@ class WebsiteSeeder extends Seeder
             'updated_at' => Carbon::now(),
         ]);
         DB::table('websites')->insert([
-            'company_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',  // Legato a Races Finance
+            'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
-            'websiteable_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',
+            'websiteable_id' => $racesId,
             'name' => 'Facebook',
             'type' => 'social',
             'is_active' => 1,
@@ -52,9 +53,9 @@ class WebsiteSeeder extends Seeder
             'updated_at' => Carbon::now(),
         ]);
         DB::table('websites')->insert([
-            'company_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',  // Legato a Races Finance
+            'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
-            'websiteable_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',
+            'websiteable_id' => $racesId,
             'name' => 'Linkedin',
             'type' => 'social',
             'clienti_id' => 123,
@@ -68,9 +69,9 @@ class WebsiteSeeder extends Seeder
             'updated_at' => Carbon::now(),
         ]);
         DB::table('websites')->insert([
-            'company_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',  // Legato a Races Finance
+            'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
-            'websiteable_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',
+            'websiteable_id' => $racesId,
             'name' => 'Instagram',
             'type' => 'social',
             'clienti_id' => 123,
@@ -84,9 +85,9 @@ class WebsiteSeeder extends Seeder
             'updated_at' => Carbon::now(),
         ]);
         DB::table('websites')->insert([
-            'company_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',  // Legato a Races Finance
+            'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
-            'websiteable_id' => '45d36df8-369f-40ce-b4fd-b5907c342fe9',
+            'websiteable_id' => $racesId,
             'name' => 'Youtube',
             'type' => 'social',
             'clienti_id' => 123,

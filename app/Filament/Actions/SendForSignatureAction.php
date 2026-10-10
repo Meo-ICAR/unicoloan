@@ -2,7 +2,7 @@
 
 namespace App\Filament\Actions;
 
-use App\Enums\SignerRole;
+use Unico\Core\Enums\SignerRole;
 use App\Models\Document;
 use App\Services\Signature\Exceptions\SignatureRequestException;
 use App\Services\Signature\SignatureProviderManager;
