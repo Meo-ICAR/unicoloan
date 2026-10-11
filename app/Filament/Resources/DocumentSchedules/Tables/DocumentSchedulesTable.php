@@ -5,7 +5,7 @@ namespace App\Filament\Resources\DocumentSchedules\Tables;
 use Unico\Core\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Models\DocumentSchedule;
-use App\Services\DocumentReminderService;
+use Unico\Core\Documents\Reminders\DocumentReminderService;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Notifications\Notification;

@@ -4562,13 +4562,13 @@
             "version": "dev-main",
             "source": {
                 "type": "git",
-                "url": "https://github.com/Meo-ICAR/unico-core.git",
-                "reference": "eca4772cf30e23db24f7f3ddf3241539b18241a0"
+                "url": "git@github.com:Meo-ICAR/unico-core.git",
+                "reference": "407ad7db08a6665a4e83cef7c7ab099eba11182d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Meo-ICAR/unico-core/zipball/eca4772cf30e23db24f7f3ddf3241539b18241a0",
-                "reference": "eca4772cf30e23db24f7f3ddf3241539b18241a0",
+                "url": "https://api.github.com/repos/Meo-ICAR/unico-core/zipball/407ad7db08a6665a4e83cef7c7ab099eba11182d",
+                "reference": "407ad7db08a6665a4e83cef7c7ab099eba11182d",
                 "shasum": ""
             },
             "require": {
@@ -4625,11 +4625,7 @@
                 "proprietary"
             ],
             "description": "Tabelle, modelli e risorse condivise della suite Unico per mediatori creditizi",
-            "support": {
-                "source": "https://github.com/Meo-ICAR/unico-core/tree/main",
-                "issues": "https://github.com/Meo-ICAR/unico-core/issues"
-            },
-            "time": "2026-10-11T04:46:02+00:00"
+            "time": "2026-10-11T05:20:11+00:00"
         },
         {
             "name": "mikehaertl/php-pdftk",

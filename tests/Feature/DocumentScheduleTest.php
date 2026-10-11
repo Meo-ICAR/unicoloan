@@ -7,7 +7,7 @@ use App\Models\Client;
 use App\Models\DocumentSchedule;
 use App\Models\DocumentType;
 use App\Models\User;
-use App\Services\DocumentReminderService;
+use Unico\Core\Documents\Reminders\DocumentReminderService;
 use App\Support\DocumentRecipientResolver;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;

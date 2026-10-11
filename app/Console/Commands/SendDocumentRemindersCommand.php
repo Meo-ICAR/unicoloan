@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\DocumentReminderService;
+use Unico\Core\Documents\Reminders\DocumentReminderService;
 use Illuminate\Console\Command;
 
 class SendDocumentRemindersCommand extends Command

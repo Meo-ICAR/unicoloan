@@ -614,3 +614,4 @@ Key config options in `config/activitylog.php`:
 - `actions.clean_log`: Action class for cleaning old activities
 
 </laravel-boost-guidelines>
+- **Solleciti:** usa `Unico\Core\Documents\Reminders\DocumentReminderService` (comando `documents:send-reminders`, `documents:sync-schedule`, azione «Invia solleciti»): template per company, app (`unico-core.app_identifier` = `unicoloan`) e grado, casella mittente di tipo `sollecito` della company. Le anomalie dei documenti caricati si leggono anche da `metadata.verifica.anomalie` finché il verificatore locale non passa al pipeline del pacchetto.

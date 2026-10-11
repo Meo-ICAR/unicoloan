@@ -2,6 +2,8 @@
 
 // Sostituisce per intero la sezione `access` del pacchetto (vedi vendor/meo-icar/unico-core/config/unico-core.php).
 return [
+    'app_identifier' => 'unicoloan',
+
     'access' => [
         'plan' => env('PLAN_TYPE'),
         'default_plan' => 'FULL',

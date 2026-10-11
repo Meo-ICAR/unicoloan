@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\DocumentSchedule;
-use App\Services\DocumentReminderService;
+use Unico\Core\Documents\Reminders\DocumentReminderService;
 use App\Support\DocumentRecipientResolver;
 use Illuminate\Console\Command;
 
