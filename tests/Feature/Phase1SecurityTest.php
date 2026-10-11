@@ -48,7 +48,7 @@ class Phase1SecurityTest extends TestCase
 
     public function test_plan_feature_gate_reads_config_not_env(): void
     {
-        config()->set('plan.type', 'full');
+        config()->set('unico-core.access.plan', 'full');
 
         $this->assertTrue(checkPiano('audits'));
     }
