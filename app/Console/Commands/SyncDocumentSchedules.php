@@ -46,7 +46,8 @@ class SyncDocumentSchedules extends Command
 
         // Transazione per azzerare e riscrivere i dati senza downtime sulla UI
         \DB::transaction(function () use ($rows) {
-            DocumentSchedule::truncate();
+            // delete(), non truncate(): su MySQL TRUNCATE chiude da solo la transazione e il commit successivo fallisce.
+            DocumentSchedule::query()->delete();
 
             // Inserimento a blocchi per performance
             foreach (array_chunk($rows, 500) as $chunk) {
