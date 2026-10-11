@@ -54,29 +54,36 @@ class DocumentVerificationTest extends TestCase
         return $document->fresh();
     }
 
+    /** Esito dell'ultima verifica tecnica del pacchetto: signature, anomalies, signers. */
+    private function verification(Document $document): array
+    {
+        return (array) $document->latestVerification()?->result;
+    }
+
     public function test_upload_moves_a_requested_document_to_uploaded_and_stores_hash_and_checks(): void
     {
         $document = $this->upload($this->document(false));
 
         $this->assertSame(\Unico\Core\Enums\DocumentStatus::UPLOADED, $document->status);
         $this->assertSame(64, strlen($document->file_hash));
-        $this->assertSame('non_richiesta', $document->metadata['verifica']['signature']);
-        $this->assertSame([], $document->metadata['verifica']['anomalie']);
+        $this->assertSame('non_richiesta', $this->verification($document)['signature']);
+        $this->assertSame([], $this->verification($document)['anomalies']);
     }
 
     public function test_signed_type_with_a_plain_scan_needs_the_operator_to_check_the_handwritten_signature(): void
     {
         $document = $this->upload($this->document(true));
 
-        $this->assertSame('olografa', $document->metadata['verifica']['signature']);
-        $this->assertNotContains('firma_mancante', $document->metadata['verifica']['anomalie']);
+        $this->assertSame('olografa', $this->verification($document)['signature']);
+        $this->assertNotContains('signature_missing', $this->verification($document)['anomalies']);
+        $this->assertSame('needs_review', $document->latestVerification()->outcome);
     }
 
     public function test_signed_type_with_a_digital_signature_marker_is_recognised(): void
     {
         $pdf = file_get_contents(base_path('tests/Fixtures/pdf/modulo-prova.pdf')).' /Type /Sig /ByteRange [0 10 20 30]';
 
-        $this->assertSame('digitale', $this->upload($this->document(true), $pdf)->metadata['verifica']['signature']);
+        $this->assertSame('digitale', $this->verification($this->upload($this->document(true), $pdf))['signature']);
     }
 
     public function test_otp_signed_document_is_paired_with_the_yousign_transaction(): void
@@ -85,12 +92,11 @@ class DocumentVerificationTest extends TestCase
         $request = SignatureRequest::factory()->create(['document_id' => $document->getKey(), 'provider' => 'yousign', 'provider_ref' => 'sr_123', 'status' => SignatureRequestStatus::Signed, 'signed_at' => now()]);
         SignatureRequestSigner::query()->create(['signature_request_id' => $request->id, 'position' => 1, 'slot' => 'cliente', 'role' => 'client', 'name' => 'Mario Rossi', 'first_name' => 'Mario', 'last_name' => 'Rossi', 'status' => 'signed', 'signed_at' => now()]);
 
-        $verifica = $this->upload($document, null, 'signed')->metadata['verifica'];
+        $verifica = $this->verification($this->upload($document, null, 'signed'));
 
         $this->assertSame('otp', $verifica['signature']);
-        $this->assertSame([], $verifica['anomalie']);
-        $this->assertSame(['yousign', 'sr_123', 'signed'], [$verifica['otp']['provider'], $verifica['otp']['provider_ref'], $verifica['otp']['status']]);
-        $this->assertSame(['Mario Rossi', 'signed'], [$verifica['otp']['signers'][0]['name'], $verifica['otp']['signers'][0]['status']]);
+        $this->assertSame([], $verifica['anomalies']);
+        $this->assertSame(['Mario Rossi', 'signed'], [$verifica['signers'][0]['name'], $verifica['signers'][0]['status']]);
     }
 
     public function test_open_transaction_is_flagged_and_a_signed_one_with_an_unsigned_signer_is_not_valid(): void
@@ -98,15 +104,15 @@ class DocumentVerificationTest extends TestCase
         $pending = $this->document(true);
         SignatureRequest::factory()->create(['document_id' => $pending->getKey(), 'provider' => 'yousign', 'provider_ref' => 'sr_open', 'status' => SignatureRequestStatus::Sent]);
 
-        $verifica = $this->upload($pending)->metadata['verifica'];
+        $verifica = $this->verification($this->upload($pending));
         $this->assertSame('otp_in_attesa', $verifica['signature']);
-        $this->assertSame(['firma_mancante'], $verifica['anomalie']);
+        $this->assertSame(['signature_missing'], $verifica['anomalies']);
 
         $partial = $this->document(true, 'richiesto', ['is_signed' => true, 'signed_at' => now()]);
         $request = SignatureRequest::factory()->create(['document_id' => $partial->getKey(), 'provider' => 'yousign', 'provider_ref' => 'sr_partial', 'status' => SignatureRequestStatus::Signed]);
         SignatureRequestSigner::query()->create(['signature_request_id' => $request->id, 'position' => 1, 'slot' => 'cliente', 'role' => 'client', 'name' => 'Mario Rossi', 'first_name' => 'Mario', 'last_name' => 'Rossi', 'status' => 'waiting']);
 
-        $this->assertSame(['firma_non_valida'], $this->upload($partial, null, 'signed')->metadata['verifica']['anomalie']);
+        $this->assertSame(['signature_invalid'], $this->verification($this->upload($partial, null, 'signed'))['anomalies']);
     }
 
     public function test_queue_shows_the_transaction_and_its_signers(): void
@@ -128,7 +134,7 @@ class DocumentVerificationTest extends TestCase
     {
         $document = $this->upload($this->document(true), 'questo non e un pdf');
 
-        $this->assertEqualsCanonicalizing(['file_illeggibile', 'firma_mancante'], $document->metadata['verifica']['anomalie']);
+        $this->assertEqualsCanonicalizing(['unreadable', 'signature_missing'], $this->verification($document)['anomalies']);
     }
 
     public function test_expired_and_duplicate_documents_are_flagged(): void
@@ -139,7 +145,7 @@ class DocumentVerificationTest extends TestCase
 
         $duplicate = $this->upload($duplicate);
 
-        $this->assertEqualsCanonicalizing(['duplicato', 'scaduto'], $duplicate->metadata['verifica']['anomalie']);
+        $this->assertEqualsCanonicalizing(['duplicate', 'expired'], $this->verification($duplicate)['anomalies']);
     }
 
     public function test_queue_lists_only_uploaded_documents_and_the_operator_can_accept(): void

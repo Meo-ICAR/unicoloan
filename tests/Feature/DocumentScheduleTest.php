@@ -43,8 +43,10 @@ class DocumentScheduleTest extends TestCase
     {
         $missing = $this->document('richiesto');
         $rejected = $this->document('respinto', ['rejection_note' => 'Illeggibile']);
-        $anomalous = $this->document('caricato', ['metadata' => ['verifica' => ['anomalie' => ['duplicato']]]]);
-        $clean = $this->document('caricato', ['metadata' => ['verifica' => ['anomalie' => []]]]);
+        $anomalous = $this->document('caricato');
+        $anomalous->analyses()->create(['kind' => 'verification', 'outcome' => 'failed', 'result' => ['anomalies' => ['duplicate'], 'signature' => 'non_richiesta']]);
+        $clean = $this->document('caricato');
+        $clean->analyses()->create(['kind' => 'verification', 'outcome' => 'passed', 'result' => ['anomalies' => [], 'signature' => 'non_richiesta']]);
         $approved = $this->document('approvato');
 
         $ids = app(DocumentReminderService::class)->scheduleQuery()->pluck('id')->all();

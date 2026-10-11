@@ -116,7 +116,7 @@ class AgentRequestIntake
 
     /**
      * Riceve un file: lo associa al documento richiesto di quel tipo (o ne crea uno) e lo carica. I controlli automatici
-     * partono da soli al caricamento (VerifyUploadedDocument).
+     * partono da soli al caricamento (pipeline di analisi di unico-core, subito).
      *
      * @param  array<string,mixed>  $analysis  esito dell'analisi già fatta dall'app chiamante, conservato nei metadati
      * @return array{document: Document, duplicate: bool}

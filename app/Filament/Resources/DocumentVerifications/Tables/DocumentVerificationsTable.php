@@ -5,7 +5,8 @@ namespace App\Filament\Resources\DocumentVerifications\Tables;
 use App\Enums\DocumentAnomaly;
 use Unico\Core\Enums\DocumentStatus;
 use App\Models\Document;
-use App\Services\DocumentVerifier;
+use Unico\Core\Documents\TechnicalVerifier;
+use Unico\Core\Enums\DocumentAnomaly as DetectedAnomaly;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
@@ -38,12 +39,12 @@ class DocumentVerificationsTable
                 TextColumn::make('firma')
                     ->label('Firma')
                     ->badge()
-                    ->state(fn (Document $record): string => match (self::check($record)['signature'] ?? DocumentVerifier::SIGNATURE_NOT_REQUIRED) {
-                        DocumentVerifier::SIGNATURE_OTP => 'OTP',
-                        DocumentVerifier::SIGNATURE_OTP_PENDING => 'OTP in attesa',
-                        DocumentVerifier::SIGNATURE_DIGITAL => 'Digitale',
-                        DocumentVerifier::SIGNATURE_HANDWRITTEN => 'Olografa da verificare',
-                        DocumentVerifier::SIGNATURE_MISSING => 'Assente',
+                    ->state(fn (Document $record): string => match (self::check($record)['signature'] ?? TechnicalVerifier::SIGNATURE_NOT_REQUIRED) {
+                        TechnicalVerifier::SIGNATURE_OTP => 'OTP',
+                        TechnicalVerifier::SIGNATURE_OTP_PENDING => 'OTP in attesa',
+                        TechnicalVerifier::SIGNATURE_DIGITAL => 'Digitale',
+                        TechnicalVerifier::SIGNATURE_HANDWRITTEN => 'Olografa da verificare',
+                        TechnicalVerifier::SIGNATURE_MISSING => 'Assente',
                         default => '-',
                     })
                     ->color(fn (string $state): string => match ($state) {
@@ -61,7 +62,7 @@ class DocumentVerificationsTable
                     ->label('Anomalie')
                     ->badge()
                     ->color('danger')
-                    ->state(fn (Document $record): array => collect(self::check($record)['anomalie'] ?? [])->map(fn (string $code): string => DocumentAnomaly::tryFrom($code)?->getLabel() ?? $code)->all())
+                    ->state(fn (Document $record): array => collect(self::check($record)['anomalie'] ?? [])->map(fn (string $code): string => DetectedAnomaly::tryFrom($code)?->label() ?? $code)->all())
                     ->placeholder('Nessuna'),
                 TextColumn::make('created_at')->label('Caricato il')->dateTime('d/m/Y H:i')->sortable(),
                 TextColumn::make('uploader.name')->label('Caricato da')->toggleable(),
@@ -70,9 +71,7 @@ class DocumentVerificationsTable
                 Filter::make('con_anomalie')
                     ->label('Solo con anomalie o firma da verificare')
                     ->toggle()
-                    ->query(fn (Builder $query) => $query->where(fn (Builder $query) => $query
-                        ->whereJsonLength('metadata->verifica->anomalie', '>', 0)
-                        ->orWhere('metadata->verifica->signature', DocumentVerifier::SIGNATURE_HANDWRITTEN))),
+                    ->query(fn (Builder $query) => $query->whereLatestVerification(['failed', 'needs_review'])),
                 SelectFilter::make('document_type_id')->label('Tipo')->relationship('documentType', 'name')->searchable()->preload(),
             ])
             ->recordActions([
@@ -95,7 +94,7 @@ class DocumentVerificationsTable
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->modalHeading('Accettare il documento?')
-                    ->schema(fn (Document $record): array => (self::check($record)['signature'] ?? null) === DocumentVerifier::SIGNATURE_HANDWRITTEN
+                    ->schema(fn (Document $record): array => (self::check($record)['signature'] ?? null) === TechnicalVerifier::SIGNATURE_HANDWRITTEN
                         ? [Checkbox::make('firma_verificata')->label('Confermo di aver verificato la presenza della firma olografa')->accepted()]
                         : [])
                     ->action(function (Document $record): void {
@@ -134,10 +133,34 @@ class DocumentVerificationsTable
     }
 
     /**
-     * @return array{signature?: string, anomalie?: array<int, string>}
+     * Esito dell'ultima verifica tecnica (pipeline del pacchetto) e transazione di firma abbinata al documento.
+     *
+     * @return array{signature?: string, anomalie?: array<int, string>, otp?: array<string, mixed>}
      */
     private static function check(Document $record): array
     {
-        return (array) ($record->metadata['verifica'] ?? []);
+        static $cache = [];
+
+        return $cache[$record->getKey().'|'.($record->updated_at?->timestamp ?? 0)] ??= (function () use ($record): array {
+            $result = (array) ($record->latestVerification()?->result ?? []);
+            $request = $record->signatureRequests()->with('signatureRequestSigners')->latest('id')->first();
+
+            return array_filter([
+                'signature' => $result['signature'] ?? null,
+                'anomalie' => $result['anomalies'] ?? [],
+                'otp' => $request === null ? null : [
+                    'provider' => $request->provider,
+                    'provider_ref' => $request->provider_ref,
+                    'status' => $request->status->value,
+                    'signed_at' => $request->signed_at?->toIso8601String(),
+                    'signers' => $request->signatureRequestSigners->map(fn ($signer): array => [
+                        'name' => trim((string) ($signer->name ?: $signer->first_name.' '.$signer->last_name)),
+                        'role' => $signer->role->value,
+                        'status' => $signer->status->value,
+                        'signed_at' => $signer->signed_at?->toIso8601String(),
+                    ])->all(),
+                ],
+            ], fn ($value) => $value !== null);
+        })();
     }
 }

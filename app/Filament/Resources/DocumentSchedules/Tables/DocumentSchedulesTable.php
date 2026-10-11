@@ -84,7 +84,7 @@ class DocumentSchedulesTable
                         return match ($data['value'] ?? null) {
                             self::REASON_MISSING => $query->whereHas('document', fn (Builder $document) => $document->where('status', DocumentStatus::PENDING->value)),
                             self::REASON_ANOMALY => $query->whereHas('document', fn (Builder $document) => $document->where('status', DocumentStatus::REJECTED->value)
-                                ->orWhere(fn (Builder $uploaded) => $uploaded->where('status', DocumentStatus::UPLOADED->value)->whereJsonLength('metadata->verifica->anomalie', '>', 0))),
+                                ->orWhere(fn (Builder $uploaded) => $uploaded->where('status', DocumentStatus::UPLOADED->value)->whereLatestVerification(['failed']))),
                             self::REASON_EXPIRING => $query->whereNotNull('expires_at'),
                             default => $query,
                         };
@@ -129,7 +129,7 @@ class DocumentSchedulesTable
 
         return match (true) {
             $document?->status === DocumentStatus::REJECTED => self::REASON_ANOMALY,
-            $document?->status === DocumentStatus::UPLOADED && count((array) ($document->metadata['verifica']['anomalie'] ?? [])) > 0 => self::REASON_ANOMALY,
+            $document?->status === DocumentStatus::UPLOADED && count((array) ($document->latestVerification()?->result['anomalies'] ?? [])) > 0 => self::REASON_ANOMALY,
             $document?->status === DocumentStatus::PENDING && $record->expires_at === null => self::REASON_MISSING,
             default => self::REASON_EXPIRING,
         };
