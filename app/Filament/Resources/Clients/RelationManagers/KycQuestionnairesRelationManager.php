@@ -221,7 +221,7 @@ class KycQuestionnairesRelationManager extends RelationManager
                 SendForSignatureAction::make()
                     ->visible(fn (Action $action, KycQuestionnaire $record): bool => $record->status === KycStatus::Approved
                         && $record->document !== null
-                        && \checkPiano('firma', $action->getLivewire()::class)
+                        && \checkPiano('firma', $action->getLivewire()::class, write: true)
                         && SendForSignatureAction::isSignable($record->document)),
                 DeleteAction::make()
                     ->label('Elimina')

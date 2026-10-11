@@ -39,9 +39,9 @@ trait HasPlanAccess
      * conoscendone l'URL. Quando verranno introdotte vere Policy di modello,
      * questi override potranno essere rimossi in favore della Policy.
      */
-    protected static function hasPlanFeatureAccess(): bool
+    protected static function hasPlanFeatureAccess(bool $write = false): bool
     {
-        return \checkPiano(static::getFeatureKey(), static::class);
+        return \checkPiano(static::getFeatureKey(), static::class, $write);
     }
 
     public static function canViewAny(): bool
@@ -56,32 +56,32 @@ trait HasPlanAccess
 
     public static function canCreate(): bool
     {
-        return static::hasPlanFeatureAccess();
+        return static::hasPlanFeatureAccess(write: true);
     }
 
     public static function canEdit(Model $record): bool
     {
-        return static::hasPlanFeatureAccess();
+        return static::hasPlanFeatureAccess(write: true);
     }
 
     public static function canDelete(Model $record): bool
     {
-        return static::hasPlanFeatureAccess();
+        return static::hasPlanFeatureAccess(write: true);
     }
 
     public static function canDeleteAny(): bool
     {
-        return static::hasPlanFeatureAccess();
+        return static::hasPlanFeatureAccess(write: true);
     }
 
     public static function canForceDelete(Model $record): bool
     {
-        return static::hasPlanFeatureAccess();
+        return static::hasPlanFeatureAccess(write: true);
     }
 
     public static function canRestore(Model $record): bool
     {
-        return static::hasPlanFeatureAccess();
+        return static::hasPlanFeatureAccess(write: true);
     }
 
     /**

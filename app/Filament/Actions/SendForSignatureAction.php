@@ -46,7 +46,7 @@ class SendForSignatureAction
             ->visible(function (Action $action, $record) use ($onlyForSignedTypes): bool {
                 $document = self::resolveDocument($record);
 
-                if ($document === null || ! \checkPiano('firma', $action->getLivewire()::class)) {
+                if ($document === null || ! \checkPiano('firma', $action->getLivewire()::class, write: true)) {
                     return false;
                 }
 
