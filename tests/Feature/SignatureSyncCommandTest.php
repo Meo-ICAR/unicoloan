@@ -10,13 +10,13 @@ use App\Models\DocumentType;
 use App\Models\PdfModule;
 use App\Models\SignatureRequest;
 use App\Models\User;
-use App\Services\Signature\Dto\EnvelopeStatus;
-use App\Services\Signature\Exceptions\ProviderUnavailableException;
-use App\Services\Signature\FakeSignatureProvider;
-use App\Services\Signature\SignatureProvider;
-use App\Services\Signature\SignatureProviderManager;
-use App\Services\Signature\SignatureRequestService;
-use App\Services\Signature\SignerInput;
+use Unico\Core\Signature\Dto\EnvelopeStatus;
+use Unico\Core\Signature\Exceptions\ProviderUnavailableException;
+use Unico\Core\Signature\FakeSignatureProvider;
+use Unico\Core\Signature\Contracts\SignatureProvider;
+use Unico\Core\Signature\SignatureProviderManager;
+use Unico\Core\Signature\SignatureRequestService;
+use Unico\Core\Signature\SignerInput;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -39,7 +39,7 @@ class SignatureSyncCommandTest extends TestCase
 
         Storage::fake('public');
         Storage::fake(config('media-library.disk_name'));
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
     }
 
     private function sentRequest(): SignatureRequest
@@ -61,7 +61,7 @@ class SignatureSyncCommandTest extends TestCase
 
         $signers = [new SignerInput('cliente', SignerRole::Client, 'Mario', 'Rossi', 'mario@example.test', '338 1234567', 'RSSMRA80A01H501U', 'client', '1')];
 
-        return app(SignatureRequestService::class)->send($document->fresh(), $signers, User::factory()->create())->fresh();
+        return SignatureRequest::query()->findOrFail(app(SignatureRequestService::class)->send($document->fresh(), $signers, User::factory()->create())->getKey());
     }
 
     private function stale(SignatureRequest $request, ?int $syncedMinutesAgo = 120, ?int $eventMinutesAgo = 120): SignatureRequest
@@ -211,7 +211,7 @@ class SignatureSyncCommandTest extends TestCase
     public function test_fake_complete_refused_with_other_driver(): void
     {
         $request = $this->sentRequest();
-        config(['signature.driver' => 'yousign']);
+        config(['unico-core.signature.driver' => 'yousign']);
 
         $this->artisan('signature:fake-complete', ['ref' => $request->provider_ref])->assertFailed();
     }

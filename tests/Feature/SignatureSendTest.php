@@ -11,15 +11,15 @@ use App\Models\DocumentType;
 use App\Models\PdfModule;
 use App\Models\SignatureRequest;
 use App\Models\User;
-use App\Services\Signature\Dto\EnvelopeData;
-use App\Services\Signature\Dto\EnvelopeRef;
-use App\Services\Signature\Exceptions\ProviderUnavailableException;
-use App\Services\Signature\Exceptions\SignatureRequestException;
-use App\Services\Signature\SignatureProvider;
-use App\Services\Signature\SignatureProviderManager;
-use App\Services\Signature\SignatureRequestService;
+use Unico\Core\Signature\Dto\EnvelopeData;
+use Unico\Core\Signature\Dto\EnvelopeRef;
+use Unico\Core\Signature\Exceptions\ProviderUnavailableException;
+use Unico\Core\Signature\Exceptions\SignatureRequestException;
+use Unico\Core\Signature\Contracts\SignatureProvider;
+use Unico\Core\Signature\SignatureProviderManager;
+use Unico\Core\Signature\SignatureRequestService;
 use App\Services\Signature\SignerDefaults;
-use App\Services\Signature\SignerInput;
+use Unico\Core\Signature\SignerInput;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -46,7 +46,7 @@ class SignatureSendTest extends TestCase
 
         Storage::fake('public');
         Storage::fake(config('media-library.disk_name'));
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
     }
 
     /**
@@ -140,7 +140,7 @@ class SignatureSendTest extends TestCase
         $this->assertSame($user->id, (int) $request->requested_by);
         $this->assertEqualsWithDelta(now()->addDays(7)->timestamp, $request->expires_at->timestamp, 60);
 
-        $signers = $request->signers;
+        $signers = $request->signatureRequestSigners;
         $this->assertSame(['cliente', 'collaboratore'], $signers->pluck('slot')->all());
         $this->assertSame([1, 2], $signers->pluck('position')->all());
         $this->assertTrue($signers->every(fn ($s) => $s->status === SignerStatus::Notified && filled($s->provider_signer_ref)));
@@ -251,7 +251,7 @@ class SignatureSendTest extends TestCase
         $request = $this->service()->send($document, $this->signers(), User::factory()->create());
 
         $this->assertSame('ref-1', $request->fresh()->provider_ref);
-        $this->assertSame(['s1', 's2'], $request->signers->pluck('provider_signer_ref')->all());
+        $this->assertSame(['s1', 's2'], $request->signatureRequestSigners->pluck('provider_signer_ref')->all());
     }
 
     public function test_pdf_given_to_the_provider_has_no_form_fields(): void
@@ -409,7 +409,7 @@ class SignatureSendTest extends TestCase
     {
         $user = User::factory()->create(['name' => 'Giulia Maria Neri', 'email' => 'giulia@example.test']);
 
-        $input = SignerInput::fromUser($user, 'collaboratore');
+        $input = \App\Services\Signature\SignerDefaults::fromUser($user, 'collaboratore');
 
         $this->assertSame('Giulia', $input->firstName);
         $this->assertSame('Maria Neri', $input->lastName);

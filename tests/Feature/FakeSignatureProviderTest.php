@@ -4,10 +4,10 @@ namespace Tests\Feature;
 
 use Unico\Core\Enums\SignatureRequestStatus;
 use Unico\Core\Enums\SignerStatus;
-use App\Services\Signature\Exceptions\EnvelopeNotFoundException;
-use App\Services\Signature\FakeSignatureProvider;
-use App\Services\Signature\SignatureProvider;
-use App\Services\Signature\SignatureProviderManager;
+use Unico\Core\Signature\Exceptions\EnvelopeNotFoundException;
+use Unico\Core\Signature\FakeSignatureProvider;
+use Unico\Core\Signature\Contracts\SignatureProvider;
+use Unico\Core\Signature\SignatureProviderManager;
 use Illuminate\Http\Request;
 use Tests\Concerns\SignatureProviderContract;
 use Tests\TestCase;
@@ -88,7 +88,7 @@ class FakeSignatureProviderTest extends TestCase
 
     public function test_manager_resolves_default_driver_and_rejects_unknown(): void
     {
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
 
         $this->assertInstanceOf(FakeSignatureProvider::class, app(SignatureProviderManager::class)->provider());
 

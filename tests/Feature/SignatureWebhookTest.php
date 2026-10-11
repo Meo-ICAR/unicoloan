@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use Unico\Core\Enums\SignatureRequestStatus;
-use App\Jobs\ReconcileSignatureRequest;
+use Unico\Core\Signature\Jobs\ReconcileSignatureRequest;
 use App\Models\SignatureRequest;
-use App\Services\Signature\SignatureRequestService;
+use Unico\Core\Signature\SignatureRequestService;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ class SignatureWebhookTest extends TestCase
     {
         parent::setUp();
 
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
         Queue::fake();
     }
 
@@ -53,8 +53,8 @@ class SignatureWebhookTest extends TestCase
         $request = $this->sentRequest();
         DB::connection('mysql')->enableQueryLog();
 
-        $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'))->assertUnauthorized();
-        $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'bad'])->assertUnauthorized();
+        $this->postJson('/signature/webhook/fake', $this->payload('fake-ref-1'))->assertUnauthorized();
+        $this->postJson('/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'bad'])->assertUnauthorized();
 
         Queue::assertNothingPushed();
         $writes = collect(DB::connection('mysql')->getQueryLog())
@@ -67,7 +67,7 @@ class SignatureWebhookTest extends TestCase
     {
         $request = $this->sentRequest();
 
-        $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])
+        $this->postJson('/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])
             ->assertStatus(202);
 
         Queue::assertPushed(ReconcileSignatureRequest::class, fn (ReconcileSignatureRequest $job): bool => $job->signatureRequestId === $request->id);
@@ -79,7 +79,7 @@ class SignatureWebhookTest extends TestCase
         $request = $this->sentRequest();
 
         foreach ([1, 2] as $_) {
-            $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertStatus(202);
+            $this->postJson('/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertStatus(202);
         }
 
         Queue::assertPushed(ReconcileSignatureRequest::class, 1);
@@ -90,7 +90,7 @@ class SignatureWebhookTest extends TestCase
 
     public function test_unknown_ref_returns_no_content(): void
     {
-        $this->postJson('/api/signature/webhook/fake', $this->payload('nope'), ['X-Fake-Signature' => 'ok'])->assertNoContent();
+        $this->postJson('/signature/webhook/fake', $this->payload('nope'), ['X-Fake-Signature' => 'ok'])->assertNoContent();
 
         Queue::assertNothingPushed();
     }
@@ -99,7 +99,7 @@ class SignatureWebhookTest extends TestCase
     {
         $request = $this->sentRequest();
 
-        $this->postJson('/api/signature/webhook/fake', ['foo' => 'bar'], ['X-Fake-Signature' => 'ok'])->assertNoContent();
+        $this->postJson('/signature/webhook/fake', ['foo' => 'bar'], ['X-Fake-Signature' => 'ok'])->assertNoContent();
 
         Queue::assertNothingPushed();
         $this->assertNull($request->fresh()->last_event_at);
@@ -107,7 +107,7 @@ class SignatureWebhookTest extends TestCase
 
     public function test_unknown_provider_returns_not_found(): void
     {
-        $this->postJson('/api/signature/webhook/sconosciuto', $this->payload('x'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
+        $this->postJson('/signature/webhook/sconosciuto', $this->payload('x'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
 
         Queue::assertNothingPushed();
     }
@@ -131,10 +131,10 @@ class SignatureWebhookTest extends TestCase
     public function test_non_active_provider_is_rejected_without_side_effects(): void
     {
         $request = $this->sentRequest();
-        config(['signature.driver' => 'yousign']);
+        config(['unico-core.signature.driver' => 'yousign']);
         DB::connection('mysql')->enableQueryLog();
 
-        $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
+        $this->postJson('/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
 
         Queue::assertNothingPushed();
         $this->assertCount(0, DB::connection('mysql')->getQueryLog());
@@ -143,7 +143,7 @@ class SignatureWebhookTest extends TestCase
 
     public function test_provider_different_from_driver_is_not_found(): void
     {
-        $this->postJson('/api/signature/webhook/yousign', $this->payload('x'))->assertNotFound();
+        $this->postJson('/signature/webhook/yousign', $this->payload('x'))->assertNotFound();
 
         Queue::assertNothingPushed();
     }
@@ -151,9 +151,9 @@ class SignatureWebhookTest extends TestCase
     public function test_fake_provider_is_not_found_in_production(): void
     {
         $request = $this->sentRequest();
-        $this->app->detectEnvironment(fn () => 'production');
+        config(['app.env' => 'production']);
 
-        $this->postJson('/api/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
+        $this->postJson('/signature/webhook/fake', $this->payload('fake-ref-1'), ['X-Fake-Signature' => 'ok'])->assertNotFound();
 
         Queue::assertNothingPushed();
         $this->assertNull($request->fresh()->last_event_at);

@@ -5,10 +5,10 @@ namespace Tests\Concerns;
 use Unico\Core\Enums\SignatureRequestStatus;
 use Unico\Core\Enums\SignerRole;
 use Unico\Core\Enums\SignerStatus;
-use App\Services\Signature\Dto\EnvelopeData;
-use App\Services\Signature\Dto\EnvelopeSigner;
-use App\Services\Signature\Dto\SignaturePlacement;
-use App\Services\Signature\SignatureProvider;
+use Unico\Core\Signature\Dto\EnvelopeData;
+use Unico\Core\Signature\Dto\EnvelopeSigner;
+use Unico\Core\Signature\Dto\SignaturePlacement;
+use Unico\Core\Signature\Contracts\SignatureProvider;
 
 /**
  * Test riusabili: ogni adapter di provider deve superarli.

@@ -13,16 +13,16 @@ use App\Models\KycQuestionnaire;
 use App\Models\PdfModule;
 use App\Models\SignatureRequest;
 use App\Models\User;
-use App\Services\Signature\Dto\EnvelopeStatus;
-use App\Services\Signature\Dto\SignatureEvent;
-use App\Services\Signature\Dto\SignerState;
-use App\Services\Signature\Exceptions\ProviderUnavailableException;
-use App\Services\Signature\Exceptions\SignatureRequestException;
-use App\Services\Signature\FakeSignatureProvider;
-use App\Services\Signature\SignatureProvider;
-use App\Services\Signature\SignatureProviderManager;
-use App\Services\Signature\SignatureRequestService;
-use App\Services\Signature\SignerInput;
+use Unico\Core\Signature\Dto\EnvelopeStatus;
+use Unico\Core\Signature\Dto\SignatureEvent;
+use Unico\Core\Signature\Dto\SignerState;
+use Unico\Core\Signature\Exceptions\ProviderUnavailableException;
+use Unico\Core\Signature\Exceptions\SignatureRequestException;
+use Unico\Core\Signature\FakeSignatureProvider;
+use Unico\Core\Signature\Contracts\SignatureProvider;
+use Unico\Core\Signature\SignatureProviderManager;
+use Unico\Core\Signature\SignatureRequestService;
+use Unico\Core\Signature\SignerInput;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -45,7 +45,7 @@ class SignatureReconcileTest extends TestCase
 
         Storage::fake('public');
         Storage::fake(config('media-library.disk_name'));
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
     }
 
     /**
@@ -108,14 +108,12 @@ class SignatureReconcileTest extends TestCase
 
     private function sentRequest(?Document $document = null): SignatureRequest
     {
-        return $this->service()->send($document ?? $this->documentWithModule(), $this->signers(), User::factory()->create())->fresh();
+        return SignatureRequest::query()->findOrFail($this->service()->send($document ?? $this->documentWithModule(), $this->signers(), User::factory()->create())->getKey());
     }
 
     private function signedDocument(Document $document): Document
     {
-        $renewedById = Document::withTrashed()->findOrFail($document->getKey())->replaced_by_id;
-
-        return Document::query()->findOrFail($renewedById);
+        return Document::query()->findOrFail($document->getKey());
     }
 
     private function slotRef(SignatureRequest $request, string $slot): string
@@ -141,27 +139,27 @@ class SignatureReconcileTest extends TestCase
         $this->fake()->completeAll($request->provider_ref);
         $request = $this->service()->reconcile($request);
 
-        $original = Document::withTrashed()->findOrFail($document->getKey());
         $document = $this->signedDocument($document);
         $this->assertSame(SignatureRequestStatus::Signed, $request->status);
         $this->assertNotNull($request->signed_at);
         $this->assertTrue((bool) $document->is_signed);
         $this->assertNotNull($document->signed_at);
         $this->assertSame($document->getKey(), $request->document_id);
+        $this->assertFalse($document->trashed());
+        $this->assertNull($document->replaced_by_id);
         $this->assertCount(1, $document->getMedia('documents'));
-        $this->assertSame('qav-rossi-firmato.pdf', $document->getFirstMedia('documents')->file_name);
-        $this->assertTrue($original->trashed());
-        $this->assertSame($document->getKey(), $original->replaced_by_id);
-        $this->assertSame('qav.pdf', $original->getFirstMedia('documents')->file_name);
-        $this->assertFalse((bool) $original->is_signed);
+        $this->assertSame('qav.pdf', $document->getFirstMedia('documents')->file_name);
+        $this->assertCount(1, $document->getMedia('signed'));
+        $this->assertSame('qav-rossi-firmato.pdf', $document->getFirstMedia('signed')->file_name);
+        $this->assertSame($document->getFirstMedia('signed')->getKey(), $document->currentMedia()->getKey());
 
         $activity = Activity::query()->where('event', 'firma_completata')->sole();
         $this->assertSame($request->id, (int) $activity->subject_id);
-        $this->assertEqualsCanonicalizing(['signature_request_id', 'provider', 'document_id', 'replaced_document_id'], array_keys($activity->properties->all()));
+        $this->assertEqualsCanonicalizing(['signature_request_id', 'provider', 'document_id'], array_keys($activity->properties->all()));
         $this->assertTrue($request->signers->every(fn ($s) => $s->status === SignerStatus::Signed));
     }
 
-    public function test_deleted_documents_leave_the_expiry_schedule_and_the_signed_replacement_removes_the_original_row(): void
+    public function test_deleted_documents_leave_the_expiry_schedule_while_a_signed_one_keeps_its_row(): void
     {
         $document = $this->documentWithModule();
         $row = fn (Document $doc): array => [
@@ -174,7 +172,7 @@ class SignatureReconcileTest extends TestCase
 
         $this->service()->reconcile($request);
 
-        $this->assertSame(0, DocumentSchedule::query()->where('document_id', $document->getKey())->count());
+        $this->assertSame(1, DocumentSchedule::query()->where('document_id', $document->getKey())->count());
 
         $other = $this->documentWithModule();
         DocumentSchedule::create($row($other));
@@ -182,7 +180,7 @@ class SignatureReconcileTest extends TestCase
         $this->assertSame(0, DocumentSchedule::query()->where('document_id', $other->getKey())->count());
     }
 
-    public function test_signed_document_replaces_the_original_for_the_kyc_questionnaire(): void
+    public function test_signed_document_keeps_the_link_with_the_kyc_questionnaire(): void
     {
         $document = $this->documentWithModule();
         $questionnaire = KycQuestionnaire::factory()->approved()->create(['client_id' => $document->documentable_id, 'document_id' => $document->getKey()]);
@@ -192,11 +190,10 @@ class SignatureReconcileTest extends TestCase
         $this->service()->reconcile($request);
 
         $signed = $this->signedDocument($document);
+        $this->assertSame($document->getKey(), $signed->getKey());
         $this->assertSame($signed->getKey(), $questionnaire->fresh()->document_id);
         $this->assertNotNull($questionnaire->fresh()->document);
-        $this->assertSame($document->name, $signed->name);
-        $this->assertSame($document->document_type_id, $signed->document_type_id);
-        $this->assertSame($document->getKey(), Document::withTrashed()->where('replaced_by_id', $signed->getKey())->value('id'));
+        $this->assertCount(1, $signed->getMedia('signed'));
     }
 
     public function test_reconcile_is_idempotent(): void
@@ -424,7 +421,7 @@ class SignatureReconcileTest extends TestCase
         $document = $this->documentWithModule();
         $request = $this->sentRequest($document);
         $this->fake()->completeAll($request->provider_ref);
-        config(['signature.driver' => 'yousign']);
+        config(['unico-core.signature.driver' => 'yousign']);
 
         $request = $this->service()->reconcile($request);
 

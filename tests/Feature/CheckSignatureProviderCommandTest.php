@@ -14,7 +14,7 @@ class CheckSignatureProviderCommandTest extends TestCase
     {
         parent::setUp();
 
-        config(['signature.yousign' => [
+        config(['unico-core.signature.yousign' => [
             'api_key' => self::KEY,
             'base_url' => 'https://yousign.test/v3',
             'webhook_secret' => 'test-webhook-secret',
@@ -27,7 +27,7 @@ class CheckSignatureProviderCommandTest extends TestCase
 
     public function test_ok_prints_status_without_secrets(): void
     {
-        config(['signature.driver' => 'yousign']);
+        config(['unico-core.signature.driver' => 'yousign']);
         Http::fake(['*' => Http::response([], 200)]);
 
         $this->artisan('signature:check')
@@ -41,7 +41,7 @@ class CheckSignatureProviderCommandTest extends TestCase
 
     public function test_401_prints_ko_and_fails(): void
     {
-        config(['signature.driver' => 'yousign']);
+        config(['unico-core.signature.driver' => 'yousign']);
         Http::fake(['*' => Http::response([], 401)]);
 
         $this->artisan('signature:check')
@@ -52,7 +52,7 @@ class CheckSignatureProviderCommandTest extends TestCase
 
     public function test_connection_error_prints_ko_and_fails(): void
     {
-        config(['signature.driver' => 'yousign']);
+        config(['unico-core.signature.driver' => 'yousign']);
         Http::fake(['*' => fn () => throw new ConnectionException('boom '.self::KEY)]);
 
         $this->artisan('signature:check')
@@ -63,7 +63,7 @@ class CheckSignatureProviderCommandTest extends TestCase
 
     public function test_fake_driver_exits_zero_without_http(): void
     {
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
 
         $this->artisan('signature:check')
             ->expectsOutputToContain('fake')

@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Services\Signature\PhoneNumber;
+use Unico\Core\Signature\PhoneNumber;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

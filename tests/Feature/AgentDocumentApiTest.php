@@ -31,7 +31,7 @@ class AgentDocumentApiTest extends TestCase
         Storage::fake(config('unico-core.documents_disk'));
         Storage::fake('public');
         Storage::fake(config('media-library.disk_name'));
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
         Company::factory()->create();
         Tipoprodotto::unguarded(fn () => Tipoprodotto::firstOrCreate(['tipo_prodotto' => 'Altro'], ['name' => 'Altro']));
         $this->issued = ApiClient::issue('unicoagent');
@@ -207,8 +207,8 @@ class AgentDocumentApiTest extends TestCase
         ])->assertCreated()->json();
 
         $request = \App\Models\SignatureRequest::findOrFail($signature['id']);
-        app(\App\Services\Signature\SignatureProviderManager::class)->provider('fake')->completeAll($request->provider_ref);
-        app(\App\Services\Signature\SignatureRequestService::class)->reconcile($request);
+        app(\Unico\Core\Signature\SignatureProviderManager::class)->provider('fake')->completeAll($request->provider_ref);
+        app(\Unico\Core\Signature\SignatureRequestService::class)->reconcile($request);
 
         $this->signedJson('GET', "{$base}/documenti/{$document['id']}/firma")->assertOk()->assertJsonPath('firmata', true)->assertJsonPath('stato', 'signed');
         $this->assertStringEndsWith('%FAKE-SIGNED', rtrim($this->signedJson('GET', "{$base}/documenti/{$document['id']}/file")->assertOk()->getContent()));

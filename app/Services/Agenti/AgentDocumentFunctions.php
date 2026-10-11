@@ -6,15 +6,15 @@ use App\Models\Client;
 use App\Models\Document;
 use App\Models\PdfModule;
 use App\Models\PROFORMA\Pratica;
-use App\Models\SignatureRequest;
+use Unico\Core\Models\SignatureRequest;
 use App\Services\ModuleDataResolver;
 use App\Services\ModuleSuggester;
 use Unico\Core\Pdf\PdfFormException;
 use App\Services\PraticaModuleGenerator;
-use App\Services\Signature\Exceptions\SignatureRequestException;
-use App\Services\Signature\SignatureRequestService;
+use Unico\Core\Signature\Exceptions\SignatureRequestException;
+use Unico\Core\Signature\SignatureRequestService;
 use App\Services\Signature\SignerDefaults;
-use App\Services\Signature\SignerInput;
+use Unico\Core\Signature\SignerInput;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -78,28 +78,17 @@ class AgentDocumentFunctions
         }
     }
 
-    /**
-     * Documento della richiesta (pratica o cliente) con quell'id. Se è stato sostituito dal firmato (la firma crea un nuovo
-     * documento e archivia l'originale) si segue la sostituzione: l'id dato in precedenza continua a funzionare.
-     *
-     * @throws AgentIntakeException
-     */
+    /** Documento della richiesta (pratica o cliente) con quell'id. @throws AgentIntakeException */
     public function document(Pratica $pratica, string $id): Document
     {
-        $all = $pratica->documents()->withTrashed()->get()->merge($this->intake->clientOf($pratica)->documents()->withTrashed()->get());
-        $document = $all->first(fn (Document $d): bool => (string) $d->getKey() === $id);
-
-        for ($hops = 0; $document !== null && $document->replaced_by_id !== null && $hops < 5; $hops++) {
-            $document = $all->first(fn (Document $d): bool => (string) $d->getKey() === (string) $document->replaced_by_id);
-        }
-
-        return $document ?? throw new AgentIntakeException('documento_non_trovato', 'Documento non trovato.', 404);
+        return $this->intake->documents($pratica)->first(fn (Document $d): bool => (string) $d->getKey() === $id)
+            ?? throw new AgentIntakeException('documento_non_trovato', 'Documento non trovato.', 404);
     }
 
-    /** Contenuto del file del documento, o null se non ancora caricato. */
+    /** Contenuto del file del documento (il firmato, se c'è), o null se non ancora caricato. */
     public function content(Document $document): ?string
     {
-        $media = $document->getFirstMedia(Document::COLLECTION);
+        $media = $document->currentMedia();
 
         return $media === null ? null : (string) stream_get_contents($media->stream());
     }

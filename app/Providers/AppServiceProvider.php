@@ -11,7 +11,6 @@ use App\Models\PROFORMA\Clienti;
 use App\Models\PROFORMA\Fornitore;
 use App\Models\PROFORMA\Pratica;
 use App\Models\Website;
-use App\Services\Signature\SignatureProviderManager;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -26,7 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(SignatureProviderManager::class);
     }
 
     /**

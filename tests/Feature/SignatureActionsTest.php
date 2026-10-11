@@ -15,9 +15,9 @@ use App\Models\KycQuestionnaire;
 use App\Models\PdfModule;
 use App\Models\SignatureRequest;
 use App\Models\User;
-use App\Services\Signature\Exceptions\SignatureRequestException;
-use App\Services\Signature\FakeSignatureProvider;
-use App\Services\Signature\SignatureRequestService;
+use Unico\Core\Signature\Exceptions\SignatureRequestException;
+use Unico\Core\Signature\FakeSignatureProvider;
+use Unico\Core\Signature\SignatureRequestService;
 use App\Services\Signature\SignerDefaults;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -47,7 +47,7 @@ class SignatureActionsTest extends TestCase
 
         Storage::fake('public');
         Storage::fake(config('media-library.disk_name'));
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
         Filament::setCurrentPanel('admin');
         $this->user = User::factory()->create(['role' => UserRole::ADMIN->value]);
         $this->actingAs($this->user);

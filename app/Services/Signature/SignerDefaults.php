@@ -6,6 +6,10 @@ use App\Models\Client;
 use App\Models\Document;
 use App\Models\PROFORMA\Pratica;
 use App\Services\ModuleDataResolver;
+use App\Models\PROFORMA\Fornitore;
+use App\Models\User;
+use Unico\Core\Enums\SignerRole;
+use Unico\Core\Signature\SignerInput;
 
 /**
  * Firmatari proposti per un documento; gli slot non risolvibili mancano e li compila l'operatore.
@@ -21,21 +25,43 @@ class SignerDefaults
         $signers = [];
 
         if ($documentable instanceof Client) {
-            $signers['cliente'] = SignerInput::fromClient($documentable, 'cliente');
+            $signers['cliente'] = self::fromClient($documentable, 'cliente');
         }
 
         if ($documentable instanceof Pratica) {
             $client = app(ModuleDataResolver::class)->findClient($documentable);
 
             if ($client !== null) {
-                $signers['cliente'] = SignerInput::fromClient($client, 'cliente');
+                $signers['cliente'] = self::fromClient($client, 'cliente');
             }
 
             if ($documentable->agente !== null) {
-                $signers['collaboratore'] = SignerInput::fromAgent($documentable->agente, 'collaboratore');
+                $signers['collaboratore'] = self::fromAgent($documentable->agente, 'collaboratore');
             }
         }
 
         return $signers;
+    }
+
+    /** Per una società firma il legale rappresentante, se presente. */
+    public static function fromClient(Client $client, string $slot): SignerInput
+    {
+        $signer = ! $client->is_person && $client->legalRepresentative !== null ? $client->legalRepresentative : $client;
+
+        return new SignerInput($slot, SignerRole::Client, (string) $signer->first_name, (string) $signer->name, $signer->email, $signer->phone, $signer->tax_code, 'client', (string) $signer->getKey());
+    }
+
+    public static function fromAgent(Fornitore $agent, string $slot): SignerInput
+    {
+        [$firstName, $lastName] = array_pad(preg_split('/\s+/', trim((string) $agent->name), 2), 2, '');
+
+        return new SignerInput($slot, SignerRole::Collaborator, (string) $firstName, (string) $lastName, $agent->email, $agent->tel, $agent->cf, 'agent', (string) $agent->getKey());
+    }
+
+    public static function fromUser(User $user, string $slot): SignerInput
+    {
+        [$firstName, $lastName] = array_pad(preg_split('/\s+/', trim((string) $user->name), 2), 2, '');
+
+        return new SignerInput($slot, SignerRole::Collaborator, (string) $firstName, (string) $lastName, $user->email, null, null, 'user', (string) $user->getKey());
     }
 }

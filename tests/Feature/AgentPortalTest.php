@@ -33,8 +33,8 @@ use App\Models\Tipoprodotto;
 use App\Models\User;
 use App\Services\Kyc\KycQavGenerator;
 use Unico\Core\Pdf\PdfFormFiller;
-use App\Services\Signature\FakeSignatureProvider;
-use App\Services\Signature\SignatureRequestService;
+use Unico\Core\Signature\FakeSignatureProvider;
+use Unico\Core\Signature\SignatureRequestService;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -402,7 +402,7 @@ class AgentPortalTest extends TestCase
     {
         Storage::fake('public');
         Storage::fake(config('media-library.disk_name'));
-        config(['signature.driver' => 'fake']);
+        config(['unico-core.signature.driver' => 'fake']);
 
         $pdf = (string) file_get_contents(base_path('tests/Fixtures/pdf/modulo-prova.pdf'));
         $filler = $this->mock(PdfFormFiller::class);
@@ -470,11 +470,11 @@ class AgentPortalTest extends TestCase
 
         $questionnaire->refresh();
         $signed = Document::query()->findOrFail($questionnaire->document_id);
-        $this->assertNotSame($document->getKey(), $signed->getKey());
+        $this->assertSame($document->getKey(), $signed->getKey());
         $this->assertTrue((bool) $signed->is_signed);
         $this->assertSame(KycStatus::Approved, $questionnaire->status);
         $this->assertSame($this->agentUser->name, $questionnaire->verified_by);
-        $this->assertTrue(Document::withTrashed()->findOrFail($document->getKey())->trashed());
+        $this->assertFalse(Document::withTrashed()->findOrFail($document->getKey())->trashed());
     }
 
     public function test_incomplete_kyc_is_not_sent_for_signature(): void
@@ -501,12 +501,11 @@ class AgentPortalTest extends TestCase
         $questionnaire->update(['document_id' => $document->getKey()]);
         $request = SignatureRequest::create(['document_id' => $document->getKey(), 'provider' => 'fake', 'status' => SignatureRequestStatus::Sent, 'requested_by' => $this->agentUser->id]);
 
-        $reflection = new \ReflectionMethod(SignatureRequestService::class, 'approveSignedKyc');
-        $signed = Document::query()->create(['name' => 'QAV firmato', 'status' => 'caricato', 'spatie_collection' => 'documents', 'documentable_type' => $document->documentable_type, 'documentable_id' => $document->documentable_id]);
-        $reflection->invoke(app(SignatureRequestService::class), $request, $document, $signed, now());
+        event(new \Unico\Core\Events\SignatureCompleted($request, $document));
 
         $questionnaire->refresh();
-        $this->assertSame($signed->getKey(), $questionnaire->document_id);
+        $this->assertSame($document->getKey(), $questionnaire->document_id);
+        $this->assertSame(KycStatus::Approved, $questionnaire->status);
         $this->assertSame('Tester', $questionnaire->verified_by);
     }
 

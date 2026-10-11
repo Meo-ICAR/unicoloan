@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ReconcileSignatureRequest;
+use Unico\Core\Signature\Jobs\ReconcileSignatureRequest;
 use App\Models\SignatureRequest;
-use App\Services\Signature\FakeSignatureProvider;
+use Unico\Core\Signature\FakeSignatureProvider;
 use Illuminate\Console\Command;
 
 class FakeCompleteSignature extends Command
@@ -15,7 +15,7 @@ class FakeCompleteSignature extends Command
 
     public function handle(): int
     {
-        if (config('signature.driver') !== 'fake' || app()->isProduction()) {
+        if (config('unico-core.signature.driver') !== 'fake' || app()->isProduction()) {
             $this->error('Comando disponibile solo con il provider di firma fake e fuori produzione.');
 
             return self::FAILURE;

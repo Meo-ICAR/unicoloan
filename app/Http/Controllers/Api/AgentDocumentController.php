@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\PdfModule;
 use App\Models\PROFORMA\Pratica;
-use App\Models\SignatureRequest;
+use Unico\Core\Models\SignatureRequest;
 use App\Services\Agenti\AgentDocumentFunctions;
 use App\Services\Agenti\AgentIntakeException;
 use App\Services\Agenti\AgentRequestIntake;
@@ -92,7 +92,7 @@ class AgentDocumentController extends Controller
                 'inviata_il' => $riferimento->sent_at?->toIso8601String(),
                 'firmata_il' => $riferimento->signed_at?->toIso8601String(),
                 'scade_il' => $riferimento->expires_at?->toIso8601String(),
-                'firmatari' => $riferimento->signers->map(fn ($s): array => ['riquadro' => $s->slot, 'stato' => $s->status->value])->all(),
+                'firmatari' => $riferimento->signatureRequestSigners->map(fn ($s): array => ['riquadro' => $s->slot, 'stato' => $s->status->value])->all(),
             ];
         }
 

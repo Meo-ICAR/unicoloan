@@ -4,13 +4,13 @@ namespace Tests\Feature;
 
 use Unico\Core\Enums\SignatureRequestStatus;
 use Unico\Core\Enums\SignerStatus;
-use App\Services\Signature\Dto\EnvelopeData;
-use App\Services\Signature\Exceptions\EnvelopeNotFoundException;
-use App\Services\Signature\Exceptions\InvalidEnvelopeException;
-use App\Services\Signature\Exceptions\ProviderUnavailableException;
-use App\Services\Signature\SignatureProvider;
-use App\Services\Signature\SignatureProviderManager;
-use App\Services\Signature\YousignSignatureProvider;
+use Unico\Core\Signature\Dto\EnvelopeData;
+use Unico\Core\Signature\Exceptions\EnvelopeNotFoundException;
+use Unico\Core\Signature\Exceptions\InvalidEnvelopeException;
+use Unico\Core\Signature\Exceptions\ProviderUnavailableException;
+use Unico\Core\Signature\Contracts\SignatureProvider;
+use Unico\Core\Signature\SignatureProviderManager;
+use Unico\Core\Signature\YousignSignatureProvider;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Http\Request;
@@ -37,7 +37,7 @@ class YousignSignatureProviderTest extends TestCase
     {
         parent::setUp();
 
-        config(['signature.yousign' => [
+        config(['unico-core.signature.yousign' => [
             'api_key' => self::KEY,
             'base_url' => self::BASE,
             'webhook_secret' => self::SECRET,
@@ -65,7 +65,7 @@ class YousignSignatureProviderTest extends TestCase
             $this->fakeHappyPath();
         }
 
-        return new YousignSignatureProvider(config('signature.yousign'));
+        return new YousignSignatureProvider(config('unico-core.signature.yousign'));
     }
 
     protected function completeAll(string $ref): void
@@ -449,7 +449,7 @@ class YousignSignatureProviderTest extends TestCase
 
     public function test_webhook_with_empty_secret_returns_null(): void
     {
-        config(['signature.yousign.webhook_secret' => '']);
+        config(['unico-core.signature.yousign.webhook_secret' => '']);
         $body = json_encode($this->payload());
         $request = Request::create('/x', 'POST', [], [], [], ['HTTP_X_YOUSIGN_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $body, '')], $body);
 
