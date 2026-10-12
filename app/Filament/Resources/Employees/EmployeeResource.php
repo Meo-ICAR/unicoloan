@@ -32,6 +32,8 @@ class EmployeeResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationLabel = 'Organigramma';
 
     protected static ?string $modelLabel = 'Organigramma';
