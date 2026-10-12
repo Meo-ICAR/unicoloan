@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Clients\RelationManagers;
 
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Tipoprodotto;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -53,7 +53,6 @@ class ImpegniTerziRelationManager extends RelationManager
                         $client = $this->getOwnerRecord();
 
                         Pratica::create([
-                            'id' => (string) Str::uuid(),
                             'codice_pratica' => 'TERZI-'.Str::upper(Str::random(8)),
                             'nome_cliente' => $client->is_person ? $client->first_name : null,
                             'cognome_cliente' => $client->name,

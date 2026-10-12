@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -21,7 +21,7 @@ class PraticaRejectedAtTest extends TestCase
 
     private function pratica(?string $stato): Pratica
     {
-        return Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => 'ZZ-'.Str::random(6), 'stato_pratica' => $stato]);
+        return Pratica::create(['codice_pratica' => 'ZZ-'.Str::random(6), 'stato_pratica' => $stato]);
     }
 
     public function test_rejected_state_sets_rejected_at_on_create(): void

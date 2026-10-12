@@ -7,8 +7,8 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Document;
 use App\Models\DocumentType;
-use App\Models\PROFORMA\Fornitore;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Fornitore;
+use App\Models\Pratica;
 use App\Models\Task;
 use App\Models\Tipoprodotto;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -45,7 +45,7 @@ class AgentApiTest extends TestCase
             Tipoprodotto::firstOrCreate(['tipo_prodotto' => 'Cessione del quinto'], ['name' => 'Cessione del quinto']);
         });
         $this->issued = ApiClient::issue('unicoagent');
-        Fornitore::create(['id' => (string) Str::uuid(), 'name' => 'ZZ AGENTE UNO', 'piva' => '99900000001']);
+        Fornitore::create(['name' => 'ZZ AGENTE UNO', 'piva' => '99900000001']);
 
         $this->identity = DocumentType::create(['name' => 'Carta identità', 'slug' => 'carta-identita-zz', 'nature' => 'incoming', 'is_client' => true]);
         $this->income = DocumentType::create(['name' => 'Busta paga', 'slug' => 'busta-paga-zz', 'nature' => 'incoming', 'is_practice' => true]);
@@ -207,7 +207,7 @@ class AgentApiTest extends TestCase
 
     public function test_un_cliente_gia_di_un_altro_agente_non_si_prende(): void
     {
-        Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => 'ZZ-1', 'codice_fiscale' => 'RSSMRA80A01H501U', 'partita_iva_agente' => '11111111111', 'stato_pratica' => 'INSERITA', 'data_inserimento_pratica' => today()]);
+        Pratica::create(['codice_pratica' => 'ZZ-1', 'codice_fiscale' => 'RSSMRA80A01H501U', 'partita_iva_agente' => '11111111111', 'stato_pratica' => 'INSERITA', 'data_inserimento_pratica' => today()]);
         Client::create(['is_person' => true, 'is_client' => true, 'name' => 'Rossi', 'first_name' => 'Mario', 'tax_code' => 'RSSMRA80A01H501U']);
 
         $this->signedJson('POST', '/api/agente/v1/richieste', $this->request('FIN-3'))

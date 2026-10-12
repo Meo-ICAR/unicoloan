@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Client;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\ModuleDataResolver;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Str;

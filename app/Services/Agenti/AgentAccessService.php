@@ -4,7 +4,7 @@ namespace App\Services\Agenti;
 
 use App\Enums\AgentAccessOutcome;
 use App\Enums\UserRole;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use App\Models\User;
 use Filament\Auth\Notifications\ResetPassword;
 use Filament\Facades\Filament;

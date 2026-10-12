@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\PdfModuleClientScope;
 use App\Models\Client;
 use App\Models\PdfModule;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\ModuleSuggester;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\PdfModuleField;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\ModuleDataResolver;
 use App\Services\ModuleSuggester;
 use Unico\Core\Pdf\PdfFormException;

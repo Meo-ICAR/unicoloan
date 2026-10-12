@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\DocumentType;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\Agenti\AgentIntakeException;
 use App\Services\Agenti\AgentRequestIntake;
 use Illuminate\Http\JsonResponse;

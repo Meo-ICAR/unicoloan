@@ -5,7 +5,7 @@ namespace App\Filament\Actions;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\PdfModule;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\ModuleDataResolver;
 use App\Services\ModuleSuggester;
 use Unico\Core\Pdf\PdfFormException;

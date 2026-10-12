@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Tasks\Tables;
 
 use App\Models\Company;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use App\Models\Task;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;

@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\DocumentType;
-use App\Models\PROFORMA\Fornitore;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Fornitore;
+use App\Models\Pratica;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -40,7 +40,7 @@ class CreateMissingClientsCommandTest extends TestCase
 
     private function pratica(array $attributes): Pratica
     {
-        return Pratica::create(array_merge(['id' => (string) Str::uuid()], $attributes));
+        return Pratica::create($attributes);
     }
 
     public function test_creates_a_person_from_the_most_recent_pratica(): void

@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Praticas\Pages\ListPraticas;
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -35,7 +35,6 @@ class PraticasListFiltersTest extends TestCase
     private function pratica(array $attributes = []): Pratica
     {
         return Pratica::create($attributes + [
-            'id' => (string) Str::uuid(),
             'codice_pratica' => 'ZZ-'.Str::random(6),
             'stato_pratica' => 'INSERITA',
             'data_inserimento_pratica' => today(),

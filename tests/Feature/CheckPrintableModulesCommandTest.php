@@ -6,7 +6,7 @@ use App\Enums\ModuleSourceKey as Key;
 use App\Models\Client;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -37,7 +37,7 @@ class CheckPrintableModulesCommandTest extends TestCase
 
     private function pratica(string $code, ?string $taxCode, string $product = 'Prestito'): Pratica
     {
-        return Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => $code, 'codice_fiscale' => $taxCode, 'tipo_prodotto' => $product]);
+        return Pratica::create(['codice_pratica' => $code, 'codice_fiscale' => $taxCode, 'tipo_prodotto' => $product]);
     }
 
     public function test_reports_success_when_every_suggested_module_has_all_its_data(): void

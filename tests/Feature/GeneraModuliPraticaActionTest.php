@@ -8,7 +8,7 @@ use App\Models\Client;
 use App\Models\Document;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -43,7 +43,6 @@ class GeneraModuliPraticaActionTest extends TestCase
     private function pratica(?string $codiceFiscale): Pratica
     {
         return Pratica::create([
-            'id' => (string) Str::uuid(),
             'codice_pratica' => 'P-2026-001',
             'codice_fiscale' => $codiceFiscale,
             'tipo_prodotto' => 'Prestito',

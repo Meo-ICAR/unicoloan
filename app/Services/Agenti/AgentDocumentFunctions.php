@@ -5,7 +5,7 @@ namespace App\Services\Agenti;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\PdfModule;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Unico\Core\Models\SignatureRequest;
 use App\Services\ModuleDataResolver;
 use App\Services\ModuleSuggester;

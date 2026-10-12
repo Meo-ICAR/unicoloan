@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

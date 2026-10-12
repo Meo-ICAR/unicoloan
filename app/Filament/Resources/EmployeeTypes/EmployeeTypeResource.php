@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\EmployeeTypes;
 
-use App\Filament\Resources\EmployeeTypes\Pages\CreateEmployeeType;
 use App\Filament\Resources\EmployeeTypes\Pages\EditEmployeeType;
 use App\Filament\Resources\EmployeeTypes\Pages\ListEmployeeTypes;
 use App\Filament\Resources\EmployeeTypes\Pages\ViewEmployeeType;
@@ -66,9 +65,23 @@ class EmployeeTypeResource extends Resource
     {
         return [
             'index' => ListEmployeeTypes::route('/'),
-            'create' => CreateEmployeeType::route('/create'),
             'view' => ViewEmployeeType::route('/{record}'),
             'edit' => EditEmployeeType::route('/{record}/edit'),
         ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return false;
     }
 }

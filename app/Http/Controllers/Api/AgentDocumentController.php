@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\PdfModule;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Unico\Core\Models\SignatureRequest;
 use App\Services\Agenti\AgentDocumentFunctions;
 use App\Services\Agenti\AgentIntakeException;

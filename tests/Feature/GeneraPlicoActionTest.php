@@ -8,7 +8,7 @@ use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
@@ -50,7 +50,7 @@ class GeneraPlicoActionTest extends TestCase
 
     private function pratica(string $product, string $state): Pratica
     {
-        return Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => 'P-'.Str::random(5), 'tipo_prodotto' => $product, 'stato_pratica' => $state]);
+        return Pratica::create(['codice_pratica' => 'P-'.Str::random(5), 'tipo_prodotto' => $product, 'stato_pratica' => $state]);
     }
 
     private function manager(Pratica|Client $owner)

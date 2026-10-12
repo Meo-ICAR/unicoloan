@@ -6,7 +6,7 @@ use App\Models\ApiClient;
 use App\Models\Company;
 use App\Models\DocumentType;
 use App\Models\PdfModule;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use App\Models\Tipoprodotto;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -35,7 +35,7 @@ class AgentDocumentApiTest extends TestCase
         Company::factory()->create();
         Tipoprodotto::unguarded(fn () => Tipoprodotto::firstOrCreate(['tipo_prodotto' => 'Altro'], ['name' => 'Altro']));
         $this->issued = ApiClient::issue('unicoagent');
-        Fornitore::create(['id' => (string) Str::uuid(), 'name' => 'ZZ AGENTE UNO', 'piva' => '99900000001']);
+        Fornitore::create(['name' => 'ZZ AGENTE UNO', 'piva' => '99900000001']);
 
         $type = DocumentType::create(['name' => 'Modulo QAV ZZ', 'slug' => 'qav-zz', 'nature' => 'template_fillable', 'is_monitored' => true, 'duration' => 12, 'duration_unit' => 'months']);
         $this->module = PdfModule::factory()->create([

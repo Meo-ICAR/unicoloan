@@ -6,7 +6,7 @@ use App\Filament\Resources\PdfModules\Pages\EditPdfModule;
 use App\Models\Client;
 use App\Models\DocumentType;
 use App\Models\PdfModule;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use App\Services\PdfFieldSynchronizer;
 use Unico\Core\Pdf\PdfFormFiller;
@@ -60,7 +60,7 @@ class PdfModuleDocumentTypeTest extends TestCase
         $type = $this->documentType();
         $linked = PdfModule::factory()->create(['document_type_id' => $type->id]);
         $unlinked = PdfModule::factory()->create();
-        $pratica = Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => 'P-DT-1']);
+        $pratica = Pratica::create(['codice_pratica' => 'P-DT-1']);
         $client = Client::create(['name' => 'Rossi', 'first_name' => 'Mario', 'is_person' => true, 'tax_code' => strtoupper(Str::random(16))]);
 
         $documents = app(PraticaModuleGenerator::class)

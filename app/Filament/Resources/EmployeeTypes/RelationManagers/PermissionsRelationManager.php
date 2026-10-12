@@ -19,6 +19,11 @@ class PermissionsRelationManager extends RelationManager
 
     protected static ?string $title = 'Matrice Permessi e Accessi';
 
+    public function isReadOnly(): bool
+    {
+        return true;
+    }
+
     public function table(Table $table): Table
     {
         return $table

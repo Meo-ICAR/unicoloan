@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Employee;
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 
 /**
  * Centralizza il controllo "questo agente/dipendente può lavorare con questa banca?".

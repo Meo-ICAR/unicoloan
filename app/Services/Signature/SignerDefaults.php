@@ -4,9 +4,9 @@ namespace App\Services\Signature;
 
 use App\Models\Client;
 use App\Models\Document;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\ModuleDataResolver;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use App\Models\User;
 use Unico\Core\Enums\SignerRole;
 use Unico\Core\Signature\SignerInput;

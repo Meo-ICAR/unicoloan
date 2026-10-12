@@ -9,7 +9,7 @@ use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\KycQuestionnaire;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\Kyc\KycModuleValues;
 
 /**

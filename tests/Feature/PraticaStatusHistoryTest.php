@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Filament\Resources\Praticas\Pages\EditPratica;
 use App\Models\PraticaStatusHistory;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Collection;
@@ -25,7 +25,7 @@ class PraticaStatusHistoryTest extends TestCase
 
     private function pratica(string $stato = 'INSERITA'): Pratica
     {
-        return Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => 'ZZ-'.Str::random(6), 'stato_pratica' => $stato, 'nome_cliente' => 'Mario', 'cognome_cliente' => 'ZZ Rossi']);
+        return Pratica::create(['codice_pratica' => 'ZZ-'.Str::random(6), 'stato_pratica' => $stato, 'nome_cliente' => 'Mario', 'cognome_cliente' => 'ZZ Rossi']);
     }
 
     private function history(Pratica $pratica): Collection

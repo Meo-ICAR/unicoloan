@@ -67,7 +67,6 @@ class DatabaseSeeder extends Seeder
             WebsiteSeeder::class,
             MailAccountSeeder::class,
             CompanyRoleSeeder::class,
-            EmployeeTypeSeeder::class,
             ResourceSeeder::class,
             EmailTemplateSeeder::class,
             DocumentTypeSeeder::class,

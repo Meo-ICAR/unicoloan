@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Praticas\Tables;
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\PraticaStati;
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Tipoprodotto;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -113,7 +113,7 @@ class PraticasTable
                         // Verifica se ci sono valori selezionati nel filtro
                         if (! empty($data['values'])) {
                             // Applica l'esclusione tramite whereNotIn
-                            return $query->whereNotIn('stato_pratica', $data['values']);
+                            return $query->whereDoesntHave('praticaStato', fn (Builder $q) => $q->whereIn('codice', $data['values']));
                         }
 
                         return $query;
@@ -121,7 +121,14 @@ class PraticasTable
                 SelectFilter::make('tipo_prodotto')
                     ->options(Tipoprodotto::whereNotNull('tipo_prodotto')->pluck('tipo_prodotto', 'name'))
                     ->multiple()
-                    ->label('Tipo Prodotto'),
+                    ->label('Tipo Prodotto')
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (! empty($data['values'])) {
+                            return $query->whereHas('tipoprodotto', fn (Builder $q) => $q->whereIn('tipo_prodotto', $data['values']));
+                        }
+
+                        return $query;
+                    }),
                 Filter::make('data_inserimento')
                     ->label('Inseriti da 6 mesi')
                     ->default(true)

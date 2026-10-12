@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use App\Models\Company;
 use App\Models\Employee;
 use App\Models\Task;

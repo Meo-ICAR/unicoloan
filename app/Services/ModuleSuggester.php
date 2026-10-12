@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Client;
 use App\Models\PdfModule;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Illuminate\Support\Collection;
 
 class ModuleSuggester

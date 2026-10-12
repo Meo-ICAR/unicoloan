@@ -4,7 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\BlacklistClienteFornitore;
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Tests\TestCase;

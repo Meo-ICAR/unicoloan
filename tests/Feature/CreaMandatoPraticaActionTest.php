@@ -7,7 +7,7 @@ use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Models\Client;
 use App\Models\ClientMandate;
 use App\Models\PraticaClient;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Tipoprodotto;
 use App\Models\User;
 use Filament\Facades\Filament;

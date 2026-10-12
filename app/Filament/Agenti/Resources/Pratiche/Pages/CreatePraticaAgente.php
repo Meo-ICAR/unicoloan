@@ -53,7 +53,6 @@ class CreatePraticaAgente extends CreateRecord
             'tipo_prodotto' => $data['tipo_prodotto'],
             'denominazione_banca' => $data['denominazione_banca'],
             'amount' => $data['amount'],
-            'id' => (string) Str::uuid(),
             'codice_pratica' => 'AG-'.now()->format('ymd').'-'.Str::upper(Str::random(6)),
             'stato_pratica' => 'INSERITA',
             'data_inserimento_pratica' => today(),

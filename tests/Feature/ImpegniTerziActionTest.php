@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Clients\RelationManagers\ImpegniTerziRelationManager;
 use App\Models\Client;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Tipoprodotto;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;

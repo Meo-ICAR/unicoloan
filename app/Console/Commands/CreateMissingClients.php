@@ -7,8 +7,8 @@ use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;
-use App\Models\PROFORMA\Fornitore;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Fornitore;
+use App\Models\Pratica;
 use App\Services\CodiceFiscaleDecoder;
 use App\Services\CompanyResolver;
 use Carbon\CarbonImmutable;
@@ -631,7 +631,6 @@ class CreateMissingClients extends Command
                     $base = $groups->get($code)->first();
 
                     Pratica::create([
-                        'id' => (string) Str::uuid(),
                         'codice_pratica' => 'TERZI-'.$client->getKey(),
                         'nome_cliente' => $base->nome_cliente,
                         'cognome_cliente' => $base->cognome_cliente,

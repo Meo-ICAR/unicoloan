@@ -10,7 +10,7 @@ use App\Models\Client;
 use App\Models\Document;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

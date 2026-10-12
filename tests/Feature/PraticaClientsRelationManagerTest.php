@@ -7,7 +7,7 @@ use App\Filament\Resources\Praticas\Pages\EditPratica;
 use App\Filament\Resources\Praticas\RelationManagers\PraticaClientsRelationManager;
 use App\Models\Client;
 use App\Models\PraticaClient;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -35,7 +35,7 @@ class PraticaClientsRelationManagerTest extends TestCase
 
     private function pratica(string $product): Pratica
     {
-        return Pratica::create(['id' => (string) Str::uuid(), 'codice_pratica' => 'P-'.Str::random(5), 'tipo_prodotto' => $product]);
+        return Pratica::create(['codice_pratica' => 'P-'.Str::random(5), 'tipo_prodotto' => $product]);
     }
 
     private function manager(Pratica $pratica)

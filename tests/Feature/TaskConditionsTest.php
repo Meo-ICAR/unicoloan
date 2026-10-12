@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Tasks\Pages\EditTask;
 use App\Models\Client;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Facades\Filament;

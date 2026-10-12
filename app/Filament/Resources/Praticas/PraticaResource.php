@@ -13,7 +13,7 @@ use App\Filament\Resources\Praticas\Schemas\PraticaForm;
 use App\Filament\Resources\Praticas\Tables\PraticasTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Traits\HasPlanAccess;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

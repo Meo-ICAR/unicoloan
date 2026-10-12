@@ -9,7 +9,7 @@ use App\Enums\ModuleSourceKey;
 use App\Models\Client;
 use App\Models\KycBeneficialOwner;
 use App\Models\KycQuestionnaire;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\ModuleDataResolver;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Str;

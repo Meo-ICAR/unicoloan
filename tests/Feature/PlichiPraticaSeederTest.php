@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Client;
 use App\Models\DocumentType;
 use App\Models\PraticaStati;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Task;
 use Database\Seeders\PlichiPraticaSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;

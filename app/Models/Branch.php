@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;

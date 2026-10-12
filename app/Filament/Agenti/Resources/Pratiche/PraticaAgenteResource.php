@@ -9,8 +9,8 @@ use App\Filament\Agenti\Resources\Pratiche\RelationManagers\AdeguataVerificaRela
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiFirmabiliRelationManager;
 use App\Filament\Agenti\Resources\Pratiche\RelationManagers\DocumentiRelationManager;
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Fornitore;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Fornitore;
+use App\Models\Pratica;
 use App\Models\Tipoprodotto;
 use App\Services\Agenti\ClientForPraticaCreator;
 use App\Services\BlacklistChecker;

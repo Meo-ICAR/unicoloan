@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Filament\Resources\Praticas\Pages\EditPratica;
 use App\Models\Client;
 use App\Models\KycQuestionnaire;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -53,7 +53,6 @@ class KycPraticaNoticeTest extends TestCase
     private function makePratica(?string $codiceFiscale): Pratica
     {
         return Pratica::create([
-            'id' => (string) Str::uuid(),
             'codice_pratica' => 'P-KYC-1',
             'codice_fiscale' => $codiceFiscale,
         ]);

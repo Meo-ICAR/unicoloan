@@ -13,7 +13,7 @@ use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
 use App\Filament\Traits\HasPlanAccess;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

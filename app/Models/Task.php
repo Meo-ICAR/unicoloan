@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Unico\Core\Enums\DocumentStatus;
 use App\Events\TaskActivated;
-use App\Models\PROFORMA\Pratica; // <-- Add this line!
+use App\Models\Pratica;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

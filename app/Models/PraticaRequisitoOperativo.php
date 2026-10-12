@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Unico\Core\Models\DocumentRequest as CoreDocumentRequest;

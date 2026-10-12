@@ -6,7 +6,7 @@ use App\Enums\PraticaClientRole;
 use App\Models\Client;
 use App\Models\ClientMandate;
 use App\Models\PraticaClient;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\Tipoprodotto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -39,7 +39,6 @@ class MandatoPraticaCreator
             ]);
 
             $pratica = Pratica::create([
-                'id' => (string) Str::uuid(),
                 'codice_pratica' => 'PR-'.now()->format('ymd').'-'.Str::upper(Str::random(6)),
                 'nome_cliente' => $client->is_person ? $client->first_name : null,
                 'cognome_cliente' => $client->name,

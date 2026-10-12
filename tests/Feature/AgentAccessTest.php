@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\AgentAccessOutcome;
 use App\Enums\UserRole;
 use App\Filament\Resources\Fornitores\Pages\ListFornitores;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use App\Models\User;
 use App\Services\Agenti\AgentAccessService;
 use Filament\Actions\Testing\TestAction;
@@ -32,7 +32,6 @@ class AgentAccessTest extends TestCase
     private function fornitore(array $attributes = []): Fornitore
     {
         return Fornitore::create($attributes + [
-            'id' => (string) Str::uuid(),
             'name' => 'ZZ AGENTE '.Str::random(4),
             'piva' => '999'.random_int(10000000, 99999999),
             'email' => 'zz.'.Str::lower(Str::random(6)).'@example.test',

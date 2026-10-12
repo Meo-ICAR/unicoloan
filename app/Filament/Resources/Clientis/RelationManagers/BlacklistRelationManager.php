@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Clientis\RelationManagers;
 
 use App\Filament\Traits\HasRelationPlanAccess;
-use App\Models\PROFORMA\Fornitore;
+use App\Models\Fornitore;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;

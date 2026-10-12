@@ -8,7 +8,7 @@ use App\Filament\Actions\SendForSignatureAction;
 use App\Filament\Agenti\Resources\Pratiche\Pages\ViewPraticaAgente;
 use App\Filament\Resources\Clients\Schemas\KycQuestionnaireForm;
 use App\Models\KycQuestionnaire;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\Agenti\ClientForPraticaCreator;
 use App\Services\Kyc\KycQavGenerator;
 use Unico\Core\Pdf\PdfFormException;

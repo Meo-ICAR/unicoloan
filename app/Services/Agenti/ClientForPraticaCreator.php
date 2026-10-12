@@ -3,7 +3,7 @@
 namespace App\Services\Agenti;
 
 use App\Models\Client;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Illuminate\Support\Str;
 
 /**

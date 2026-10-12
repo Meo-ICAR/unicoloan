@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\KycCoverage;
 use App\Models\Concerns\GeneratesPlichi;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;

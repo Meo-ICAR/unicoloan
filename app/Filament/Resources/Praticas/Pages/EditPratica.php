@@ -6,7 +6,7 @@ use App\Enums\KycCoverage;
 use App\Filament\Actions\GeneraModuliPraticaAction;
 use App\Filament\Resources\Praticas\PraticaResource;
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\ModuleDataResolver;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;

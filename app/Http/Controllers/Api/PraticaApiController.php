@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Services\BlacklistChecker;
 use Illuminate\Http\JsonResponse;
 

@@ -7,7 +7,7 @@ use App\Models\Client;
 use App\Models\Document;
 use App\Models\PdfModule;
 use App\Models\PdfModuleField;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Unico\Core\Pdf\PdfFormException;
 use App\Services\PraticaModuleGenerator;
@@ -41,7 +41,6 @@ class PraticaModuleGeneratorTest extends TestCase
     private function pratica(array $attributes = []): Pratica
     {
         return Pratica::create(array_merge([
-            'id' => (string) Str::uuid(),
             'codice_pratica' => 'P-2026-001',
             'amount' => 15000,
             'tipo_prodotto' => 'Prestito',

@@ -40,6 +40,15 @@ class CompanyForm
                                     ->label('Partita IVA / Codice fiscale'),
                                 TextInput::make('sponsor')
                                     ->label('Gruppo Societario'),
+                                Select::make('documents_storage')
+                                    ->label('Archivio documenti')
+                                    ->options([
+                                        'local' => 'Locale',
+                                        'google_drive' => 'Google Drive',
+                                        'sharepoint' => 'SharePoint',
+                                    ])
+                                    ->default('local')
+                                    ->required(),
                             ]),
 
                         /*

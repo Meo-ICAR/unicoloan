@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Models\Client;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Pratica;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -63,7 +63,6 @@ class ClientEmployerIbanTest extends TestCase
     {
         $client = $this->makeClient();
         $pratica = Pratica::create([
-            'id' => (string) Str::uuid(),
             'codice_pratica' => 'P-TEST-1',
             'codice_fiscale' => $client->tax_code,
         ]);

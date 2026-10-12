@@ -26,8 +26,8 @@ use App\Models\DocumentType;
 use App\Models\KycQuestionnaire;
 use App\Models\PdfModule;
 use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Fornitore;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Fornitore;
+use App\Models\Pratica;
 use App\Models\SignatureRequest;
 use App\Models\Tipoprodotto;
 use App\Models\User;
@@ -73,7 +73,7 @@ class AgentPortalTest extends TestCase
     private function agent(string $name, string $piva): array
     {
         $user = User::factory()->create(['role' => UserRole::AGENT->value]);
-        $fornitore = Fornitore::create(['id' => (string) Str::uuid(), 'name' => $name, 'piva' => $piva, 'user_id' => $user->id]);
+        $fornitore = Fornitore::create(['name' => $name, 'piva' => $piva, 'user_id' => $user->id]);
 
         return [$user, $fornitore];
     }
@@ -84,7 +84,6 @@ class AgentPortalTest extends TestCase
     private function pratica(array $attributes = []): Pratica
     {
         return Pratica::create($attributes + [
-            'id' => (string) Str::uuid(),
             'codice_pratica' => 'ZZ-'.Str::random(6),
             'stato_pratica' => 'INSERITA',
             'partita_iva_agente' => $this->fornitore->piva,

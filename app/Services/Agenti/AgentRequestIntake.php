@@ -6,8 +6,8 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Document;
 use App\Models\DocumentType;
-use App\Models\PROFORMA\Fornitore;
-use App\Models\PROFORMA\Pratica;
+use App\Models\Fornitore;
+use App\Models\Pratica;
 use App\Models\Task;
 use App\Models\Tipoprodotto;
 use Illuminate\Http\UploadedFile;
@@ -61,7 +61,6 @@ class AgentRequestIntake
         $client = $this->clients->findOrCreate($taxCode, false, (string) $cliente['cognome'], $cliente['nome'] ?? null, (string) ($cliente['email'] ?? ''), (string) ($cliente['telefono'] ?? ''));
 
         $pratica = Pratica::create([
-            'id' => (string) Str::uuid(),
             'codice_pratica' => self::codiceFor($data['riferimento']),
             'nome_cliente' => $cliente['nome'] ?? null,
             'cognome_cliente' => $cliente['cognome'],
