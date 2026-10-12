@@ -351,3 +351,11 @@ Key config options in `config/activitylog.php`:
 - `actions.clean_log`: Action class for cleaning old activities
 
 </laravel-boost-guidelines>
+
+## Cursor Cloud specific instructions
+
+- Setup scripts live in `.cursor/install.sh` and `.cursor/start.sh`. Install PHP 8.4, Composer, MariaDB, and `pdftk` when they are missing, then check out `meo-icar/unico-core` at `/unico-core` on the commit pinned in `composer.lock` (Composer path repository `../unico-core`).
+- MariaDB listens on `127.0.0.1:3306`. TCP user `root` has an empty password. Databases: `unicooam` (app), `unicoloan_test` (PHPUnit), and `proforma` (connection `mysql_proforma`).
+- The app is served at `http://127.0.0.1:8000` and redirects to `/admin`. Boot creates `dev@example.com` / `password` when that user is missing. The queue worker runs in the tmux session `laravel-queue`.
+- Frontend assets come from `npm run build` during install. Filament admin assets are published by Composer. Run `npm run dev` only when changing Vite sources.
+- Tests: `php artisan test --compact`. PHPUnit overrides the default database to `unicoloan_test`. Some tests still query schema-qualified `proforma.*` tables (`pratiches_statos`, `tipoprodotto`, `provvigioni`) that the unico-core migrations create in the application database under different names. Those failures are current application behavior.
