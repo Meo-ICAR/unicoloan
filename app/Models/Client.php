@@ -5,195 +5,22 @@ namespace App\Models;
 use App\Enums\KycCoverage;
 use App\Models\Concerns\GeneratesPlichi;
 use App\Models\PROFORMA\Pratica;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Unico\Core\Models\Client as CoreClient;
 
-class Client extends Model
+/**
+ * Clienti finali (persone fisiche e giuridiche) con dati KYC e consensi privacy.
+ * Legge e scrive sulla connessione 'core' -> database unico_core_test.
+ */
+class Client extends CoreClient
 {
     use GeneratesPlichi;
-
-    /**
-     * I campi che possono essere assegnati massivamente.
-     * Excluded: id, created_at, updated_at
-     *
-     * @var array<int, string>
-     */
-    protected $connection = 'mysql_proforma';
-
-    protected $table = 'proforma.clients';
-
-    protected $fillable = [
-        'company_id',
-        'is_person',
-        'name',
-        'first_name',
-        'tax_code',
-        'vat_number',
-        'email',
-        'phone',
-        'website',
-        'is_pep',
-        'client_type_id',
-        'is_sanctioned',
-        'is_remote_interaction',
-        'general_consent_at',
-        'privacy_policy_read_at',
-        'consent_special_categories_at',
-        'consent_sic_at',
-        'consent_marketing_at',
-        'consent_profiling_at',
-        'status',
-        'is_company',
-        'is_lead',
-        'leadsource_id',
-        'acquired_at',
-        'contoCOGE',
-        'privacy_consent',
-        'is_client',
-        'subfornitori',
-        'is_requiredApprovation',
-        'is_approved',
-        'is_anonymous',
-        'blacklist_at',
-        'blacklisted_by',
-        'salary',
-        'salary_quote',
-        'is_art108',
-        'is_consultant_gdpr',
-        'privacy_contact_email',
-        'dpo_email',
-        'is_iso27001_certified',
-        'is_dummy',
-        'iban',
-        'employer_id',
-        'birth_date',
-        'birth_place',
-        'sex',
-        'citizenship',
-        'legal_representative_id',
-        'pec',
-        'ateco_code',
-        'cciaa_registration',
-        'legal_form',
-        'sdi_code',
-        'activity_status',
-        'company_started_at',
-        'share_capital',
-        'employees',
-        'turnover',
-        'net_worth',
-        'balance_year',
-        'registry_updated_at',
-    ];
-
-    /**
-     * Il cast degli attributi ai tipi nativi.
-     * Garantisce che i tinyint diventino booleani puri e gestisce i timestamp.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        // Booleani
-        'is_person' => 'boolean',
-        'is_pep' => 'boolean',
-        'is_sanctioned' => 'boolean',
-        'is_remote_interaction' => 'boolean',
-        'is_company' => 'boolean',
-        'is_lead' => 'boolean',
-        'privacy_consent' => 'boolean',
-        'is_client' => 'boolean',
-        'is_requiredApprovation' => 'boolean',
-        'is_approved' => 'boolean',
-        'is_anonymous' => 'boolean',
-        'is_art108' => 'boolean',
-        'is_consultant_gdpr' => 'boolean',
-        'is_iso27001_certified' => 'boolean',
-        'is_dummy' => 'boolean',
-
-        // decimali
-        'salary' => 'decimal:2',
-        'salary_quote' => 'decimal:2',
-        'birth_date' => 'date',
-        'company_started_at' => 'date',
-        'share_capital' => 'decimal:2',
-        'turnover' => 'decimal:2',
-        'net_worth' => 'decimal:2',
-        'registry_updated_at' => 'datetime',
-
-        // Date e Timestamp
-        'general_consent_at' => 'datetime',
-        'privacy_policy_read_at' => 'datetime',
-        'consent_special_categories_at' => 'datetime',
-        'consent_sic_at' => 'datetime',
-        'consent_marketing_at' => 'datetime',
-        'consent_profiling_at' => 'datetime',
-        'acquired_at' => 'datetime',
-        'blacklist_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
 
     // =========================================================================
     // RELAZIONI
     // =========================================================================
-
-    /**
-     * Relazione con il Tenant / Azienda proprietaria.
-     */
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class);
-    }
-
-    /**
-     * Relazione con la classificazione/tipo del cliente.
-     */
-    public function clientType(): BelongsTo
-    {
-        return $this->belongsTo(ClientType::class, 'client_type_id');
-    }
-
-    /**
-     * Il client/lead di origine che ha generato/fornito questo contatto (Self-referencing).
-     */
-    public function leadSource(): BelongsTo
-    {
-        return $this->belongsTo(Client::class, 'leadsource_id');
-    }
-
-    /**
-     * I lead generati da questo specifico cliente (Self-referencing).
-     */
-    public function generatedLeads(): HasMany
-    {
-        return $this->hasMany(Client::class, 'leadsource_id');
-    }
-
-    /**
-     * Il datore di lavoro del cliente (Self-referencing).
-     */
-    public function employer(): BelongsTo
-    {
-        return $this->belongsTo(Client::class, 'employer_id');
-    }
-
-    /**
-     * I clienti che hanno questo cliente come datore di lavoro (Self-referencing).
-     */
-    public function employees(): HasMany
-    {
-        return $this->hasMany(Client::class, 'employer_id');
-    }
-
-    /**
-     * Il legale rappresentante / amministratore del cliente societa' (Self-referencing).
-     */
-    public function legalRepresentative(): BelongsTo
-    {
-        return $this->belongsTo(Client::class, 'legal_representative_id');
-    }
 
     /**
      * I finanziamenti di terzi del cliente: pratiche "non nostre" (`is_notowned`) con lo stesso

@@ -65,6 +65,25 @@ return [
             ]) : [],
         ],
 
+        // Tabelle condivise del pacchetto meo-icar/unico-core (companies, users, employees,
+        // clients, fornitoris, clientis, pratiches, provvigioni_rules, ...).
+        // Punta al database unico_core_test condiviso fra tutte le app Unico.
+        'core' => [
+            'driver' => 'mysql',
+            'host' => env('CORE_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('CORE_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('CORE_DB_DATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('CORE_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('CORE_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => 'InnoDB',
+        ],
+
         // Database esterno Proforma: da usare in sola lettura. Configurare
         // DB_PROFORMA_USERNAME / DB_PROFORMA_PASSWORD con un utente MySQL a cui
         // sia concesso solo SELECT sul database Proforma. In assenza di quelle
