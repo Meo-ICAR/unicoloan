@@ -3,6 +3,11 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Praticas\Pages\EditPratica;
+use App\Filament\Resources\Praticas\RelationManagers\PraticaClientsRelationManager;
+use App\Filament\Resources\Praticas\RelationManagers\ProvvigioniRelationManager;
+use App\Filament\Resources\Praticas\RelationManagers\RequisitiOperativiRelationManager;
+use App\Filament\Resources\Praticas\RelationManagers\StatusHistoryRelationManager;
+use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Models\Pratica;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -76,5 +81,24 @@ class PraticaImpegnoTerziFormTest extends TestCase
             ->assertFormFieldIsVisible('rata')
             ->assertFormFieldIsVisible('nrate')
             ->assertSee('Data decorrenza');
+    }
+
+    public function test_impegno_di_terzi_keeps_only_the_documents_relation_manager(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'user']));
+
+        $thirdParty = $this->pratica(['is_notowned' => true]);
+        $owned = $this->pratica(['is_notowned' => false, 'tipo_prodotto' => 'Mutuo']);
+
+        $this->assertFalse(PraticaClientsRelationManager::canViewForRecord($thirdParty, EditPratica::class));
+        $this->assertFalse(RequisitiOperativiRelationManager::canViewForRecord($thirdParty, EditPratica::class));
+        $this->assertFalse(StatusHistoryRelationManager::canViewForRecord($thirdParty, EditPratica::class));
+        $this->assertFalse(ProvvigioniRelationManager::canViewForRecord($thirdParty, EditPratica::class));
+        $this->assertTrue(DocumentsRelationManager::canViewForRecord($thirdParty, EditPratica::class));
+
+        $this->assertTrue(RequisitiOperativiRelationManager::canViewForRecord($owned, EditPratica::class));
+        $this->assertTrue(StatusHistoryRelationManager::canViewForRecord($owned, EditPratica::class));
+        $this->assertTrue(ProvvigioniRelationManager::canViewForRecord($owned, EditPratica::class));
+        $this->assertTrue(DocumentsRelationManager::canViewForRecord($owned, EditPratica::class));
     }
 }

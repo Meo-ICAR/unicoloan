@@ -37,7 +37,11 @@ class PraticaClientsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return ! $ownerRecord->isCessioneDelega() && static::planCanViewForRecord($ownerRecord, $pageClass);
+        if ($ownerRecord->is_notowned || $ownerRecord->isCessioneDelega()) {
+            return false;
+        }
+
+        return static::planCanViewForRecord($ownerRecord, $pageClass);
     }
 
     public function form(Schema $schema): Schema
