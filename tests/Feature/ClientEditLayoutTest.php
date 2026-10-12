@@ -113,4 +113,53 @@ class ClientEditLayoutTest extends TestCase
             ->assertFormFieldExists('iban')
             ->assertSee('Openapi');
     }
+
+    public function test_kyc_action_is_listed_before_pep_on_the_compliance_section(): void
+    {
+        $client = $this->makeClient();
+
+        $html = Livewire::test(EditClient::class, ['record' => $client->getKey()])
+            ->assertSuccessful()
+            ->assertSee('KYC (adeguata verifica)')
+            ->assertSee('Verifica PEP')
+            ->html();
+
+        $this->assertLessThan(
+            strpos($html, 'Verifica PEP'),
+            strpos($html, 'KYC (adeguata verifica)'),
+            'Il tasto KYC deve comparire prima di Verifica PEP',
+        );
+    }
+
+    public function test_subfornitori_and_privacy_supplier_fields_are_visible_only_when_is_company(): void
+    {
+        $client = $this->makeClient(['is_company' => false]);
+
+        Livewire::test(EditClient::class, ['record' => $client->getKey()])
+            ->assertSuccessful()
+            ->assertFormFieldIsHidden('subfornitori')
+            ->assertFormFieldIsHidden('dpo_email')
+            ->fillForm(['is_company' => true])
+            ->assertFormFieldIsVisible('subfornitori')
+            ->assertFormFieldIsVisible('dpo_email')
+            ->assertFormFieldIsVisible('privacy_contact_email')
+            ->assertSee('Fornitore / soggetto privacy');
+    }
+
+    public function test_missing_privacy_and_admin_fields_are_present_on_the_form(): void
+    {
+        $client = $this->makeClient(['is_company' => true, 'is_lead' => true]);
+
+        Livewire::test(EditClient::class, ['record' => $client->getKey()])
+            ->assertSuccessful()
+            ->assertFormFieldExists('privacy_policy_read_at')
+            ->assertFormFieldExists('consent_special_categories_at')
+            ->assertFormFieldExists('privacy_consent')
+            ->assertFormFieldExists('is_company')
+            ->assertFormFieldExists('acquired_at')
+            ->assertFormFieldExists('salary')
+            ->assertFormFieldExists('vat_number')
+            ->assertFormFieldExists('contoCOGE')
+            ->assertFormFieldExists('is_client');
+    }
 }

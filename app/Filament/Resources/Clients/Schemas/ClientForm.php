@@ -132,8 +132,9 @@ class ClientForm
                                     ->schema([
                                         TextInput::make('email')->email()->label('Email'),
                                         TextInput::make('phone')->label('Telefono')->tel(),
+                                        TextInput::make('website')->label('Sito web')->maxLength(50),
                                     ])
-                                    ->columns(2),
+                                    ->columns(3),
                                 Section::make('Dati Anagrafici')
                                     ->schema([
                                         DatePicker::make('birth_date')->label('Data di nascita'),
@@ -186,6 +187,16 @@ class ClientForm
                                             ->suffixActions([
                                                 self::openApiAction(),
                                             ]),
+                                        TextInput::make('salary')
+                                            ->label('RAL / Stipendio')
+                                            ->numeric()
+                                            ->prefix('€')
+                                            ->visible(fn (Get $get): bool => (bool) $get('is_person')),
+                                        TextInput::make('salary_quote')
+                                            ->label('Quota cedibile')
+                                            ->numeric()
+                                            ->prefix('€')
+                                            ->visible(fn (Get $get): bool => (bool) $get('is_person')),
                                         Select::make('employer_id')
                                             ->label('Datore di lavoro')
                                             ->relationship(
@@ -225,6 +236,12 @@ class ClientForm
                                     ->key('valutazioneAml')
                                     ->description('Indicatori di rischio e posizioni critiche')
                                     ->headerActions([
+                                        Action::make('kyc')
+                                            ->label('KYC (adeguata verifica)')
+                                            ->icon('heroicon-m-shield-check')
+                                            ->color('warning')
+                                            ->visible(fn (?Client $record): bool => $record !== null)
+                                            ->url('#kyc-adeguata-verifica'),
                                         Action::make('verificaPep')
                                             ->label('Verifica PEP')
                                             ->icon('heroicon-m-shield-exclamation')
@@ -287,20 +304,9 @@ class ClientForm
                                             ->readOnly(),
                                     ])
                                     ->columns(3),
-                                Section::make('Consensi Privacy')
-                                    ->schema([
-                                        DateTimePicker::make('general_consent_at')->label('Consenso Base'),
-                                        DateTimePicker::make('consent_marketing_at')->label('Marketing'),
-                                        DateTimePicker::make('consent_profiling_at')->label('Profilazione'),
-                                        DateTimePicker::make('consent_sic_at')->label('Consenso SIC (CRIF)'),
-                                        Textarea::make('subfornitori')
-                                            ->label('Subfornitori che trattano dati personali per conto del cliente')
-                                            ->rows(3)
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->columns(2),
                                 Section::make('KYC (adeguata verifica)')
                                     ->description('Questionari di adeguata verifica del cliente')
+                                    ->extraAttributes(['id' => 'kyc-adeguata-verifica'])
                                     ->schema([
                                         Text::make(function (?Client $record): string {
                                             if ($record === null) {
@@ -336,6 +342,37 @@ class ClientForm
                                             ->columnSpanFull(),
                                     ])
                                     ->visible(fn (?Client $record): bool => $record !== null),
+                                Section::make('Consensi Privacy')
+                                    ->schema([
+                                        DateTimePicker::make('general_consent_at')->label('Consenso Base'),
+                                        DateTimePicker::make('privacy_policy_read_at')->label('Informativa letta'),
+                                        DateTimePicker::make('consent_special_categories_at')->label('Categorie particolari'),
+                                        DateTimePicker::make('consent_marketing_at')->label('Marketing'),
+                                        DateTimePicker::make('consent_profiling_at')->label('Profilazione'),
+                                        DateTimePicker::make('consent_sic_at')->label('Consenso SIC (CRIF)'),
+                                        Toggle::make('privacy_consent')->label('Consenso privacy attivo'),
+                                    ])
+                                    ->columns(3),
+                                Section::make('Fornitore / soggetto privacy')
+                                    ->description('Campi per fornitori e consulenti soggetti a obblighi privacy')
+                                    ->schema([
+                                        TextInput::make('privacy_contact_email')
+                                            ->label('Email referente privacy')
+                                            ->email()
+                                            ->maxLength(255),
+                                        TextInput::make('dpo_email')
+                                            ->label('Email DPO')
+                                            ->email()
+                                            ->maxLength(255),
+                                        Toggle::make('is_consultant_gdpr')->label('Consulente GDPR'),
+                                        Toggle::make('is_iso27001_certified')->label('Certificato ISO 27001'),
+                                        Textarea::make('subfornitori')
+                                            ->label('Subfornitori che trattano dati personali per conto del cliente')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2)
+                                    ->visible(fn (Get $get): bool => (bool) $get('is_company')),
                             ]),
                         // --- TAB 3: ELEMENTI NON PRIMARI / LEAD ---
                         Tab::make('Altro')
@@ -349,21 +386,36 @@ class ClientForm
                                             ->relationship('clientType', 'name')
                                             ->searchable()
                                             ->preload(),
+                                        Toggle::make('is_company')
+                                            ->label('Fornitore / consulente (soggetto privacy)')
+                                            ->helperText('Abilita i campi privacy fornitore (subfornitori, DPO, ISO 27001)')
+                                            ->live(),
                                         Toggle::make('is_lead')
                                             ->label('È un Lead')
                                             ->live(),
                                         Select::make('leadsource_id')
-                                            ->relationship('leadSource', 'name')
+                                            ->relationship('leadsource', 'name')
                                             ->label('Sorgente Lead')
                                             ->searchable()
                                             ->preload()
+                                            ->visible(fn (Get $get): bool => (bool) $get('is_lead')),
+                                        DateTimePicker::make('acquired_at')
+                                            ->label('Acquisito il')
                                             ->visible(fn (Get $get): bool => (bool) $get('is_lead')),
                                     ])
                                     ->columns(3),
                                 Section::make('Amministrazione')
                                     ->schema([
+                                        Toggle::make('is_client')->label('È un cliente'),
                                         Toggle::make('is_anonymous')->label('Anagrafica di comodo non reale'),
-                                    ]),
+                                        Toggle::make('is_requiredApprovation')->label('Richiede approvazione'),
+                                        Toggle::make('is_dummy')->label('Anagrafica fittizia / dummy'),
+                                        TextInput::make('contoCOGE')->label('Conto COGE')->maxLength(255),
+                                        TextInput::make('vat_number')
+                                            ->label('P.IVA (se distinta dal codice fiscale)')
+                                            ->maxLength(20),
+                                    ])
+                                    ->columns(3),
                             ]),
                     ])
                     ->columnSpanFull(),
