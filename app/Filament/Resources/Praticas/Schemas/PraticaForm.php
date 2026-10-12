@@ -14,7 +14,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Fieldset;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -93,24 +92,25 @@ class PraticaForm
                         Toggle::make('is_notowned')
                             ->label('Impegno di terzi')
                             ->inline(false)
-                            ->default(false),
+                            ->default(false)
+                            ->live(),
 
                         Select::make('tipo_prodotto')
                             ->options(Tipoprodotto::whereNotNull('tipo_prodotto')->pluck('tipo_prodotto', 'name'))
-                            ->label('Macro Prodotto'),
-                        //  ->maxLength(191),
+                            ->label('Macro Prodotto')
+                            ->visible(fn (Get $get): bool => ! $get('is_notowned')),
 
                         Select::make('denominazione_prodotto')
                             ->options(TipoprodottoSub::pluck('name', 'name'))
-                            ->label('Prodotto'),
+                            ->label('Prodotto')
+                            ->visible(fn (Get $get): bool => ! $get('is_notowned')),
                         TextInput::make('erogato')
                             ->label('Erogato')
                             ->numeric()
                             ->inputMode('decimal')
-                            ->prefix('€'),
-                        //  ->maxLength(191),
+                            ->prefix('€')
+                            ->visible(fn (Get $get): bool => ! $get('is_notowned')),
 
-                        // Sostituito il Grid(5) con un Fieldset a 3 colonne per non schiacciare i campi
                         Fieldset::make('Dettagli Economici')
                             ->columns(['sm' => 1, 'md' => 3])
                             ->columnSpan('full')
@@ -127,31 +127,32 @@ class PraticaForm
                                     ->integer()
                                     ->minValue(1)
                                     ->maxValue(480),
+                                DatePicker::make('data_inserimento_pratica')
+                                    ->label(fn (Get $get): string => $get('is_notowned') ? 'Data decorrenza' : 'Inserimento')
+                                    ->default(now()),
                                 TextInput::make('amount')
                                     ->label('Importo Lordo')
                                     ->numeric()
                                     ->inputMode('decimal')
-                                    ->prefix('€'),
+                                    ->prefix('€')
+                                    ->visible(fn (Get $get): bool => ! $get('is_notowned')),
 
                                 TextInput::make('net')
                                     ->label('Importo Netto')
                                     ->numeric()
                                     ->inputMode('decimal')
-                                    ->prefix('€'),
+                                    ->prefix('€')
+                                    ->visible(fn (Get $get): bool => ! $get('is_notowned')),
 
-                            ])->columns(4),
+                            ])->columns(fn (Get $get): int => $get('is_notowned') ? 3 : 4),
                     ])->columnSpan('full'),
 
-                // 5. TIMELINE OPERATIVA
+                // 5. TIMELINE OPERATIVA (solo pratiche proprie: per impegni di terzi basta la data decorrenza sopra)
                 Section::make('Timeline Operativa')
-
                     ->description('Date di avanzamento della pratica')
-                    ->columns(['sm' => 1, 'md' => 2, 'lg' => 5])
+                    ->columns(['sm' => 1, 'md' => 2, 'lg' => 4])
+                    ->visible(fn (Get $get): bool => ! $get('is_notowned'))
                     ->schema([
-                        DatePicker::make('data_inserimento_pratica')
-                            ->label('Inserimento')
-                            ->default(now())
-                            ->columnSpan(1),
                         DatePicker::make('sended_at')
                             ->label('Invio a Banca'),
 
