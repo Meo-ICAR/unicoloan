@@ -40,10 +40,10 @@ class FinancingTypeTest extends TestCase
         $this->assertSame($expected, FinancingType::fromProduct($product));
     }
 
-    public function test_without_a_financing_type_every_section_is_visible(): void
+    public function test_without_a_financing_type_every_section_but_the_type_specific_ones_is_visible(): void
     {
         foreach (FinancingSection::cases() as $section) {
-            $this->assertTrue($section->isVisibleFor(null), $section->value);
+            $this->assertSame($section !== FinancingSection::PraticaDatiImmobile, $section->isVisibleFor(null), $section->value);
         }
     }
 }

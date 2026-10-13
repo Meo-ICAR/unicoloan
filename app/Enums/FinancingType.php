@@ -56,10 +56,20 @@ enum FinancingType: string implements HasLabel
                 FinancingSection::ClienteDatoreLavoro,
                 FinancingSection::ClienteReddito,
             ],
-            self::Prestito, self::Mutuo => [
+            self::Prestito => [
                 FinancingSection::PraticaNomeCliente,
                 FinancingSection::PraticaRateizzazione,
                 FinancingSection::PraticaSoggettiCollegati,
+                FinancingSection::ClienteDatiNascita,
+                FinancingSection::ClienteDatoreLavoro,
+                FinancingSection::ClienteReddito,
+                FinancingSection::ClienteImpegniTerzi,
+            ],
+            self::Mutuo => [
+                FinancingSection::PraticaNomeCliente,
+                FinancingSection::PraticaRateizzazione,
+                FinancingSection::PraticaSoggettiCollegati,
+                FinancingSection::PraticaDatiImmobile,
                 FinancingSection::ClienteDatiNascita,
                 FinancingSection::ClienteDatoreLavoro,
                 FinancingSection::ClienteReddito,

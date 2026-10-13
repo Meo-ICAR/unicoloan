@@ -13,6 +13,7 @@ enum FinancingSection: string implements HasLabel
     case PraticaNomeCliente = 'pratica_nome_cliente';
     case PraticaRateizzazione = 'pratica_rateizzazione';
     case PraticaSoggettiCollegati = 'pratica_soggetti_collegati';
+    case PraticaDatiImmobile = 'pratica_dati_immobile';
     case ClienteDatiNascita = 'cliente_dati_nascita';
     case ClienteDatoreLavoro = 'cliente_datore_lavoro';
     case ClienteReddito = 'cliente_reddito';
@@ -28,6 +29,7 @@ enum FinancingSection: string implements HasLabel
             self::PraticaNomeCliente => 'Pratica: nome del cliente persona fisica',
             self::PraticaRateizzazione => 'Pratica: rata mensile e numero rate',
             self::PraticaSoggettiCollegati => 'Pratica: richiedente, coobbligati e garanti',
+            self::PraticaDatiImmobile => 'Pratica: descrizione immobile',
             self::ClienteDatiNascita => 'Cliente: data e luogo di nascita, sesso, cittadinanza',
             self::ClienteDatoreLavoro => 'Cliente: datore di lavoro / ente',
             self::ClienteReddito => 'Cliente: reddito netto mensile (stipendio o pensione)',
@@ -40,11 +42,19 @@ enum FinancingSection: string implements HasLabel
     }
 
     /**
+     * Sezioni proprie di un tipo, che senza tipo riconosciuto non hanno senso.
+     */
+    public function requiresFinancingType(): bool
+    {
+        return $this === self::PraticaDatiImmobile;
+    }
+
+    /**
      * Senza tipo di finanziamento (pratica senza prodotto riconosciuto o cliente aperto
-     * fuori dal contesto di una pratica) si vede tutto.
+     * fuori dal contesto di una pratica) si vede tutto, tranne le sezioni proprie di un tipo.
      */
     public function isVisibleFor(?FinancingType $type): bool
     {
-        return $type === null || $type->shows($this);
+        return $type === null ? ! $this->requiresFinancingType() : $type->shows($this);
     }
 }

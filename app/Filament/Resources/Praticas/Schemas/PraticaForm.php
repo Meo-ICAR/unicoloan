@@ -151,6 +151,13 @@ class PraticaForm
                                     ->prefix('€'),
 
                             ])->columns(4),
+
+                        Textarea::make('descrizione_immobile')
+                            ->label('Descrizione immobile')
+                            ->helperText('Indirizzo, tipologia e dati catastali dell\'immobile oggetto del mutuo.')
+                            ->rows(3)
+                            ->columnSpanFull()
+                            ->visible(fn (Get $get): bool => FinancingSection::PraticaDatiImmobile->isVisibleFor(self::financingType($get))),
                     ])->columnSpan('full'),
 
                 // 5. TIMELINE OPERATIVA

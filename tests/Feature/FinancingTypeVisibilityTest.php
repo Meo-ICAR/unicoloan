@@ -92,14 +92,41 @@ class FinancingTypeVisibilityTest extends TestCase
             ->assertFormFieldVisible('rata');
     }
 
+    public function test_property_description_is_shown_only_for_mortgages(): void
+    {
+        Livewire::test(EditPratica::class, ['record' => $this->pratica('Mutuo')->getKey()])
+            ->assertFormFieldVisible('descrizione_immobile');
+
+        Livewire::test(EditPratica::class, ['record' => $this->pratica('Prestito')->getKey()])
+            ->assertFormFieldHidden('descrizione_immobile');
+
+        Livewire::test(EditPratica::class, ['record' => $this->pratica('Polizza')->getKey()])
+            ->assertFormFieldVisible('rata')
+            ->assertFormFieldHidden('descrizione_immobile');
+    }
+
+    public function test_property_description_is_saved_on_a_mortgage(): void
+    {
+        $pratica = $this->pratica('Mutuo');
+
+        Livewire::test(EditPratica::class, ['record' => $pratica->getKey()])
+            ->fillForm(['descrizione_immobile' => 'Appartamento in Via Roma 1, Milano - Fg. 10 Part. 20 Sub. 3'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('Appartamento in Via Roma 1, Milano - Fg. 10 Part. 20 Sub. 3', $pratica->refresh()->descrizione_immobile);
+    }
+
     public function test_pratica_form_follows_the_product_while_editing(): void
     {
         Livewire::test(CreatePratica::class)
             ->assertFormFieldVisible('rata')
+            ->assertFormFieldHidden('descrizione_immobile')
             ->fillForm(['tipo_prodotto' => 'TFS'])
             ->assertFormFieldHidden('rata')
             ->fillForm(['tipo_prodotto' => 'Mutuo'])
-            ->assertFormFieldVisible('rata');
+            ->assertFormFieldVisible('rata')
+            ->assertFormFieldVisible('descrizione_immobile');
     }
 
     public function test_saving_keeps_the_values_of_hidden_fields(): void
