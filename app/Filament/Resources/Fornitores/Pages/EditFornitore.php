@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Fornitores\Pages;
 
 use App\Filament\Actions\BpmActivitiesAction;
+use App\Filament\Actions\ImpersonateFornitoreAction;
 use App\Filament\Resources\Fornitores\FornitoreResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -14,6 +15,7 @@ class EditFornitore extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ImpersonateFornitoreAction::make(),
             BpmActivitiesAction::make()->modelType('fornitore'),
             DeleteAction::make(),
         ];

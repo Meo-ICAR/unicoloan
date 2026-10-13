@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Fornitores\Tables;
 
 use App\Enums\AgentAccessOutcome;
 use App\Enums\UserRole;
+use App\Filament\Actions\ImpersonateFornitoreAction;
 use App\Filament\Exports\DynamicGroupExport;
 use App\Models\Company;
 use App\Models\Task;
@@ -117,6 +118,7 @@ class FornitoresTable
                     ->query(fn ($query) => $query->whereNotNull('dismessed_at')),
             ])
             ->recordActions([
+                ImpersonateFornitoreAction::make(),
                 EditAction::make(),
             ])
             ->bulkActions([

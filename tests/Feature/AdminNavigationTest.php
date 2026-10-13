@@ -48,7 +48,6 @@ class AdminNavigationTest extends TestCase
         $this->actingAs(User::factory()->make(['role' => 'admin']));
 
         $hidden = [
-            FornitoreResource::class,
             MailAccountResource::class,
             ClientiResource::class,
             ResourceResource::class,
@@ -62,5 +61,15 @@ class AdminNavigationTest extends TestCase
                 "{$resource} should not register navigation"
             );
         }
+    }
+
+    public function test_produttori_are_visible_in_settings_navigation(): void
+    {
+        Filament::setCurrentPanel('admin');
+        $this->actingAs(User::factory()->make(['role' => 'super_admin']));
+
+        $this->assertTrue(FornitoreResource::shouldRegisterNavigation());
+        $this->assertSame('Settings', FornitoreResource::getNavigationGroup());
+        $this->assertSame('Produttori', FornitoreResource::getNavigationLabel());
     }
 }

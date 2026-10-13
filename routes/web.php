@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgentiDevLoginController;
+use App\Http\Controllers\AgentiImpersonationController;
 use App\Http\Controllers\BpmBridgeController;
 use App\Http\Controllers\DocumentDownloadController;
 use Illuminate\Support\Facades\Response;
@@ -10,6 +11,10 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 Route::redirect('/', '/admin');
 
 Route::get('/agenti/dev/login', AgentiDevLoginController::class)->name('agenti.dev.login');
+
+Route::post('/agenti/impersonation/leave', [AgentiImpersonationController::class, 'leave'])
+    ->middleware('auth')
+    ->name('agenti.impersonation.leave');
 
 // Manuali operativi/tecnici (resources/docs/*.html|*.md). Whitelist esplicita
 // per evitare path traversal: nessun input utente libero sul nome file.
