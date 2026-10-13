@@ -82,7 +82,16 @@ class ClientEmployerBenestareFormTest extends TestCase
              from information_schema.columns
              where table_schema = database() and table_name = ?',
             ['clients'],
-        ))->keyBy('column_name');
+        ))->mapWithKeys(function (object $row): array {
+            $name = strtolower((string) ($row->column_name ?? $row->COLUMN_NAME));
+
+            return [$name => (object) [
+                'column_type' => $row->column_type ?? $row->COLUMN_TYPE,
+                'is_nullable' => $row->is_nullable ?? $row->IS_NULLABLE,
+                'column_comment' => $row->column_comment ?? $row->COLUMN_COMMENT,
+                'ordinal_position' => $row->ordinal_position ?? $row->ORDINAL_POSITION,
+            ]];
+        });
 
         $expected = [
             'richiesta_benestare' => 'Istruzioni per ottenere la richiesta di benestare presso questo datore',
