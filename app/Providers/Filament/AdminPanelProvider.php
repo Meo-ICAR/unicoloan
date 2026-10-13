@@ -45,6 +45,8 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->navigationGroups([
+                NavigationGroup::make('Manuali')
+                    ->collapsed(),
                 NavigationGroup::make('Settings')
                     ->collapsed(),
             ])
@@ -52,22 +54,22 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Manuale Utente')
                     ->url(url('/manuali/utente'), shouldOpenInNewTab: true)
                     ->icon('heroicon-o-book-open')
-                    ->group('Settings')
+                    ->group('Manuali')
                     ->sort(10),
                 NavigationItem::make('Manuale Admin')
                     ->url(url('/manuali/admin'), shouldOpenInNewTab: true)
                     ->icon('heroicon-o-wrench-screwdriver')
-                    ->group('Settings')
+                    ->group('Manuali')
                     ->sort(11),
                 NavigationItem::make('Manuale Tecnico')
                     ->url(url('/manuali/tecnico'), shouldOpenInNewTab: true)
                     ->icon('heroicon-o-code-bracket')
-                    ->group('Settings')
+                    ->group('Manuali')
                     ->sort(12),
                 NavigationItem::make('Manuale Funzioni')
                     ->url(url('/manuali/funzioni'), shouldOpenInNewTab: true)
                     ->icon('heroicon-o-squares-2x2')
-                    ->group('Settings')
+                    ->group('Manuali')
                     ->sort(13),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
