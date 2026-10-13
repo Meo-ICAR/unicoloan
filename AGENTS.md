@@ -352,12 +352,13 @@ Key config options in `config/activitylog.php`:
 
 </laravel-boost-guidelines>
 
-## Cloud Agent
+## Cloud Agent / Cursor Cloud
 
-Local development uses PHP 8.4, Composer, Node, MariaDB, and `pdftk`. The Cloud Agent install checks out `meo-icar/unico-core` at the `composer.lock` commit in `../unico-core` (path repository), then runs `composer install`, `npm ci`, and `npm run build`.
+Local development uses PHP 8.4, Composer, Node, MariaDB, and `pdftk`. Setup scripts live in `.cursor/install.sh` and `.cursor/start.sh`. Install checks out `meo-icar/unico-core` at the `composer.lock` commit (path repository `../unico-core` or `/unico-core`), then runs `composer install`, `npm ci`, and `npm run build`.
 
-On boot, MariaDB starts and these databases are created if missing: `unicooam` (app), `proforma` (legacy tables the app still queries by name, including `pratiches_statos` and `clientis`), and `unicoloan_test` (PHPUnit). The MySQL `root` user has an empty password, matching `.env.example`. `php artisan migrate --force` runs against the app database, then `php artisan serve` listens on port 8000.
+On boot, MariaDB starts on `127.0.0.1:3306` (root password empty, matching `.env.example`) and these databases are created if missing: `unicooam` (app), `proforma` (connection `mysql_proforma`, including legacy tables such as `pratiches_statos` and `clientis`), and `unicoloan_test` (PHPUnit). `php artisan migrate --force` runs against the app database; `php artisan serve` listens on port 8000 and redirects to `/admin`. Boot creates `dev@example.com` / `password` when that user is missing. The queue worker runs in the tmux session `laravel-queue`.
 
 - Health: `GET /up`
 - Admin panel: `/admin`
-- Tests: `php artisan test --compact`
+- Frontend: assets from `npm run build` during install; run `npm run dev` only when changing Vite sources
+- Tests: `php artisan test --compact` (DB `unicoloan_test`). Some tests still query schema-qualified `proforma.*` tables that unico-core migrations create under different names; those failures are current application behavior.
