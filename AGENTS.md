@@ -351,3 +351,13 @@ Key config options in `config/activitylog.php`:
 - `actions.clean_log`: Action class for cleaning old activities
 
 </laravel-boost-guidelines>
+
+## Cloud Agent
+
+Local development uses PHP 8.4, Composer, Node, MariaDB, and `pdftk`. The Cloud Agent install checks out `meo-icar/unico-core` at the `composer.lock` commit in `../unico-core` (path repository), then runs `composer install`, `npm ci`, and `npm run build`.
+
+On boot, MariaDB starts and these databases are created if missing: `unicooam` (app), `proforma` (legacy tables the app still queries by name, including `pratiches_statos` and `clientis`), and `unicoloan_test` (PHPUnit). The MySQL `root` user has an empty password, matching `.env.example`. `php artisan migrate --force` runs against the app database, then `php artisan serve` listens on port 8000.
+
+- Health: `GET /up`
+- Admin panel: `/admin`
+- Tests: `php artisan test --compact`
