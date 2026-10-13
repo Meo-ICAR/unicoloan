@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Company;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +14,9 @@ class WebsiteSeeder extends Seeder
      */
     public function run(): void
     {
-        $racesId = DB::table('companies')->where('vat_number', '05822361007')->value('id');
-        DB::table('websites')->insert([
+        $coreConnection = config('unico-core.connection');
+        $racesId = Company::query()->where('vat_number', '05822361007')->value('id');
+        DB::connection($coreConnection)->table('websites')->insert([
             'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
             'websiteable_id' => $racesId,
@@ -37,7 +39,7 @@ class WebsiteSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
-        DB::table('websites')->insert([
+        DB::connection($coreConnection)->table('websites')->insert([
             'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
             'websiteable_id' => $racesId,
@@ -52,7 +54,7 @@ class WebsiteSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
-        DB::table('websites')->insert([
+        DB::connection($coreConnection)->table('websites')->insert([
             'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
             'websiteable_id' => $racesId,
@@ -68,7 +70,7 @@ class WebsiteSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
-        DB::table('websites')->insert([
+        DB::connection($coreConnection)->table('websites')->insert([
             'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
             'websiteable_id' => $racesId,
@@ -84,7 +86,7 @@ class WebsiteSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
-        DB::table('websites')->insert([
+        DB::connection($coreConnection)->table('websites')->insert([
             'company_id' => $racesId,  // Legato a Races Finance
             'websiteable_type' => 'company',
             'websiteable_id' => $racesId,

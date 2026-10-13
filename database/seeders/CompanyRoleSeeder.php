@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Models\Company;
 use App\Models\CompanyRole;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class CompanyRoleSeeder extends Seeder
 {
@@ -15,8 +13,7 @@ class CompanyRoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $racesId = DB::table('companies')->where('vat_number', '05822361007')->value('id');
-        $company_id = $racesId;  // ID della Races Finance
+        $company_id = Company::query()->where('vat_number', '05822361007')->value('id');
         $datiFittizi = [
             [
                 'company_id' => $company_id,
@@ -61,7 +58,7 @@ class CompanyRoleSeeder extends Seeder
                 'execution_method' => '?',  // Accetta stringa vuota come da SQL
                 'expertName' => 'Luca Verdi',
                 'n' => 3,
-            ]
+            ],
         ];
 
         foreach ($datiFittizi as $dato) {

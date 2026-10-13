@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Company;
 use App\Models\MailAccount;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class MailAccountSeeder extends Seeder
 {
@@ -13,7 +13,7 @@ class MailAccountSeeder extends Seeder
      */
     public function run(): void
     {
-        $racesId = DB::table('companies')->where('vat_number', '05822361007')->value('id');
+        $racesId = Company::query()->where('vat_number', '05822361007')->value('id');
         MailAccount::create([
             'name' => 'Amministrazione PEC Races',
             'email_address' => 'amministrazione@pec.racesfinance.it',

@@ -9,6 +9,7 @@ enum SimulationContractType: string implements HasLabel
     case Cessione = 'cessione';
     case Delega = 'delega';
     case Prestito = 'prestito';
+    case Mutuo = 'mutuo';
 
     public function getLabel(): string
     {
@@ -16,6 +17,7 @@ enum SimulationContractType: string implements HasLabel
             self::Cessione => 'Cessione del quinto',
             self::Delega => 'Delegazione di pagamento',
             self::Prestito => 'Prestito personale',
+            self::Mutuo => 'Mutuo',
         };
     }
 
@@ -25,5 +27,67 @@ enum SimulationContractType: string implements HasLabel
     public function allowsRetirees(): bool
     {
         return $this !== self::Delega;
+    }
+
+    /**
+     * Cessione e delega si dimensionano sulla quota cedibile; prestito e gli altri finanziamenti sull'importo richiesto.
+     */
+    public function asksQuotaCedibile(): bool
+    {
+        return match ($this) {
+            self::Cessione, self::Delega => true,
+            self::Prestito, self::Mutuo => false,
+        };
+    }
+
+    /**
+     * Durate proponibili: mesi per cessione, delega e gli altri finanziamenti; anni per il mutuo.
+     *
+     * @return list<int>
+     */
+    public function durationChoices(): array
+    {
+        $biennialMonths = range(24, 120, 12);
+
+        return match ($this) {
+            self::Cessione, self::Delega => $biennialMonths,
+            self::Prestito => array_merge([12], $biennialMonths),
+            self::Mutuo => range(5, 30),
+        };
+    }
+
+    /**
+     * Cessione e delega partono da 60 mesi. Il prestito usa lo stesso default; il mutuo non ne ha uno.
+     */
+    public function defaultDuration(): ?int
+    {
+        return match ($this) {
+            self::Cessione, self::Delega, self::Prestito => 60,
+            self::Mutuo => null,
+        };
+    }
+
+    public function durationInMonths(int $duration): int
+    {
+        return $this === self::Mutuo ? $duration * 12 : $duration;
+    }
+
+    public function durationLabel(int $duration): string
+    {
+        return $this === self::Mutuo ? $duration.' anni' : $duration.' mesi';
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function durationOptions(): array
+    {
+        $options = [];
+
+        foreach ($this->durationChoices() as $choice) {
+            $options[$choice] = $this->durationLabel($choice);
+        }
+
+        return $options;
     }
 }
