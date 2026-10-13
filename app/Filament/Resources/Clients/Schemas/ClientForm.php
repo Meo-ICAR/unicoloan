@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Clients\Schemas;
 
+use App\Enums\FinancingSection;
+use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Models\Client;
 use App\Services\AmlScreeningService;
 use App\Services\CervedService;
@@ -137,10 +139,14 @@ class ClientForm
                                     ->columns(3),
                                 Section::make('Dati Anagrafici')
                                     ->schema([
-                                        DatePicker::make('birth_date')->label('Data di nascita'),
-                                        TextInput::make('birth_place')->label('Luogo di nascita')->maxLength(100),
-                                        Select::make('sex')->label('Sesso')->options(['M' => 'M', 'F' => 'F']),
-                                        TextInput::make('citizenship')->label('Cittadinanza')->maxLength(60),
+                                        DatePicker::make('birth_date')->label('Data di nascita')
+                                            ->visible(fn ($livewire): bool => self::showsSection(FinancingSection::ClienteDatiNascita, $livewire)),
+                                        TextInput::make('birth_place')->label('Luogo di nascita')->maxLength(100)
+                                            ->visible(fn ($livewire): bool => self::showsSection(FinancingSection::ClienteDatiNascita, $livewire)),
+                                        Select::make('sex')->label('Sesso')->options(['M' => 'M', 'F' => 'F'])
+                                            ->visible(fn ($livewire): bool => self::showsSection(FinancingSection::ClienteDatiNascita, $livewire)),
+                                        TextInput::make('citizenship')->label('Cittadinanza')->maxLength(60)
+                                            ->visible(fn ($livewire): bool => self::showsSection(FinancingSection::ClienteDatiNascita, $livewire)),
                                         Select::make('legal_representative_id')
                                             ->label('Legale rappresentante / Amministratore')
                                             ->relationship(
@@ -149,7 +155,7 @@ class ClientForm
                                                 fn (Builder $query) => $query->where('is_person', true),
                                             )
                                             ->searchable()
-                                            ->visible(fn (Get $get) => ! $get('is_person')),
+                                            ->visible(fn (Get $get, $livewire): bool => ! $get('is_person') && self::showsSection(FinancingSection::ClienteDatiSocietari, $livewire)),
                                     ])
                                     ->columns(4),
                                 Section::make('Dati Societari')
@@ -163,7 +169,7 @@ class ClientForm
                                         DatePicker::make('company_started_at')->label('Inizio attività'),
                                     ])
                                     ->columns(3)
-                                    ->visible(fn (Get $get) => ! $get('is_person')),
+                                    ->visible(fn (Get $get, $livewire): bool => ! $get('is_person') && self::showsSection(FinancingSection::ClienteDatiSocietari, $livewire)),
                                 Section::make('Ultimo bilancio (registro imprese)')
                                     ->schema([
                                         TextInput::make('balance_year')->label('Anno')->numeric(),
@@ -174,7 +180,7 @@ class ClientForm
                                         DateTimePicker::make('registry_updated_at')->label('Dati aggiornati il')->disabled()->dehydrated(false),
                                     ])
                                     ->columns(3)
-                                    ->visible(fn (Get $get) => ! $get('is_person')),
+                                    ->visible(fn (Get $get, $livewire): bool => ! $get('is_person') && self::showsSection(FinancingSection::ClienteDatiSocietari, $livewire)),
                                 Section::make('Dati Bancari e Lavorativi')
                                     ->schema([
                                         TextInput::make('iban')
@@ -192,7 +198,19 @@ class ClientForm
                                             )
                                             ->searchable()
                                             ->preload()
-                                            ->visible(fn (Get $get) => (bool) $get('is_person')),
+                                            ->visible(fn (Get $get, $livewire): bool => (bool) $get('is_person') && self::showsSection(FinancingSection::ClienteDatoreLavoro, $livewire)),
+                                        TextInput::make('salary')
+                                            ->label('Reddito netto mensile (stipendio / pensione)')
+                                            ->numeric()
+                                            ->inputMode('decimal')
+                                            ->prefix('€')
+                                            ->visible(fn (Get $get, $livewire): bool => (bool) $get('is_person') && self::showsSection(FinancingSection::ClienteReddito, $livewire)),
+                                        TextInput::make('salary_quote')
+                                            ->label('Quota cedibile')
+                                            ->numeric()
+                                            ->inputMode('decimal')
+                                            ->prefix('€')
+                                            ->visible(fn (Get $get, $livewire): bool => (bool) $get('is_person') && self::showsSection(FinancingSection::ClienteQuotaCedibile, $livewire)),
                                     ])
                                     ->columns(2),
                             ]),
@@ -293,6 +311,14 @@ class ClientForm
                     ])
                     ->columnSpanFull(),
             ]);
+    }
+
+    /**
+     * Aperta da una pratica, la scheda mostra solo i dati pertinenti al suo tipo di finanziamento; altrimenti tutto.
+     */
+    private static function showsSection(FinancingSection $section, mixed $livewire): bool
+    {
+        return ! $livewire instanceof EditClient || $livewire->showsFinancingSection($section);
     }
 
     /**

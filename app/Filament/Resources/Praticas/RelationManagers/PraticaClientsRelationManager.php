@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Praticas\RelationManagers;
 
+use App\Enums\FinancingSection;
+use App\Enums\FinancingType;
 use App\Enums\PraticaClientRole;
 use App\Filament\Resources\Clients\ClientResource;
 use App\Filament\Traits\HasRelationPlanAccess;
@@ -19,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Unique;
 
 /**
- * Richiedente, coobbligati e garanti della pratica: solo per i prodotti diversi da cessione/delega.
+ * Richiedente, coobbligati e garanti della pratica: solo per i tipi di finanziamento che li prevedono.
  */
 class PraticaClientsRelationManager extends RelationManager
 {
@@ -37,7 +39,8 @@ class PraticaClientsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return ! $ownerRecord->isCessioneDelega() && static::planCanViewForRecord($ownerRecord, $pageClass);
+        return FinancingSection::PraticaSoggettiCollegati->isVisibleFor(FinancingType::forPratica($ownerRecord))
+            && static::planCanViewForRecord($ownerRecord, $pageClass);
     }
 
     public function form(Schema $schema): Schema

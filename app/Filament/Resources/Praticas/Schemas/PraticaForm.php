@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Praticas\Schemas;
 
+use App\Enums\FinancingSection;
+use App\Enums\FinancingType;
 use App\Models\PraticaStati;
 use App\Models\Tipoprodotto;
 use App\Models\TipoprodottoSub;
@@ -18,6 +20,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Unico\Core\Models\TipoProdotto as CoreTipoProdotto;
 
 class PraticaForm
 {
@@ -62,10 +65,11 @@ class PraticaForm
                         TextInput::make('nome_cliente')
                             ->label('Nome')
                             ->maxLength(191)
-                            ->required(),
+                            ->required()
+                            ->visible(fn (Get $get): bool => FinancingSection::PraticaNomeCliente->isVisibleFor(self::financingType($get))),
 
                         TextInput::make('cognome_cliente')
-                            ->label('Cognome')
+                            ->label(fn (Get $get): string => self::financingType($get) === FinancingType::Impresa ? 'Ragione Sociale' : 'Cognome')
                             ->maxLength(191)
                             ->required(),
                         TextInput::make('denominazione_banca')
@@ -96,13 +100,18 @@ class PraticaForm
                             ->default(false),
 
                         Select::make('tipo_prodotto')
-                            ->options(Tipoprodotto::whereNotNull('tipo_prodotto')->pluck('tipo_prodotto', 'name'))
-                            ->label('Macro Prodotto'),
+                            ->options(fn (): array => Tipoprodotto::whereNotNull('tipo_prodotto')->pluck('name', 'tipo_prodotto')
+                                ->union(CoreTipoProdotto::query()->whereNotNull('tipo_prodotto')->pluck('name', 'tipo_prodotto'))
+                                ->all())
+                            ->label('Macro Prodotto')
+                            ->live()
+                            ->helperText(fn (Get $get): string => 'Tipo finanziamento: '.(self::financingType($get)?->getLabel() ?? 'non riconosciuto, sono mostrati tutti i campi')),
                         //  ->maxLength(191),
 
                         Select::make('denominazione_prodotto')
                             ->options(TipoprodottoSub::pluck('name', 'name'))
-                            ->label('Prodotto'),
+                            ->label('Prodotto')
+                            ->live(),
                         TextInput::make('erogato')
                             ->label('Erogato')
                             ->numeric()
@@ -119,14 +128,16 @@ class PraticaForm
                                     ->label('Rata Mensile')
                                     ->numeric()
                                     ->inputMode('decimal')
-                                    ->prefix('€'),
+                                    ->prefix('€')
+                                    ->visible(fn (Get $get): bool => FinancingSection::PraticaRateizzazione->isVisibleFor(self::financingType($get))),
 
                                 TextInput::make('nrate')
                                     ->label('N. Rate')
                                     ->numeric()
                                     ->integer()
                                     ->minValue(1)
-                                    ->maxValue(480),
+                                    ->maxValue(480)
+                                    ->visible(fn (Get $get): bool => FinancingSection::PraticaRateizzazione->isVisibleFor(self::financingType($get))),
                                 TextInput::make('amount')
                                     ->label('Importo Lordo')
                                     ->numeric()
@@ -188,5 +199,10 @@ class PraticaForm
                             ]),
                     ]),
             ]);
+    }
+
+    private static function financingType(Get $get): ?FinancingType
+    {
+        return FinancingType::fromProduct($get('tipo_prodotto')) ?? FinancingType::fromProduct($get('denominazione_prodotto'));
     }
 }

@@ -4,9 +4,11 @@ namespace App\Filament\Resources\Praticas\Pages;
 
 use App\Enums\KycCoverage;
 use App\Filament\Actions\GeneraModuliPraticaAction;
+use App\Filament\Resources\Clients\ClientResource;
 use App\Filament\Resources\Praticas\PraticaResource;
-use App\Models\PROFORMA\Clienti;
+use App\Models\Client;
 use App\Models\Pratica;
+use App\Models\PROFORMA\Clienti;
 use App\Services\ModuleDataResolver;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -22,17 +24,28 @@ class EditPratica extends EditRecord
 
     public function getSubheading(): string|Htmlable|null
     {
-        $coverage = once(function (): ?KycCoverage {
-            $client = app(ModuleDataResolver::class)->findClient($this->getRecord());
-
-            return $client?->kycCoverage();
-        });
+        $coverage = once(fn (): ?KycCoverage => $this->linkedClient()?->kycCoverage());
 
         return match ($coverage) {
             KycCoverage::Missing => 'Attenzione: KYC mancante per il cliente',
             KycCoverage::Expired => 'Attenzione: KYC scaduto per il cliente',
             default => null,
         };
+    }
+
+    /**
+     * Stato e macro prodotto sono attributi calcolati dalle relazioni, non colonne: vanno caricati a mano nel form.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        return [
+            ...$data,
+            'stato_pratica' => $this->getRecord()->stato_pratica,
+            'tipo_prodotto' => $this->getRecord()->tipo_prodotto,
+        ];
     }
 
     /**
@@ -57,9 +70,23 @@ class EditPratica extends EditRecord
         $this->getRecord()->unsetRelation('statusHistory');
     }
 
+    /**
+     * La scheda cliente aperta da qui riceve la pratica e mostra solo i dati pertinenti al suo tipo di finanziamento.
+     */
+    private function linkedClient(): ?Client
+    {
+        return once(fn (): ?Client => app(ModuleDataResolver::class)->findClient($this->getRecord()));
+    }
+
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('scheda_cliente')
+                ->label('Scheda cliente')
+                ->icon('heroicon-o-user')
+                ->color('gray')
+                ->visible(fn (): bool => $this->linkedClient() !== null && ClientResource::canEdit($this->linkedClient()))
+                ->url(fn (): string => ClientResource::getUrl('edit', ['record' => $this->linkedClient(), 'pratica' => $this->getRecord()->getKey()])),
             Action::make('cambia_banca')
                 ->label('Cambia Banca')
                 ->icon('heroicon-o-arrows-right-left') // Un'icona di scambio
