@@ -35,6 +35,8 @@ class FornitoreResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationLabel = 'Produttori';
 
     protected static ?string $modelLabel = 'Produttore';

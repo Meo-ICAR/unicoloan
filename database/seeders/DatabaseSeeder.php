@@ -72,6 +72,7 @@ class DatabaseSeeder extends Seeder
             DocumentTypeSeeder::class,
             TaskSeeder::class,
             TaskDocumentTypeSeeder::class,
+            PlichiCessioneGruppoSeeder::class,
             DocumentSeeder::class,
         ]);
     }

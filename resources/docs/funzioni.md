@@ -127,8 +127,8 @@ Risorsa **Chiamate API** (menu Settings). `app/Services/ApiCallLogger.php::recor
 
 ## 11. Menu, permessi e piani
 
-- Menu admin: **Clienti** e **Pratiche** in cima; tutto il resto nel gruppo **Settings** (`navigationGroup`, e `AdminPanelProvider::navigationGroups()`). Test: `tests/Feature/AdminNavigationTest.php`.
-- `HasPlanAccess` (risorse) e `HasRelationPlanAccess` (relation manager) usano `checkPiano()` (`app/helpers.php`): piano (`PlanType`), ruolo admin/super admin, agente escluso, permessi per `EmployeeType` (fail-open se l'utente non ha un profilo employee). Il flag `$shouldRegisterNavigation = false` **non** ha effetto sulle risorse che usano `HasPlanAccess`.
+- Menu admin: **Clienti** e **Pratiche** in cima; gruppo **Manuali** (Assistente AI + link ai manuali); resto nel gruppo **Settings** (`navigationGroup`, e `AdminPanelProvider::navigationGroups()`). Test: `tests/Feature/AdminNavigationTest.php`.
+- `HasPlanAccess` (risorse) e `HasRelationPlanAccess` (relation manager) usano `checkPiano()` (`app/helpers.php`): piano (`PlanType`), ruolo admin/super admin, agente escluso, permessi per `EmployeeType` (fail-open se l'utente non ha un profilo employee). Il flag `$shouldRegisterNavigation = false` nasconde la voce dal menu anche sulle risorse che usano `HasPlanAccess`.
 
 ## 12. Comandi e pianificazione
 

@@ -27,6 +27,8 @@ class ApiCallResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?int $navigationSort = 6;
 
     public static function table(Table $table): Table
