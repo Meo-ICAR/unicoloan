@@ -9,7 +9,6 @@ use App\Filament\Resources\Clients\ClientResource;
 use App\Filament\Resources\Clients\RelationManagers\ClientRelationsRelationManager;
 use App\Filament\Resources\Clients\RelationManagers\ImpegniTerziRelationManager;
 use App\Filament\Resources\Praticas\PraticaResource;
-use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
 use App\Models\Pratica;
 use Filament\Actions\Action;
@@ -33,8 +32,7 @@ class EditClient extends EditRecord
      */
     private const RELATION_MANAGER_SECTIONS = [
         ClientRelationsRelationManager::class => FinancingSection::ClienteCaricheSociali,
-        WebsitesRelationManager::class => FinancingSection::ClienteSediSiti,
-        BranchesRelationManager::class => FinancingSection::ClienteSediSiti,
+        WebsitesRelationManager::class => FinancingSection::ClienteSitiWeb,
         ImpegniTerziRelationManager::class => FinancingSection::ClienteImpegniTerzi,
     ];
 

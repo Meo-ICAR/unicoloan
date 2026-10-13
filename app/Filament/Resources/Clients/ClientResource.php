@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Clients;
 use App\Filament\Resources\Clients\Pages\CreateClient;
 use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Clients\Pages\ListClients;
+use App\Filament\Resources\Clients\RelationManagers\AddressesRelationManager;
 use App\Filament\Resources\Clients\RelationManagers\ClientMandatesRelationManager;
 use App\Filament\Resources\Clients\RelationManagers\ClientRelationsRelationManager;
 use App\Filament\Resources\Clients\RelationManagers\ImpegniTerziRelationManager;
@@ -51,8 +52,8 @@ class ClientResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // AddressesRelationManager::class,
             DocumentsRelationManager::class,
+            AddressesRelationManager::class,
             ClientRelationsRelationManager::class,
             ClientMandatesRelationManager::class,
             ImpegniTerziRelationManager::class,

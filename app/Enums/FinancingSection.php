@@ -20,7 +20,7 @@ enum FinancingSection: string implements HasLabel
     case ClienteQuotaCedibile = 'cliente_quota_cedibile';
     case ClienteDatiSocietari = 'cliente_dati_societari';
     case ClienteCaricheSociali = 'cliente_cariche_sociali';
-    case ClienteSediSiti = 'cliente_sedi_siti';
+    case ClienteSitiWeb = 'cliente_siti_web';
     case ClienteImpegniTerzi = 'cliente_impegni_terzi';
 
     public function getLabel(): string
@@ -36,7 +36,7 @@ enum FinancingSection: string implements HasLabel
             self::ClienteQuotaCedibile => 'Cliente: quota cedibile',
             self::ClienteDatiSocietari => 'Cliente: dati societari, legale rappresentante, ultimo bilancio',
             self::ClienteCaricheSociali => 'Cliente: cariche sociali',
-            self::ClienteSediSiti => 'Cliente: sedi e siti web',
+            self::ClienteSitiWeb => 'Cliente: siti web',
             self::ClienteImpegniTerzi => 'Cliente: impegni di terzi (finanziamenti in corso)',
         };
     }

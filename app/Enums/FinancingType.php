@@ -80,7 +80,7 @@ enum FinancingType: string implements HasLabel
                 FinancingSection::PraticaSoggettiCollegati,
                 FinancingSection::ClienteDatiSocietari,
                 FinancingSection::ClienteCaricheSociali,
-                FinancingSection::ClienteSediSiti,
+                FinancingSection::ClienteSitiWeb,
                 FinancingSection::ClienteImpegniTerzi,
             ],
         };

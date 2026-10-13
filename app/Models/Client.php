@@ -4,10 +4,9 @@ namespace App\Models;
 
 use App\Enums\KycCoverage;
 use App\Models\Concerns\GeneratesPlichi;
-use App\Models\Pratica;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Unico\Core\Models\Address;
 use Unico\Core\Models\Client as CoreClient;
 
 /**
@@ -39,6 +38,14 @@ class Client extends CoreClient
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
+    }
+
+    /**
+     * Indirizzi (residenza, domicilio, ...), rilevanti solo per le persone fisiche: per le società valgono le sedi.
+     */
+    public function addresses(): MorphMany
+    {
+        return $this->morphMany(Address::class, 'addressable');
     }
 
     /**
