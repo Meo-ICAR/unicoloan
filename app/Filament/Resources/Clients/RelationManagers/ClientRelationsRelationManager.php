@@ -24,7 +24,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class ClientRelationsRelationManager extends RelationManager
 {
-    use HasRelationPlanAccess;
+    use HasRelationPlanAccess {
+        canViewForRecord as protected planCanViewForRecord;
+    }
 
     protected static string $relationship = 'companyRelations';
 
@@ -32,8 +34,12 @@ class ClientRelationsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        // Mostra la relazione solo se il cliente è una società (persona giuridica)
-        return ! $ownerRecord->is_person;
+        // Solo persone giuridiche "cliente": nascosto per persona fisica e per fornitori/consulenti (is_company).
+        if ($ownerRecord->is_person || $ownerRecord->is_company) {
+            return false;
+        }
+
+        return static::planCanViewForRecord($ownerRecord, $pageClass);
     }
 
     public function table(Table $table): Table

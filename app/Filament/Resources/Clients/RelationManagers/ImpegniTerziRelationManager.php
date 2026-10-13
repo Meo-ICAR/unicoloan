@@ -47,7 +47,7 @@ class ImpegniTerziRelationManager extends RelationManager
                         TextInput::make('rata')->label('Rata')->numeric()->prefix('€'),
                         TextInput::make('nrate')->label('Numero rate')->numeric()->integer(),
                         TextInput::make('amount')->label('Importo')->numeric()->prefix('€'),
-                        DatePicker::make('data_inserimento_pratica')->label('Data')->default(today()),
+                        DatePicker::make('data_inserimento_pratica')->label('Data decorrenza')->default(today()),
                     ])
                     ->action(function (array $data): void {
                         $client = $this->getOwnerRecord();
@@ -80,7 +80,7 @@ class ImpegniTerziRelationManager extends RelationManager
                 TextColumn::make('rata')->label('Rata')->money('EUR'),
                 TextColumn::make('nrate')->label('Numero rate'),
                 TextColumn::make('amount')->label('Importo')->money('EUR'),
-                TextColumn::make('data_inserimento_pratica')->label('Data')->date(),
+                TextColumn::make('data_inserimento_pratica')->label('Decorrenza')->date(),
             ]);
     }
 }

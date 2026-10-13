@@ -132,7 +132,7 @@ class OpenApiCompanyTest extends TestCase
         $company = Client::create(['name' => 'Acme', 'is_person' => false, 'tax_code' => '12485671007']);
 
         Livewire::test(EditClient::class, ['record' => $company->getKey()])
-            ->callAction(TestAction::make('openapi')->schemaComponent('tax_code', 'form'))
+            ->callAction(TestAction::make('openapi')->schemaComponent('iban', 'form'))
             ->assertNotified('Openapi: ACME S.R.L.')
             ->assertSet('data.pec', 'acme@pec.test')
             ->assertSet('data.ateco_code', '62.01');
@@ -150,7 +150,7 @@ class OpenApiCompanyTest extends TestCase
 
         // Rilanciando non si duplicano ne' clienti ne' legami.
         Livewire::test(EditClient::class, ['record' => $company->getKey()])
-            ->callAction(TestAction::make('openapi')->schemaComponent('tax_code', 'form'));
+            ->callAction(TestAction::make('openapi')->schemaComponent('iban', 'form'));
         $this->assertSame(2, ClientRelation::query()->where('company_id', (string) $company->id)->count());
         $this->assertSame(1, Client::query()->where('tax_code', 'RSSMRA80A01H501U')->count());
     }
@@ -164,7 +164,7 @@ class OpenApiCompanyTest extends TestCase
         $company = Client::create(['name' => 'Openapi', 'is_person' => false, 'tax_code' => '12485671007']);
 
         Livewire::test(EditClient::class, ['record' => $company->getKey()])
-            ->callAction(TestAction::make('openapi')->schemaComponent('tax_code', 'form'))
+            ->callAction(TestAction::make('openapi')->schemaComponent('iban', 'form'))
             ->assertNotified('Openapi: OPENAPI S.P.A.')
             ->assertSet('data.name', 'OPENAPI S.P.A.')
             ->assertSet('data.pec', 'openapi@legalmail.it')
@@ -213,7 +213,7 @@ class OpenApiCompanyTest extends TestCase
 
         Livewire::test(CreateClient::class)
             ->fillForm(['name' => 'Acme', 'is_person' => false, 'tax_code' => '12485671007'])
-            ->mountAction(TestAction::make('openapi')->schemaComponent('tax_code', 'form'))
+            ->mountAction(TestAction::make('openapi')->schemaComponent('iban', 'form'))
             ->assertNotified('Salva prima il cliente')
             ->assertActionNotMounted();
 
@@ -221,7 +221,7 @@ class OpenApiCompanyTest extends TestCase
 
         Livewire::test(EditClient::class, ['record' => $company->getKey()])
             ->set('data.tax_code', '01234567897')
-            ->mountAction(TestAction::make('openapi')->schemaComponent('tax_code', 'form'))
+            ->mountAction(TestAction::make('openapi')->schemaComponent('iban', 'form'))
             ->assertNotified('Salva le modifiche prima di interrogare');
 
         Http::assertNothingSent();

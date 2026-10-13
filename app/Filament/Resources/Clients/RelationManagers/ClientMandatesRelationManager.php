@@ -153,7 +153,8 @@ class ClientMandatesRelationManager extends RelationManager
                  */
             ])
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()
+                    ->visible(fn (): bool => $this->getOwnerRecord()->clientMandates()->count() < 3),
             ])
             ->actions([
 
@@ -166,7 +167,8 @@ class ClientMandatesRelationManager extends RelationManager
                 ]),
             ])
             ->emptyStateActions([
-                CreateAction::make(),
+                CreateAction::make()
+                    ->visible(fn (): bool => $this->getOwnerRecord()->clientMandates()->count() < 3),
             ]);
     }
 }

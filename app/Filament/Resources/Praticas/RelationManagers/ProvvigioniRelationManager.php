@@ -11,12 +11,24 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ProvvigioniRelationManager extends RelationManager
 {
-    use HasRelationPlanAccess;
+    use HasRelationPlanAccess {
+        canViewForRecord as protected planCanViewForRecord;
+    }
 
     protected static string $relationship = 'provvigioni';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        if ($ownerRecord->is_notowned) {
+            return false;
+        }
+
+        return static::planCanViewForRecord($ownerRecord, $pageClass);
+    }
 
     public function form(Schema $schema): Schema
     {

@@ -39,6 +39,10 @@ class PraticaClientsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
+        if ($ownerRecord->is_notowned) {
+            return false;
+        }
+
         return FinancingSection::PraticaSoggettiCollegati->isVisibleFor(FinancingType::forPratica($ownerRecord))
             && static::planCanViewForRecord($ownerRecord, $pageClass);
     }

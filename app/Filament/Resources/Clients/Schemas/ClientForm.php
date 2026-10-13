@@ -4,7 +4,10 @@ namespace App\Filament\Resources\Clients\Schemas;
 
 use App\Enums\EmploymentRelationship;
 use App\Enums\FinancingSection;
+use App\Enums\KycCoverage;
 use App\Filament\Resources\Clients\Pages\EditClient;
+use App\Filament\Resources\Clients\RelationManagers\ClientMandatesRelationManager;
+use App\Filament\Resources\Clients\RelationManagers\KycQuestionnairesRelationManager;
 use App\Models\Client;
 use App\Models\TipoprodottoSub;
 use App\Services\AmlScreeningService;
@@ -21,10 +24,11 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -51,10 +55,10 @@ class ClientForm
                                         Toggle::make('is_person')
                                             ->label('Persona Fisica')
                                             ->default(true)
-                                            ->live(),  // Ricarica la form al cambio
+                                            ->live(),
                                         TextInput::make('first_name')
                                             ->label('Nome')
-                                            ->visible(fn (Get $get) => $get('is_person'))  // Scompare se azienda
+                                            ->visible(fn (Get $get) => $get('is_person'))
                                             ->maxLength(255),
                                         TextInput::make('tax_code')
                                             ->label(fn (Get $get) => $get('is_person') ? 'Codice Fiscale' : 'P.IVA')
@@ -87,7 +91,6 @@ class ClientForm
                                                 $set('birth_place', $decoded['birth_place']);
                                             })
                                             ->suffixActions([
-
                                                 Action::make('cerved')
                                                     ->label('Cerved')
                                                     ->tooltip('Interroga Cerved')
@@ -125,16 +128,16 @@ class ClientForm
                                                             ->persistent()
                                                             ->send();
                                                     }),
-                                                self::openApiAction(),
                                             ]),
                                     ])
                                     ->columns(4),
-                                Section::make('Contatti & Origine')
+                                Section::make('Contatti')
                                     ->schema([
                                         TextInput::make('email')->email()->label('Email'),
                                         TextInput::make('phone')->label('Telefono')->tel(),
+                                        TextInput::make('website')->label('Sito web')->maxLength(50),
                                     ])
-                                    ->columns(2),
+                                    ->columns(3),
                                 Section::make('Dati Anagrafici')
                                     ->schema([
                                         DatePicker::make('birth_date')->label('Data di nascita')
@@ -153,6 +156,7 @@ class ClientForm
                                                 fn (Builder $query) => $query->where('is_person', true),
                                             )
                                             ->searchable()
+                                            ->preload()
                                             ->visible(fn (Get $get, $livewire): bool => ! $get('is_person') && self::showsSection(FinancingSection::ClienteDatiSocietari, $livewire)),
                                     ])
                                     ->columns(4),
@@ -186,7 +190,10 @@ class ClientForm
                                             ->maxLength(34)
                                             ->dehydrateStateUsing(fn (?string $state): ?string => filled($state)
                                                 ? strtoupper(str_replace(' ', '', $state))
-                                                : null),
+                                                : null)
+                                            ->suffixActions([
+                                                self::openApiAction(),
+                                            ]),
                                         Select::make('employment_typology')
                                             ->label('Tipologia')
                                             ->options(fn (): array => TipoprodottoSub::query()
@@ -242,15 +249,39 @@ class ClientForm
                                             ->visible(fn (Get $get, $livewire): bool => (bool) $get('is_person') && self::showsSection(FinancingSection::ClienteQuotaCedibile, $livewire)),
                                     ])
                                     ->columns(4),
+                                Section::make('Mandati Cliente')
+                                    ->description('Massimo 3 mandati per cliente')
+                                    ->collapsed()
+                                    ->collapsible()
+                                    ->schema([
+                                        Livewire::make(
+                                            ClientMandatesRelationManager::class,
+                                            fn (?Client $record): array => [
+                                                'ownerRecord' => $record,
+                                                'pageClass' => EditClient::class,
+                                            ],
+                                        )
+                                            ->key(fn (?Client $record): string => 'client-mandates-'.($record?->getKey() ?? 'new'))
+                                            ->visible(fn (?Client $record): bool => $record !== null)
+                                            ->lazy()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->visible(fn (?Client $record): bool => $record !== null),
                             ]),
-                        // --- TAB 2: COMPLIANCE & PRIVACY ---
-                        Tab::make('Compliance AML')
+                        // --- TAB 2: KYC / AML ---
+                        Tab::make('KYC / AML')
                             ->icon('heroicon-o-shield-check')
                             ->schema([
                                 Section::make('Valutazione Rischio (AML)')
                                     ->key('valutazioneAml')
                                     ->description('Indicatori di rischio e posizioni critiche')
                                     ->headerActions([
+                                        Action::make('kyc')
+                                            ->label('KYC (adeguata verifica)')
+                                            ->icon('heroicon-m-shield-check')
+                                            ->color('warning')
+                                            ->visible(fn (?Client $record): bool => $record !== null)
+                                            ->url('#kyc-adeguata-verifica'),
                                         Action::make('verificaPep')
                                             ->label('Verifica PEP')
                                             ->icon('heroicon-m-shield-exclamation')
@@ -313,29 +344,118 @@ class ClientForm
                                             ->readOnly(),
                                     ])
                                     ->columns(3),
+                                Section::make('KYC (adeguata verifica)')
+                                    ->description('Questionari di adeguata verifica del cliente')
+                                    ->extraAttributes(['id' => 'kyc-adeguata-verifica'])
+                                    ->schema([
+                                        Text::make(function (?Client $record): string {
+                                            if ($record === null) {
+                                                return 'Salva il cliente per gestire le compilazioni KYC.';
+                                            }
+
+                                            $coverage = $record->kycCoverage();
+                                            $current = $record->currentKyc();
+
+                                            if ($coverage === KycCoverage::Missing || $current === null) {
+                                                return 'Copertura KYC: '.$coverage->getLabel().'.';
+                                            }
+
+                                            $verified = $current->verified_at?->format('d/m/Y H:i');
+                                            $by = $current->verified_by;
+
+                                            return collect([
+                                                'Copertura KYC: '.$coverage->getLabel(),
+                                                $verified !== null ? "Verificato il {$verified}" : null,
+                                                filled($by) ? "da {$by}" : null,
+                                            ])->filter()->implode(' · ');
+                                        }),
+                                        Livewire::make(
+                                            KycQuestionnairesRelationManager::class,
+                                            fn (?Client $record): array => [
+                                                'ownerRecord' => $record,
+                                                'pageClass' => EditClient::class,
+                                            ],
+                                        )
+                                            ->key(fn (?Client $record): string => 'kyc-questionnaires-'.($record?->getKey() ?? 'new'))
+                                            ->visible(fn (?Client $record): bool => $record !== null)
+                                            ->lazy()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->visible(fn (?Client $record): bool => $record !== null),
                                 Section::make('Consensi Privacy')
                                     ->schema([
                                         DateTimePicker::make('general_consent_at')->label('Consenso Base'),
+                                        DateTimePicker::make('privacy_policy_read_at')->label('Informativa letta'),
+                                        DateTimePicker::make('consent_special_categories_at')->label('Categorie particolari'),
                                         DateTimePicker::make('consent_marketing_at')->label('Marketing'),
                                         DateTimePicker::make('consent_profiling_at')->label('Profilazione'),
                                         DateTimePicker::make('consent_sic_at')->label('Consenso SIC (CRIF)'),
+                                        Toggle::make('privacy_consent')->label('Consenso privacy attivo'),
+                                    ])
+                                    ->columns(3),
+                                Section::make('Fornitore / soggetto privacy')
+                                    ->description('Campi per fornitori e consulenti soggetti a obblighi privacy')
+                                    ->schema([
+                                        TextInput::make('privacy_contact_email')
+                                            ->label('Email referente privacy')
+                                            ->email()
+                                            ->maxLength(255),
+                                        TextInput::make('dpo_email')
+                                            ->label('Email DPO')
+                                            ->email()
+                                            ->maxLength(255),
+                                        Toggle::make('is_consultant_gdpr')->label('Consulente GDPR'),
+                                        Toggle::make('is_iso27001_certified')->label('Certificato ISO 27001'),
                                         Textarea::make('subfornitori')
                                             ->label('Subfornitori che trattano dati personali per conto del cliente')
                                             ->rows(3)
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(2),
-                                Section::make('Amministrazione / Stato')
+                                    ->columns(2)
+                                    ->visible(fn (Get $get): bool => (bool) $get('is_company')),
+                            ]),
+                        // --- TAB 3: ELEMENTI NON PRIMARI / LEAD ---
+                        Tab::make('Altro')
+                            ->icon('heroicon-o-ellipsis-horizontal-circle')
+                            ->schema([
+                                Section::make('Tipologia e Lead')
+                                    ->description('Classificazione e origine commerciale del cliente')
                                     ->schema([
-                                        Grid::make(3)->schema([
-                                            Toggle::make('is_anonymous')->label('Anagrafica di comodo non reale'),
-                                            Toggle::make('is_lead')->label('È un Lead'),
-                                            Select::make('leadsource_id')
-                                                ->relationship('leadSource', 'name')
-                                                ->label('Sorgente Lead')
-                                                ->searchable(),
-                                        ]),
-                                    ]),
+                                        Select::make('client_type_id')
+                                            ->label('Tipologia')
+                                            ->relationship('clientType', 'name')
+                                            ->searchable()
+                                            ->preload(),
+                                        Toggle::make('is_company')
+                                            ->label('Fornitore / consulente (soggetto privacy)')
+                                            ->helperText('Abilita i campi privacy fornitore (subfornitori, DPO, ISO 27001)')
+                                            ->live(),
+                                        Toggle::make('is_lead')
+                                            ->label('È un Lead')
+                                            ->live(),
+                                        Select::make('leadsource_id')
+                                            ->relationship('leadsource', 'name')
+                                            ->label('Sorgente Lead')
+                                            ->searchable()
+                                            ->preload()
+                                            ->visible(fn (Get $get): bool => (bool) $get('is_lead')),
+                                        DateTimePicker::make('acquired_at')
+                                            ->label('Acquisito il')
+                                            ->visible(fn (Get $get): bool => (bool) $get('is_lead')),
+                                    ])
+                                    ->columns(3),
+                                Section::make('Amministrazione')
+                                    ->schema([
+                                        Toggle::make('is_client')->label('È un cliente'),
+                                        Toggle::make('is_anonymous')->label('Anagrafica di comodo non reale'),
+                                        Toggle::make('is_requiredApprovation')->label('Richiede approvazione'),
+                                        Toggle::make('is_dummy')->label('Anagrafica fittizia / dummy'),
+                                        TextInput::make('contoCOGE')->label('Conto COGE')->maxLength(255),
+                                        TextInput::make('vat_number')
+                                            ->label('P.IVA (se distinta dal codice fiscale)')
+                                            ->maxLength(20),
+                                    ])
+                                    ->columns(3),
                             ]),
                         Tab::make('Benestare datore')
                             ->icon('heroicon-o-clipboard-document-check')
@@ -376,6 +496,7 @@ class ClientForm
 
     /**
      * Lente Openapi per le societa': dati societari nel form e soci importati come Client legati in client_relations.
+     * Esposta dopo l'IBAN nella sezione bancaria.
      */
     private static function openApiAction(): Action
     {
