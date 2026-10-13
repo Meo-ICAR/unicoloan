@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Unico\Core\Models\Pratica as CorePratica;
 use Unico\Core\Models\PraticaStato as CorePraticaStato;
 use Unico\Core\Models\TipoProdotto as CoreTipoProdotto;
+use Unico\Core\Models\TipoProdottoSub;
 
 /**
  * Pratica di finanziamento. Tabella `pratiches` su unico-core.
@@ -33,6 +34,10 @@ class Pratica extends CorePratica
 
     /** @var array{creating: bool, from: ?string, dirty: bool} */
     private array $statusLogContext = ['creating' => false, 'from' => null, 'dirty' => false];
+
+    private bool $employmentDocumentGroupResolved = false;
+
+    private ?string $employmentDocumentGroup = null;
 
     protected function isGuardableColumn($key): bool
     {
@@ -213,6 +218,42 @@ class Pratica extends CorePratica
         }
 
         return Client::query()->where('tax_code', $code)->orWhere('vat_number', $code)->first();
+    }
+
+    /**
+     * Gruppo documentale della cessione, ricavato dalla tipologia lavorativa del cliente.
+     */
+    public function getEmploymentDocumentGroupAttribute(): ?string
+    {
+        if ($this->employmentDocumentGroupResolved) {
+            return $this->employmentDocumentGroup;
+        }
+
+        $this->employmentDocumentGroupResolved = true;
+
+        return $this->employmentDocumentGroup = $this->resolveEmploymentDocumentGroup();
+    }
+
+    private function resolveEmploymentDocumentGroup(): ?string
+    {
+        $typology = trim((string) ($this->clienteAnagrafica()?->employment_typology ?? ''));
+
+        if ($typology === '') {
+            return null;
+        }
+
+        $group = TipoProdottoSub::query()
+            ->where('name', $typology)
+            ->whereHas('tipoprodotto', function ($query): void {
+                $query->where('tipo_prodotto', 'Cessione');
+            })
+            ->value('employment_document_group');
+
+        if ($group instanceof \BackedEnum) {
+            return $group->value;
+        }
+
+        return is_string($group) ? $group : null;
     }
 
     public function kycQuestionnaires(): HasMany

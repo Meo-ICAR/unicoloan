@@ -2,50 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Unico\Core\Models\TipoProdottoSub as CoreTipoProdottoSub;
 
-class TipoprodottoSub extends Model
+class TipoprodottoSub extends CoreTipoProdottoSub
 {
-    // Specifichiamo il nome della tabella reale
-    protected $connection = 'mysql_proforma';
-
-    protected $table = 'proforma.tipoprodotto_sub';
-
-    /**
-     * I campi che possono essere assegnati massivamente.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'tipoprodotto_id',
-        'name',
-        'code',
-        'is_active',
-        'vincoli',
-    ];
-
-    /**
-     * I cast nativi per i tipi di dato.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-
-        'is_active' => 'boolean',
-    ];
-
-    /**
-     * Ottiene il prodotto finanziario principale a cui appartiene questo sottoprodotto.
-     * Relazione Molti a 1.
-     */
-    public function tipoProdotto(): BelongsTo
-    {
-        return $this->belongsTo(Tipoprodotto::class, 'tipoprodotto_id');
-    }
-
     /**
      * Ottiene i sottoprodotti associati a questo prodotto finanziario.
      * Relazione 1 a Molti.

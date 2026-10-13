@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Clients\Schemas;
 
+use App\Enums\EmploymentRelationship;
 use App\Models\Client;
+use App\Models\TipoprodottoSub;
 use App\Services\AmlScreeningService;
 use App\Services\CervedService;
 use App\Services\CodiceFiscaleDecoder;
@@ -129,12 +131,8 @@ class ClientForm
                                     ->schema([
                                         TextInput::make('email')->email()->label('Email'),
                                         TextInput::make('phone')->label('Telefono')->tel(),
-                                        Select::make('client_type_id')
-                                            ->label('Tipologia')
-                                            ->relationship('clientType', 'name')
-                                            ->searchable(),
                                     ])
-                                    ->columns(3),
+                                    ->columns(2),
                                 Section::make('Dati Anagrafici')
                                     ->schema([
                                         DatePicker::make('birth_date')->label('Data di nascita'),
@@ -183,6 +181,37 @@ class ClientForm
                                             ->dehydrateStateUsing(fn (?string $state): ?string => filled($state)
                                                 ? strtoupper(str_replace(' ', '', $state))
                                                 : null),
+                                        Select::make('employment_typology')
+                                            ->label('Tipologia')
+                                            ->options(fn (): array => TipoprodottoSub::query()
+                                                ->whereHas(
+                                                    'tipoprodotto',
+                                                    fn (Builder $query): Builder => $query->where('tipo_prodotto', 'Cessione'),
+                                                )
+                                                ->distinct()
+                                                ->orderBy('name')
+                                                ->pluck('name', 'name')
+                                                ->all())
+                                            ->searchable()
+                                            ->live()
+                                            ->afterStateUpdated(function (?string $state, Set $set): void {
+                                                if (self::isRetiredEmploymentTypology($state)) {
+                                                    $set('hiring_date', null);
+                                                }
+                                            }),
+                                        DatePicker::make('hiring_date')
+                                            ->label('Data di assunzione')
+                                            ->visible(fn (Get $get): bool => (bool) $get('is_person')
+                                                && filled($get('employment_typology'))
+                                                && ! self::isRetiredEmploymentTypology($get('employment_typology')))
+                                            ->required(fn (Get $get): bool => (bool) $get('is_person')
+                                                && filled($get('employment_typology'))
+                                                && ! self::isRetiredEmploymentTypology($get('employment_typology')))
+                                            ->dehydrateStateUsing(fn (mixed $state, Get $get): mixed => (bool) $get('is_person')
+                                                && filled($get('employment_typology'))
+                                                && ! self::isRetiredEmploymentTypology($get('employment_typology'))
+                                                    ? $state
+                                                    : null),
                                         Select::make('employer_id')
                                             ->label('Datore di lavoro')
                                             ->relationship(
@@ -194,7 +223,7 @@ class ClientForm
                                             ->preload()
                                             ->visible(fn (Get $get) => (bool) $get('is_person')),
                                     ])
-                                    ->columns(2),
+                                    ->columns(4),
                             ]),
                         // --- TAB 2: COMPLIANCE & PRIVACY ---
                         Tab::make('Compliance AML')
@@ -290,9 +319,33 @@ class ClientForm
                                         ]),
                                     ]),
                             ]),
+                        Tab::make('Benestare datore')
+                            ->icon('heroicon-o-clipboard-document-check')
+                            ->visible(fn (Get $get): bool => ! $get('is_person'))
+                            ->schema([
+                                Textarea::make('richiesta_benestare')
+                                    ->label('Richiesta di benestare')
+                                    ->rows(4)
+                                    ->columnSpanFull(),
+                                Textarea::make('ritiro_benestare')
+                                    ->label('Ritiro del benestare')
+                                    ->rows(4)
+                                    ->columnSpanFull(),
+                                Textarea::make('notifica')
+                                    ->label('Notifica al datore')
+                                    ->rows(4)
+                                    ->columnSpanFull(),
+                            ]),
                     ])
                     ->columnSpanFull(),
             ]);
+    }
+
+    private static function isRetiredEmploymentTypology(mixed $typology): bool
+    {
+        return collect(EmploymentRelationship::cases())
+            ->filter(fn (EmploymentRelationship $relationship): bool => $relationship->isRetiree())
+            ->contains(fn (EmploymentRelationship $relationship): bool => $relationship->getLabel() === $typology);
     }
 
     /**
