@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Unico\Core\Enums\DocumentStatus;
 use App\Events\TaskActivated;
-use App\Models\Pratica;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Pivot;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 /*
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 */
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\Model;
+use Unico\Core\Enums\DocumentStatus;
 use Unico\Core\Models\Task as CoreTask;
 
 class Task extends CoreTask implements HasMedia
@@ -64,12 +64,12 @@ class Task extends CoreTask implements HasMedia
     /**
      * I tipi di documento associati a questo Task
      */
-    public function documentTypes()
+    public function documentTypes(): BelongsToMany
     {
         return $this
-            ->belongsToMany(DocumentType::class, 'document_requirements')
+            ->belongsToMany(DocumentType::class, 'document_requirements', 'task_id', 'document_type_id')
             ->using(TaskDocumentType::class)  // <-- Usa il nuovo modello Pivot
-            ->withPivot('is_required')
+            ->withPivot('is_required', 'phase')
             ->withTimestamps();
     }
 
@@ -88,15 +88,14 @@ class Task extends CoreTask implements HasMedia
         // Clicliamo sui documentTypes già caricati in memoria
         foreach ($this->documentTypes as $documentType) {
             // 1. Estraiamo SOLO i campi del template che la tabella 'documents' è in grado di accogliere
-            $templateData = collect($documentType->toArray())
-                ->only([
-                    'name',
-                    'description',
-                    'emitted_by',
-                    'is_template',
-                    'is_monitored',
-                    'doctype',
-                ])
+            $templateData = collect($documentType->only([
+                'name',
+                'description',
+                'emitted_by',
+                'is_template',
+                'is_monitored',
+                'doctype',
+            ]))
                 ->toArray();
             // ** check trigger fields */
             if ($is_debug) {
@@ -166,7 +165,7 @@ class Task extends CoreTask implements HasMedia
      *
      * @return array{created: int, existing: int}
      */
-    public function generateDocumentsFor(Model $owner): array
+    public function generateDocumentsFor(Model $owner, ?int $companyId = null, bool $debug = false): array
     {
         $created = 0;
         $existing = 0;
@@ -186,7 +185,7 @@ class Task extends CoreTask implements HasMedia
                     // I proprietari letti da Proforma hanno un company_id UUID di quel database: non è un'azienda del pacchetto.
                     'company_id' => is_numeric($owner->company_id ?? null)
                         ? (int) $owner->company_id
-                        : \App\Models\Company::query()->value('id'),
+                        : Company::query()->value('id'),
                 ],
             ));
             $created++;

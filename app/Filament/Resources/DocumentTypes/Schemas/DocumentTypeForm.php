@@ -2,16 +2,20 @@
 
 namespace App\Filament\Resources\DocumentTypes\Schemas;
 
-use App\Filament\Utils\FormHelper; // Importi il tuo helper
+use App\Models\DocumentType;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Unico\Core\Documents\Api\DocumentApiService;
+use Unico\Core\Documents\DocumentTypeConsistency;
 
 class DocumentTypeForm
 {
@@ -19,8 +23,13 @@ class DocumentTypeForm
     {
         return $schema
             ->components([
-                Section::make('Regole di Attivazione Dinamica')
-                    ->description('Configura le condizioni per cui questo task deve attivarsi in base ai dati del record.')
+                Placeholder::make('coerenza')
+                    ->label('Controllo di coerenza')
+                    ->content(fn (?DocumentType $record): HtmlString => new HtmlString(collect(app(DocumentTypeConsistency::class)->problemsOf($record, app(DocumentApiService::class)->services()))->map(fn (string $problem): string => '⚠️ '.e($problem))->implode('<br>')))
+                    ->visible(fn (?DocumentType $record): bool => $record !== null && app(DocumentTypeConsistency::class)->problemsOf($record, app(DocumentApiService::class)->services()) !== [])
+                    ->columnSpanFull(),
+                Section::make('Documento')
+                    ->description('Nome e categoria. A chi va il documento lo decide il plico (task) in cui è richiesto.')
                     ->schema([
                         TextInput::make('name')
                             ->label('Nome Documento')
@@ -41,77 +50,79 @@ class DocumentTypeForm
                                 'OAM' => 'Trasp.OAM',
                                 'comunicazione' => 'Comunicazione',
                             ]),
-                        //   FormHelper::polymorphicSelect(name: 'document_typable', label: 'Collegata a (Entità)'),
-
-                        Select::make('document_typable')
-                            ->label('Modello destinatario')
-                            ->options([
-                                'audit' => 'Audit',
-                                'branch' => 'Branch',
-                                'cliente' => 'Cliente',
-                                'company' => 'Company',
-                                'complaint' => 'Complaint',
-                                'document' => 'Document',
-                                'employee' => 'Employee',
-                                'fornitore' => 'Fornitore',
-                                'website' => 'Website',
-                            ])
-                            ->searchable()
-                            ->placeholder('Seleziona modello'),
 
                     ]),
-                Section::make('File Allegato')
-                    ->components([
+                Section::make('Come si ottiene')
+                    ->columnSpanFull()
+                    ->columns(['default' => 1, 'md' => 2, 'xl' => 4])
+                    ->schema([
+                        Select::make('source')
+                            ->label('Fonte')
+                            ->options(DocumentType::SOURCES)
+                            ->default(DocumentType::SOURCE_CLIENTE)
+                            ->required()
+                            ->live(),
+                        Select::make('api_service')
+                            ->label('Servizio API')
+                            ->options(fn (): array => app(DocumentApiService::class)->services())
+                            ->visible(fn (Get $get): bool => $get('source') === DocumentType::SOURCE_API)
+                            ->required(fn (Get $get): bool => $get('source') === DocumentType::SOURCE_API)
+                            ->helperText('Nei documenti di questo tipo compare «Richiedi via API». Alcuni servizi sono a pagamento.'),
+                        Placeholder::make('modulo_pdf')
+                            ->label('Modulo di stampa')
+                            ->content(fn (?DocumentType $record): string => $record?->pdfModule?->name ?? 'Nessun modulo PDF: va caricato in Moduli PDF con i campi collegati ai nostri dati.')
+                            ->visible(fn (Get $get): bool => $get('source') === DocumentType::SOURCE_STAMPA),
                         TextInput::make('document_url')
-                            ->label('URL documento'),
-                        // ->url(fn($record) => $record->document_url ? (str_starts_with($record->document_url, 'http') ? $record->document_url : "https://{$record->document_url}") : null),
-                        TextInput::make('pdf_module_name')
-                            ->label('Modulo PDF compilabile collegato')
-                            ->helperText('Si imposta dalla scheda del modulo in Moduli PDF.')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->visible(fn ($get) => $get('nature') === 'template_fillable')
-                            ->afterStateHydrated(fn ($component, $record) => $component->state($record?->pdfModule?->name ?? 'Nessuno')),
+                            ->label('URL del template')
+                            ->visible(fn (Get $get): bool => $get('source') === DocumentType::SOURCE_TEMPLATE),
                         SpatieMediaLibraryFileUpload::make('attachments')
-                            ->label('Carica file (PDF, immagini, Word)')
+                            ->label('File del template (PDF, immagini, Word)')
                             ->multiple()
                             ->collection('documents')
                             ->disk('public')
                             ->acceptedFileTypes(['application/pdf', 'image/*', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                             ->maxSize(20480)
+                            ->visible(fn (Get $get): bool => $get('source') === DocumentType::SOURCE_TEMPLATE)
                             ->columnSpanFull(),
                     ]),
-                // TAB 2: DESTINATARI E FLUSSO
-                Section::make('Soggetti Interessati')
-                    ->description('Indica a quali entità o ruoli si applica questo documento')
-                    ->columns(6)
+                Section::make('Ambito, firma e approvazione')
+                    ->columnSpanFull()
+                    ->columns(['default' => 1, 'md' => 2, 'xl' => 4])
                     ->schema([
-                        Toggle::make('is_person')->label('Persona')->default(true)->inline(false),
-                        Toggle::make('is_company')->label('Azienda')->default(false)->inline(false),
-                        Toggle::make('is_employee')->label('Dipendente')->default(false)->inline(false),
-                        Toggle::make('is_agent')->label('Agente')->default(false)->inline(false),
-                        Toggle::make('is_principal')->label('Mandante')->default(false)->inline(false),
-                        Toggle::make('is_client')->label('Cliente')->default(false)->inline(false),
-                        Toggle::make('is_practice')->label('Legato a Pratica')->default(false)->inline(false),
-                        Select::make('nature')
-                            ->label('Tipologia invio')
-                            ->options([
-                                'incoming' => 'Ricevuto',
-                                'template_fillable' => 'Compilazione ns. Template',
-                                'outgoing' => 'Inviato',
-                                //  'compliance' => 'Compliance',
-                            ])
-                            ->default('incoming'),
-                        Toggle::make('is_signed')->label('Check sia Firmato')->inline(false),
-                        Toggle::make('is_sensible')->label('Contiene Dati Sensibili')->inline(false),
+                        Select::make('client_scope')
+                            ->label('Cliente')
+                            ->options(DocumentType::CLIENT_SCOPES)
+                            ->placeholder('Entrambi')
+                            ->helperText('Per i documenti di clienti e pratiche: persona fisica o giuridica.'),
+                        Select::make('clienti_id')
+                            ->label('Solo per l\'istituto')
+                            ->relationship('clienti', 'name')
+                            ->searchable()
+                            ->placeholder('Tutti gli istituti'),
+                        Toggle::make('is_company')
+                            ->label('Documento aziendale interno')
+                            ->helperText('Organigramma, verbali CdA: fuori da pratiche, agenti e mandanti.')
+                            ->inline(false),
+                        Toggle::make('is_sensible')->label('Contiene dati sensibili')->inline(false),
+                        Toggle::make('is_signed')->label('Da firmare')->live()->inline(false),
+                        Select::make('signer_model')
+                            ->label('Chi firma')
+                            ->options(self::modelli())
+                            ->default('client')
+                            ->helperText('Di default il cliente; il plico (task) può indicarne un altro.')
+                            ->visible(fn (Get $get): bool => (bool) $get('is_signed')),
+                        Select::make('approver_model')
+                            ->label('Approvazione con firma di')
+                            ->options(self::modelli())
+                            ->placeholder('Nessuna approvazione')
+                            ->visible(fn (Get $get): bool => (bool) $get('is_signed')),
                         TextInput::make('slug')
                             ->label('Codice documento ')
                             ->required()
                             ->maxLength(255)
-                            ->columnSpan(2)
                             ->disabled()
                             ->unique(ignoreRecord: true),
-                    ])->columnSpanFull(),
+                    ]),
                 Section::make('Caratteristiche scadenza e rinnovo')
                     ->columnSpanFull()
                     ->columns(5)
@@ -137,7 +148,7 @@ class DocumentTypeForm
                             ])
                             ->default('days')
                             ->visible(fn ($get) => $get('is_monitored')),
-                        Toggle::make('is_endMonth')
+                        Toggle::make('is_end_month')
                             ->label('Approssima a Fine Mese')
                             ->visible(fn ($get) => $get('is_monitored')),
                         Select::make('renewed_by_id')
@@ -148,5 +159,17 @@ class DocumentTypeForm
                             ->placeholder('Seleziona tipo...'),
                     ]),
             ]);
+    }
+
+    /** @return array<string, string> chi può firmare o approvare: alias del morph map */
+    private static function modelli(): array
+    {
+        return [
+            'client' => 'Cliente',
+            'fornitore' => 'Agente / produttore',
+            'employee' => 'Dipendente',
+            'company' => 'Azienda',
+            'cliente' => 'Mandante / istituto',
+        ];
     }
 }

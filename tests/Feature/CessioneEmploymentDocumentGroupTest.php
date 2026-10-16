@@ -49,7 +49,8 @@ class CessioneEmploymentDocumentGroupTest extends TestCase
             'Codice fiscale / Tessera sanitaria',
             'Patente di Guida',
             'Cedolino Pensione',
-            'Certificazione Unica (CU) ultimo anno',
+            'Certificazione Unica (CU) in corso',
+            'Certificazione Unica (CU) corrente',
             'Comunicazione Quota Cedibile INPS',
             'Estratto Conto INPS',
             'Modello OBISM',
@@ -61,12 +62,15 @@ class CessioneEmploymentDocumentGroupTest extends TestCase
             'Carta di Identità',
             'Codice fiscale / Tessera sanitaria',
             'Patente di Guida',
-            'Busta paga ultimo anno',
-            'Busta paga anno precedente',
-            'Certificazione Unica (CU) ultimo anno',
+            'Busta paga in corso',
+            'Busta paga corrente',
+            'Busta paga precedente',
+            'Certificazione Unica (CU) in corso',
+            'Certificazione Unica (CU) corrente',
             'Contratto di lavoro',
-            'Modello 730 / Redditi ultimo anno',
-            'Modello 730 / Redditi anno precedente',
+            'Modello 730 / Redditi in corso',
+            'Modello 730 / Redditi corrente',
+            'Modello 730 / Redditi precedente',
             'Estratto conto bancario',
             'Polizza Rischio Vita',
             'Polizza Rischio Impiego / Perdit Lavoro',
@@ -76,9 +80,11 @@ class CessioneEmploymentDocumentGroupTest extends TestCase
             'Carta di Identità',
             'Codice fiscale / Tessera sanitaria',
             'Patente di Guida',
-            'Busta paga ultimo anno',
-            'Busta paga anno precedente',
-            'Certificazione Unica (CU) ultimo anno',
+            'Busta paga in corso',
+            'Busta paga corrente',
+            'Busta paga precedente',
+            'Certificazione Unica (CU) in corso',
+            'Certificazione Unica (CU) corrente',
             'Certificato di stipendio e quota cedibile',
             'Delega richiesta allegati statali',
             'Polizza Rischio Vita',
@@ -89,9 +95,11 @@ class CessioneEmploymentDocumentGroupTest extends TestCase
             'Carta di Identità',
             'Codice fiscale / Tessera sanitaria',
             'Patente di Guida',
-            'Busta paga ultimo anno',
-            'Busta paga anno precedente',
-            'Certificazione Unica (CU) ultimo anno',
+            'Busta paga in corso',
+            'Busta paga corrente',
+            'Busta paga precedente',
+            'Certificazione Unica (CU) in corso',
+            'Certificazione Unica (CU) corrente',
             'Certificato di stipendio e quota cedibile',
             'Contratto di lavoro',
             'Polizza Rischio Vita',
@@ -143,14 +151,16 @@ class CessioneEmploymentDocumentGroupTest extends TestCase
         $historical = DocumentType::query()->create([
             'name' => 'Convenzione COMPASS 2025',
             'slug' => 'convenzione-compass-2025',
-            'nature' => 'incoming',
         ]);
 
         $this->seed(PlichiCessioneGruppoSeeder::class);
 
-        $this->assertModelExists(DocumentType::query()->where('name', 'Busta paga ultimo anno')->where('phase', 'istruttoria')->sole());
+        $this->assertModelExists(DocumentType::query()->where('name', 'Busta paga corrente')->sole());
+        $this->assertModelExists(DocumentType::query()->where('name', 'Busta paga in corso')->sole());
+        $this->assertModelExists(DocumentType::query()->where('name', 'Busta paga precedente')->sole());
         $this->assertModelExists(DocumentType::query()->where('name', 'Richiesta Conteggio Estintivo banca')->sole());
         $this->assertSame(0, DocumentType::query()->where('name', 'Busta paga 2025')->count());
+        $this->assertSame(0, DocumentType::query()->where('name', 'Busta paga 2026')->count());
         $this->assertSame(0, DocumentType::query()->where('name', 'Richiesta Conteggio Estintivo COMPASS')->count());
 
         $historical->refresh();
@@ -162,30 +172,29 @@ class CessioneEmploymentDocumentGroupTest extends TestCase
         $payslip = DocumentType::query()->create([
             'name' => 'Busta paga ultimo anno',
             'slug' => 'busta-paga-ultimo-anno',
-            'nature' => 'incoming',
-            'phase' => 'istruttoria',
         ]);
         $rawPayslip = DocumentType::query()->create([
             'name' => 'Busta paga 2025',
             'slug' => 'busta-paga-2025',
-            'nature' => 'incoming',
         ]);
         $fascicolo = DocumentType::query()->create([
             'name' => 'Races VERS. 03_2026 - Fascicolo completo retail CQ compilabile',
             'slug' => 'fascicolo-completo-retail-cq',
-            'nature' => 'incoming',
         ]);
 
         $this->seed(PlichiCessioneGruppoSeeder::class);
 
-        $this->assertSame(1, DocumentType::query()->where('name', 'Busta paga ultimo anno')->count());
-        $this->assertTrue($payslip->is(DocumentType::query()->where('name', 'Busta paga ultimo anno')->sole()));
+        $this->assertSame(0, DocumentType::query()->where('name', 'Busta paga ultimo anno')->count());
+        $this->assertSame(1, DocumentType::query()->where('name', 'Busta paga corrente')->count());
+        $payslip->refresh();
+        $this->assertSame('Busta paga corrente', $payslip->name);
+        $this->assertTrue($payslip->is(DocumentType::query()->where('name', 'Busta paga corrente')->sole()));
         $rawPayslip->refresh();
         $this->assertSame('Busta paga 2025', $rawPayslip->name);
 
         $fascicolo->refresh();
         $this->assertSame('Races VERS. 03_2026 - Fascicolo completo retail CQ compilabile', $fascicolo->name);
-        $this->assertSame('invio_banca', $fascicolo->phase);
+        $this->assertSame('invio_banca', Task::query()->where('name', 'Cessione · privati')->firstOrFail()->documentTypes->firstWhere('id', $fascicolo->id)->pivot->phase);
         $this->assertSame(1, DocumentType::query()->where('name', 'like', '%Fascicolo completo retail CQ%')->count());
         $this->assertTrue(
             Task::query()->where('name', 'Cessione · privati')->firstOrFail()->documentTypes->contains($fascicolo),
@@ -215,7 +224,7 @@ class CessioneEmploymentDocumentGroupTest extends TestCase
 
             $this->assertSame([...$istruttoria, ...self::INVIO_BANCA], $names);
 
-            $phases = $task->documentTypes->mapWithKeys(fn (DocumentType $type): array => [$type->name => $type->phase])->all();
+            $phases = $task->documentTypes->mapWithKeys(fn (DocumentType $type): array => [$type->name => $type->pivot->phase])->all();
 
             foreach ($istruttoria as $name) {
                 $this->assertSame('istruttoria', $phases[$name]);

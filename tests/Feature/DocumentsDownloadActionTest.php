@@ -3,11 +3,11 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Clients\Pages\EditClient;
-use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Models\Client;
 use App\Models\Document;
 use App\Models\DocumentType;
 use App\Models\PdfModule;
+use App\Models\Task;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
+use Unico\Core\Filament\RelationManagers\DocumentsRelationManager;
 
 class DocumentsDownloadActionTest extends TestCase
 {
@@ -37,7 +38,7 @@ class DocumentsDownloadActionTest extends TestCase
 
     private function document(array $type = [], bool $withModule = false, bool $withFile = false): Document
     {
-        $type = DocumentType::query()->create(array_merge([
+        $type = $this->type(array_merge([
             'name' => 'Tipo',
             'slug' => 'tipo-'.Str::random(6),
             'nature' => 'incoming',
@@ -62,6 +63,25 @@ class DocumentsDownloadActionTest extends TestCase
         return $document->fresh();
     }
 
+    /**
+     * Crea il tipo documento; `is_client` / `is_practice` dicono a quale plico appartiene (task del cliente o della pratica).
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    private function type(array $attributes): DocumentType
+    {
+        $type = DocumentType::query()->create($attributes);
+
+        foreach (['is_client' => 'client', 'is_practice' => 'pratica'] as $flag => $taskable) {
+            if (! empty($attributes[$flag])) {
+                $task = Task::query()->firstOrCreate(['name' => 'Plico '.$taskable], ['taskable' => $taskable, 'is_active' => true]);
+                $task->documentRequirements()->create(['document_type_id' => $type->getKey()]);
+            }
+        }
+
+        return $type;
+    }
+
     private function manager(): Testable
     {
         return Livewire::test(DocumentsRelationManager::class, ['ownerRecord' => $this->client, 'pageClass' => EditClient::class]);
@@ -83,8 +103,8 @@ class DocumentsDownloadActionTest extends TestCase
 
     public function test_new_document_offers_only_the_types_enabled_for_the_owner_model(): void
     {
-        $forClient = DocumentType::query()->create(['name' => 'Per cliente', 'slug' => 'c-'.Str::random(6), 'nature' => 'incoming', 'is_client' => true]);
-        $forPractice = DocumentType::query()->create(['name' => 'Per pratica', 'slug' => 'p-'.Str::random(6), 'nature' => 'incoming', 'is_practice' => true]);
+        $forClient = $this->type(['name' => 'Per cliente', 'slug' => 'c-'.Str::random(6), 'nature' => 'incoming', 'is_client' => true]);
+        $forPractice = $this->type(['name' => 'Per pratica', 'slug' => 'p-'.Str::random(6), 'nature' => 'incoming', 'is_practice' => true]);
 
         $this->manager()
             ->mountAction(TestAction::make('create')->table())
@@ -118,8 +138,8 @@ class DocumentsDownloadActionTest extends TestCase
 
     public function test_type_filter_lists_pertinent_and_already_used_types_only(): void
     {
-        $forClient = DocumentType::query()->create(['name' => 'Per cliente', 'slug' => 'c-'.Str::random(6), 'nature' => 'incoming', 'is_client' => true]);
-        $forPractice = DocumentType::query()->create(['name' => 'Per pratica', 'slug' => 'p-'.Str::random(6), 'nature' => 'incoming', 'is_practice' => true]);
+        $forClient = $this->type(['name' => 'Per cliente', 'slug' => 'c-'.Str::random(6), 'nature' => 'incoming', 'is_client' => true]);
+        $forPractice = $this->type(['name' => 'Per pratica', 'slug' => 'p-'.Str::random(6), 'nature' => 'incoming', 'is_practice' => true]);
         $used = $this->document()->documentType;
 
         $options = (fn () => $this->documentTypeOptions(includeUsed: true))->call($this->manager()->instance());
@@ -131,7 +151,7 @@ class DocumentsDownloadActionTest extends TestCase
 
     public function test_new_document_excludes_types_already_on_the_owner_but_keeps_the_edited_one(): void
     {
-        $free = DocumentType::query()->create(['name' => 'Libero', 'slug' => 'l-'.Str::random(6), 'nature' => 'incoming', 'is_client' => true]);
+        $free = $this->type(['name' => 'Libero', 'slug' => 'l-'.Str::random(6), 'nature' => 'incoming', 'is_client' => true]);
         $document = $this->document(['is_client' => true]);
         $manager = $this->manager()->instance();
 

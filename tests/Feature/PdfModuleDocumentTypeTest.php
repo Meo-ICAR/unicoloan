@@ -9,13 +9,13 @@ use App\Models\PdfModule;
 use App\Models\Pratica;
 use App\Models\User;
 use App\Services\PdfFieldSynchronizer;
-use Unico\Core\Pdf\PdfFormFiller;
 use App\Services\PraticaModuleGenerator;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
+use Unico\Core\Pdf\PdfFormFiller;
 
 class PdfModuleDocumentTypeTest extends TestCase
 {
@@ -80,7 +80,7 @@ class PdfModuleDocumentTypeTest extends TestCase
 
         $this->assertTrue($type->is($again));
         $this->assertSame($type->id, $module->fresh()->document_type_id);
-        $this->assertSame('template_fillable', $type->nature);
+        $this->assertSame('stampa', $type->source);
         $this->assertSame('modulo', $type->doctype);
         $this->assertTrue($type->is_template);
         $this->assertSame('qav-persona-fisica', $type->slug);

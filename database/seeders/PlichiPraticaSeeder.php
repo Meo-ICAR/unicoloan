@@ -225,14 +225,10 @@ class PlichiPraticaSeeder extends Seeder
         foreach (self::NEW_TYPES as $name => $signed) {
             DocumentType::query()->firstOrCreate(['slug' => Str::slug($name)], [
                 'name' => $name,
-                'nature' => 'incoming',
+                'source' => 'cliente',
                 'is_signed' => $signed,
-                'is_client' => true,
-                'is_practice' => true,
             ]);
         }
 
-        DocumentType::query()->whereIn('name', ['Carta di Identità', 'Patente di Guida'])->update(['is_client' => true, 'is_practice' => true]);
-        DocumentType::query()->whereIn('name', ['Modulo AML', 'Modulo Privacy'])->update(['is_client' => true]);
     }
 }

@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
-use Unico\Core\Pdf\PdfFormFiller;
-use Unico\Core\Pdf\PdfFormException;
-
 use App\Models\DocumentType;
 use App\Models\PdfModule;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Unico\Core\Pdf\PdfFormException;
+use Unico\Core\Pdf\PdfFormFiller;
 
 /**
  * Allinea `pdf_modules` / `pdf_module_fields` ai PDF presenti in storage/app/public/module.
@@ -120,12 +119,9 @@ class PdfFieldSynchronizer
             ['slug' => Str::slug($module->name)],
             [
                 'name' => $module->name,
-                'nature' => 'template_fillable',
+                'source' => 'stampa',
                 'doctype' => 'modulo',
-                'is_template' => true,
-                'is_person' => true,
-                'is_company' => true,
-                'is_practice' => true,
+                'client_scope' => 'entrambi',
             ],
         );
 

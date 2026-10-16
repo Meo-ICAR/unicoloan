@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\DocumentTypes\Tables;
 
+use App\Models\DocumentType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -30,26 +31,17 @@ class DocumentTypesTable
                     ->label('Codice')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('document_typable')
-                    ->label('Modello')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                // Natura del documento (Flusso) con Badge dedicati
-                TextColumn::make('nature')
-                    ->label('Natura Flusso')
+                TextColumn::make('source')
+                    ->label('Come si ottiene')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'incoming' => 'info',
-                        'template_fillable' => 'warning',
-                        'compliance' => 'success',
+                    ->color(fn (?string $state): string => match ($state) {
+                        DocumentType::SOURCE_API => 'success',
+                        DocumentType::SOURCE_STAMPA => 'warning',
+                        DocumentType::SOURCE_TEMPLATE => 'info',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'incoming' => 'Da Ricevere',
-                        'template_fillable' => 'Modulo da Compilare',
-                        'compliance' => 'Compliance / Regolamento',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn (?string $state): string => DocumentType::SOURCES[$state] ?? (string) $state)
+                    ->placeholder('Da indicare')
                     ->sortable(),
                 // Integrazione Durata Leggibile (Ore, Giorni, Mesi, Anni)
                 TextColumn::make('duration')
@@ -71,38 +63,24 @@ class DocumentTypesTable
                     })
                     ->placeholder('Senza scadenza')
                     ->sortable(['duration']),
-                // Destinatari compattati in un'unica colonna dinamica (Evita 7 colonne booleane)
-                TextColumn::make('target')
-                    ->label('Applicabile a')
+                TextColumn::make('client_scope')
+                    ->label('Cliente')
                     ->badge()
                     ->color('gray')
-                    ->state(function ($record): array {
-                        $targets = [];
-                        if ($record->is_person) {
-                            $targets[] = 'Persona';
-                        }
-                        if ($record->is_company) {
-                            $targets[] = 'Azienda';
-                        }
-                        if ($record->is_employee) {
-                            $targets[] = 'Dipendente';
-                        }
-                        if ($record->is_agent) {
-                            $targets[] = 'Agente';
-                        }
-                        if ($record->is_principal) {
-                            $targets[] = 'Mandante';
-                        }
-                        if ($record->is_client) {
-                            $targets[] = 'Cliente';
-                        }
-                        if ($record->is_practice) {
-                            $targets[] = 'Pratica';
-                        }
-
-                        return $targets;
-                    })
-                    ->placeholder('Nessun target'),
+                    ->formatStateUsing(fn (?string $state): string => DocumentType::CLIENT_SCOPES[$state] ?? 'Entrambi')
+                    ->placeholder('Entrambi')
+                    ->toggleable(),
+                TextColumn::make('signer_model')
+                    ->label('Firma')
+                    ->badge()
+                    ->color('warning')
+                    ->formatStateUsing(fn (?string $state, $record): string => $state.($record->approver_model ? ' → '.$record->approver_model : ''))
+                    ->placeholder('—')
+                    ->toggleable(),
+                IconColumn::make('is_company')
+                    ->label('Interno')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 // Icone di stato rapide
                 IconColumn::make('is_monitored')
                     ->label('Monitorato')
@@ -126,20 +104,14 @@ class DocumentTypesTable
             // FILTRI DI RICERCA AVANZATI
             // ==========================================
             ->filters([
-                // Filtro per Natura/Flusso
-                SelectFilter::make('nature')
-                    ->label('Natura Flusso')
-                    ->options([
-                        'incoming' => 'Da Ricevere',
-                        'template_fillable' => 'Moduli da Compilare',
-                        'compliance' => 'Compliance / Regolamenti',
-                    ]),
-                // Filtro rapido per i target di riferimento
+                SelectFilter::make('source')
+                    ->label('Come si ottiene')
+                    ->options(DocumentType::SOURCES),
+                SelectFilter::make('client_scope')
+                    ->label('Cliente')
+                    ->options(DocumentType::CLIENT_SCOPES),
                 TernaryFilter::make('is_company')
-                    ->label('Target Azienda')
-                    ->placeholder('Tutti'),
-                TernaryFilter::make('is_employee')
-                    ->label('Target Dipendente')
+                    ->label('Documento aziendale interno')
                     ->placeholder('Tutti'),
                 // Filtro per capire se richiede firma obbligatoria
                 TernaryFilter::make('is_signed')
